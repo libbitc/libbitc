@@ -18,6 +18,8 @@
 #include <errno.h>
 #include <signal.h>
 #include <assert.h>
+#include <stdint.h>
+#include <argp.h>
 #include <openssl/rand.h>
 #include <event2/event.h>
 #include <ccoin/core.h>
@@ -29,7 +31,9 @@
 #include <ccoin/script.h>
 #include <ccoin/net.h>
 #include <ccoin/hashtab.h>
+#include <ccoin/logging.h>
 #include <ccoin/hexcode.h>
+#include <ccoin/logging.h>
 #include "peerman.h"
 #include "brd.h"
 
@@ -39,6 +43,7 @@
 #endif
 
 struct bp_hashtab *settings;
+struct bp_hashtab *st_settings;
 const struct chain_info *chain = NULL;
 bu256_t chain_genesis;
 uint64_t instance_nonce;
@@ -53,6 +58,86 @@ static bool script_verf = false;
 static bool daemon_running = true;
 struct net_child_info global_nci;
 
+enum {
+	NEVER_SET=0,
+	DEFAULT=1,
+	SET=2
+};
+
+
+struct argument {
+	uint8_t state;
+	char *key;
+	void *value;
+};
+
+struct argp_option options[] = {
+        { "net-connect-timeout",
+           't',
+           "NUM",
+            0,
+           "Specify maximum wait time (in seconds) when connecting to p2p node."
+           "Defaults to 11 sec"
+        },
+        {
+                "chain-testnet3",
+                1001,
+                0,
+		0,
+                "Use the block-chain 'testnet3', (for development and testing)."
+        },
+        {
+                "no-cache-peers",
+                1002,
+                 0,
+                 0,
+                "Always fetch peers from bootstrap-nodes."
+        },
+        {
+                "cache-peers",
+                1003,
+                 "FILE",
+                 0,
+		"Use previously stored peer list (if available)."
+		"Otherwise query bootstap nodes for peer discovery and create the peer-list file."
+        },
+        {       
+		"blocks-db",
+                'b',
+                "FILE",
+                 0,
+                "Specify the filename for the block header database. Defaults to 'brd-[chain].blocks'."
+        },
+        {       
+		"log",
+                'l',
+                "FILE",
+                 0,
+                "Specify the filename for logfile. Defaults to stdout."
+        },
+        {       
+		"ipv4-only",
+                1004,
+		0,
+		0,
+		"Only query peers with ipv4 adresses. Usefull when ipv6 is not available to you."
+        },
+        {       
+		"config",
+                'c',
+		0,
+		0,
+		"Use configuration file for options"
+        },
+        {       
+		"debug",
+                'd',
+		0,
+		0,
+		"Show debug info."
+        },
+        { }
+};
 
 
 static const char *const_settings[] = {
@@ -63,6 +148,13 @@ static const char *const_settings[] = {
 	"blocks=brd.blocks",
 	"log=-", /* "log=brd.log", */
 };
+
+static void initialize_settings()
+{
+	
+
+
+}
 
 struct net_child_info {
 	int			read_fd;
@@ -1169,14 +1261,18 @@ static bool do_setting(const char *arg)
 
 static bool preload_settings(void)
 {
+	LOG_BEGIN;
 	unsigned int i;
 
 	/* preload static settings */
 	for (i = 0; i < ARRAY_SIZE(const_settings); i++)
-		if (!do_setting(const_settings[i]))
-			return false;
+		if (!do_setting(const_settings[i])){
+			LOG_END_RC ( false );	
+			//return false;
+		}
 
-	return true;
+	LOG_END_RC( true );
+	//return true;
 }
 
 static void chain_set(void)
@@ -1652,11 +1748,18 @@ static void term_signal(int signo)
 
 int main (int argc, char *argv[])
 {
+	LOG_INIT(LOG_ALL);
+	LOG_GMT_ZONE;
+
+	LOG_BEGIN;
+
 	settings = bp_hashtab_new_ext(czstr_hash, czstr_equal,
 				      free, free);
 
-	if (!preload_settings())
-		return 1;
+	if (!preload_settings()){
+		LOG_END;
+		//return 1;
+	}
 	chain_set();
 
 	RAND_bytes((unsigned char *)&instance_nonce, sizeof(instance_nonce));
@@ -1664,8 +1767,10 @@ int main (int argc, char *argv[])
 	unsigned int arg;
 	for (arg = 1; arg < argc; arg++) {
 		const char *argstr = argv[arg];
-		if (!do_setting(argstr))
-			return 1;
+		if (!do_setting(argstr)){
+			LOG_END;
+			//return 1;
+		}
 	}
 
 	/*
@@ -1679,10 +1784,11 @@ int main (int argc, char *argv[])
 	init_daemon(&global_nci);
 	run_daemon(&global_nci);
 
-	fprintf(plog, "daemon exiting\n");
+	LOG_MSG_NOTIFY("deamon exiting");
+	//fprintf(plog, "daemon exiting\n");
 
 	shutdown_daemon(&global_nci);
-
-	return 0;
+	LOG_END_RC(0);
+	//return 0;
 }
 
