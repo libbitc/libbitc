@@ -7,6 +7,7 @@ lib_LTLIBRARIES= libccoin.la
 libccoin_la_LIBADD= -lm
 libccoin_la_SOURCES=	\
 	crypto/hmac.c	\
+	crypto/ripemd160.c	\
 	crypto/sha1.c	\
 	crypto/sha2.c	\
 	address.c	\

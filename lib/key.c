@@ -9,7 +9,6 @@
 #include <openssl/ec.h>
 #include <openssl/ecdsa.h>
 #include <openssl/obj_mac.h>
-#include <openssl/ripemd.h>
 #include <ccoin/key.h>
 
 /* Generate a private key from just the secret parameter */
