@@ -2,6 +2,9 @@
 ccoinincludedir=$(includedir)/ccoin
 
 ccoininclude_HEADERS = \
+	crypto/hmac.h	\
+	crypto/sha1.h	\
+	crypto/sha2.h	\
 	address.h	\
 	addr_match.h	\
 	base58.h	\
@@ -28,4 +31,3 @@ ccoininclude_HEADERS = \
 	serialize.h	\
 	util.h		\
 	wallet.h
-
