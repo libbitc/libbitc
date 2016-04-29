@@ -10,12 +10,19 @@ libccoin_la_LIBADD= -lm \
                     $(top_builddir)/external/secp256k1/libsecp256k1.la
 
 libccoin_la_SOURCES=	\
+	crypto/aes_modes.c	\
+	crypto/aescrypt.c	\
+	crypto/aeskey.c	\
+	crypto/aesopt.h	\
+	crypto/aestab.c	\
+	crypto/aestab.h	\
 	crypto/hmac.c	\
 	crypto/ripemd160.c	\
 	crypto/sha1.c	\
 	crypto/sha2.c	\
 	address.c	\
 	addr_match.c	\
+	aes_util.c	\
 	base58.c	\
 	bignum.c	\
 	blkdb.c		\
