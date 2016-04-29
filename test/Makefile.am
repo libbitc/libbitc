@@ -25,11 +25,11 @@ libtest_a_SOURCES= libtest.h libtest.c
 
 noinst_PROGRAMS	= clist cstr hex hdkeys hashtab base58 fileio util keyset bloom \
 		  message parr script-parse tx block blockfile blkdb script \
-		  tx-valid wallet wallet-basics chain-verf
+		  tx-valid wallet wallet-basics chain-verf hash
 
 TESTS		= clist cstr hex hdkeys hashtab base58 fileio util keyset bloom \
 		  message parr script-parse tx block blockfile blkdb script \
-		  tx-valid wallet wallet-basics chain-verf
+		  tx-valid wallet wallet-basics chain-verf hash
 
 COMMON_LDADD	= libtest.a ../lib/libccoin.la \
 		  @CRYPTO_LIBS@ @GMP_LIBS@ @JANSSON_LIBS@ @MATH_LIBS@
@@ -43,6 +43,7 @@ chain_verf_LDADD	= $(COMMON_LDADD)
 clist_LDADD         = $(COMMON_LDADD)
 cstr_LDADD		    = $(COMMON_LDADD)
 fileio_LDADD		= $(COMMON_LDADD)
+hash_LDADD			= $(COMMON_LDADD)
 hex_LDADD           = $(COMMON_LDADD)
 hashtab_LDADD		= $(COMMON_LDADD)
 hdkeys_LDADD		= $(COMMON_LDADD)

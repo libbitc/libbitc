@@ -1,3 +1,4 @@
+AUTOMAKE_OPTIONS= subdir-objects
 
 AM_CPPFLAGS	= -I$(top_srcdir)/include
 
@@ -5,6 +6,9 @@ lib_LTLIBRARIES= libccoin.la
 
 libccoin_la_LIBADD= -lm
 libccoin_la_SOURCES=	\
+	crypto/hmac.c	\
+	crypto/sha1.c	\
+	crypto/sha2.c	\
 	address.c	\
 	addr_match.c	\
 	base58.c	\
@@ -21,10 +25,10 @@ libccoin_la_SOURCES=	\
 	coredefs.c	\
 	cstr.c		\
 	dns.c		\
-	hdkeys.c	\
-	hexcode.c	\
 	file_seq.c	\
 	hashtab.c	\
+	hdkeys.c	\
+	hexcode.c	\
 	key.c		\
 	keyset.c	\
 	keystore.c	\
@@ -41,4 +45,3 @@ libccoin_la_SOURCES=	\
 	util.c		\
 	utxo.c		\
 	wallet.c
-
