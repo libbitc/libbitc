@@ -1,6 +1,7 @@
 
 libtest.a
 
+aes
 base58
 block
 blockfile

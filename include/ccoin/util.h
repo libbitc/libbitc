@@ -1,6 +1,7 @@
 #ifndef __LIBCCOIN_UTIL_H__
 #define __LIBCCOIN_UTIL_H__
 /* Copyright 2012 exMULTI, Inc.
+ * Copyright 2016 Duncan Tebbs
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
