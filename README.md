@@ -1,5 +1,7 @@
 #Picocoin
 
+[![Join the chat at https://gitter.im/libbitc/libbitc](https://badges.gitter.im/libbitc/libbitc.svg)](https://gitter.im/libbitc/libbitc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/jgarzik/picocoin/master/COPYING) [![Build Status](https://travis-ci.org/jgarzik/picocoin.svg?branch=master)](https://travis-ci.org/jgarzik/picocoin) [![Coverage Status](https://coveralls.io/repos/github/jgarzik/picocoin/badge.svg?branch=master)](https://coveralls.io/github/jgarzik/picocoin?branch=master)
 
 Tiny bitcoin library, with lightweight client and utils
