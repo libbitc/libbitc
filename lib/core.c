@@ -12,7 +12,16 @@
 #include <ccoin/coredefs.h>
 #include <ccoin/serialize.h>
 #include <ccoin/compat.h>		/* for parr_new */
-
+/*
+ * struct bp_address {
+ *         uint32_t        nTime;
+ *         uint64_t        nServices;
+ *         unsigned char   ip[16];
+ *         uint16_t        port;
+ *  };
+ *
+ *
+ * */
 bool deser_bp_addr(unsigned int protover,
 		struct bp_address *addr, struct const_buffer *buf)
 {

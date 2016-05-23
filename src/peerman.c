@@ -396,7 +396,6 @@ void peerman_addstr(struct peer_manager *peers,
 	while (tmp) {
 		struct bp_address *addr = tmp->data;
 		tmp = tmp->next;
-
 		peerman_add_addr(peers, addr, true);
 	}
 	clist_free(seedlist);

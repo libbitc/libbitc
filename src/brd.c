@@ -18,6 +18,8 @@
 #include <errno.h>
 #include <signal.h>
 #include <assert.h>
+#include <stdint.h>
+#include <argp.h>
 #include <openssl/rand.h>
 #include <event2/event.h>
 #include <ccoin/core.h>
@@ -29,7 +31,9 @@
 #include <ccoin/script.h>
 #include <ccoin/net.h>
 #include <ccoin/hashtab.h>
+#include <ccoin/logging.h>
 #include <ccoin/hexcode.h>
+#include <ccoin/logging.h>
 #include "peerman.h"
 #include "brd.h"
 
@@ -39,6 +43,7 @@
 #endif
 
 struct bp_hashtab *settings;
+struct bp_hashtab *st_settings;
 const struct chain_info *chain = NULL;
 bu256_t chain_genesis;
 uint64_t instance_nonce;
@@ -53,6 +58,86 @@ static bool script_verf = false;
 static bool daemon_running = true;
 struct net_child_info global_nci;
 
+enum {
+	NEVER_SET=0,
+	DEFAULT=1,
+	SET=2
+};
+
+
+struct argument {
+	uint8_t state;
+	char *key;
+	void *value;
+};
+
+struct argp_option options[] = {
+        { "net-connect-timeout",
+           't',
+           "NUM",
+            0,
+           "Specify maximum wait time (in seconds) when connecting to p2p node."
+           "Defaults to 11 sec"
+        },
+        {
+                "chain-testnet3",
+                1001,
+                0,
+		0,
+                "Use the block-chain 'testnet3', (for development and testing)."
+        },
+        {
+                "no-cache-peers",
+                1002,
+                 0,
+                 0,
+                "Always fetch peers from bootstrap-nodes."
+        },
+        {
+                "cache-peers",
+                1003,
+                 "FILE",
+                 0,
+		"Use previously stored peer list (if available)."
+		"Otherwise query bootstap nodes for peer discovery and create the peer-list file."
+        },
+        {       
+		"blocks-db",
+                'b',
+                "FILE",
+                 0,
+                "Specify the filename for the block header database. Defaults to 'brd-[chain].blocks'."
+        },
+        {       
+		"log",
+                'l',
+                "FILE",
+                 0,
+                "Specify the filename for logfile. Defaults to stdout."
+        },
+        {       
+		"ipv4-only",
+                1004,
+		0,
+		0,
+		"Only query peers with ipv4 adresses. Usefull when ipv6 is not available to you."
+        },
+        {       
+		"config",
+                'c',
+		0,
+		0,
+		"Use configuration file for options"
+        },
+        {       
+		"debug",
+                'd',
+		0,
+		0,
+		"Show debug info."
+        },
+        { }
+};
 
 
 static const char *const_settings[] = {
@@ -63,6 +148,13 @@ static const char *const_settings[] = {
 	"blocks=brd.blocks",
 	"log=-", /* "log=brd.log", */
 };
+
+static void initialize_settings()
+{
+	
+
+
+}
 
 struct net_child_info {
 	int			read_fd;
@@ -107,7 +199,7 @@ struct nc_conn {
 
 
 enum {
-	NC_MAX_CONN		= 8,
+	NC_MAX_CONN		= 1,
 };
 
 static unsigned int net_conn_timeout = 11;
@@ -220,6 +312,7 @@ err_out:
 static bool nc_conn_send(struct nc_conn *conn, const char *command,
 			 const void *data, size_t data_len)
 {
+	LOG("attempting to send:[%s] to %s", command, conn->addr_str);
 	/* build wire message */
 	cstring *msg = message_str(chain->netmagic, command, data, data_len);
 	if (!msg)
@@ -268,11 +361,20 @@ out_wrstart:
 	nc_conn_write_enable(conn);
 	return true;
 }
+/*
+struct const_buffer {
+        const void      *p;
+        size_t          len;
+};
+ *
+ * */
 
 static bool nc_msg_version(struct nc_conn *conn)
 {
-	if (conn->seen_version)
+	if (conn->seen_version){
+		LOG("version command already seen from:%s", conn->addr_str);
 		return false;
+	}
 	conn->seen_version = true;
 
 	struct const_buffer buf = { conn->msg.data, conn->msg.hdr.data_len };
@@ -316,14 +418,18 @@ out:
 	msg_version_free(&mv);
 	return rc;
 }
-
+/**
+ *struct msg_addr {
+        parr    *addrs;         //bp_address array
+};
+ */
 static bool nc_msg_addr(struct nc_conn *conn)
 {
 	struct const_buffer buf = { conn->msg.data, conn->msg.hdr.data_len };
 	struct msg_addr ma;
 	bool rc = false;
 
-	msg_addr_init(&ma);
+	msg_addr_init(&ma);/* just a memset 0*/
 
 	if (!deser_msg_addr(conn->protover, &ma, &buf))
 		goto out;
@@ -340,17 +446,21 @@ static bool nc_msg_addr(struct nc_conn *conn)
 		fprintf(plog, "net: %s addr(%zu addresses, %u old)\n",
 			conn->addr_str, ma.addrs->len, old);
 	}
-
 	/* ignore ancient addresses */
-	if (conn->protover < CADDR_TIME_VERSION)
-		goto out_ok;
-
+        if (conn->protover < CADDR_TIME_VERSION){
+                LOG("all addresses rejected because protover < CADDR_TIME_VERSION");
+                goto out_ok;
+        }
 	/* feed addresses to peer manager */
+	int l_cnt = 0;
 	for (i = 0; i < ma.addrs->len; i++) {
 		struct bp_address *addr = parr_idx(ma.addrs, i);
-		if (addr->nTime > cutoff)
+		if (addr->nTime > cutoff){
+			l_cnt++;
 			peerman_add_addr(conn->nci->peers, addr, false);
+		}
 	}
+	LOG("number of addresses added from peer:%d", l_cnt);
 
 out_ok:
 	rc = true;
@@ -385,12 +495,13 @@ static bool nc_msg_verack(struct nc_conn *conn)
 	if ((conn->protover >= CADDR_TIME_VERSION) &&
 	    (!nc_conn_send(conn, "getaddr", NULL, 0)))
 		return false;
-
+	LOG("req addr success, now request blocks");
 	/* request blocks */
 	bool rc = true;
 	time_t now = time(NULL);
 	time_t cutoff = now - (24 * 60 * 60);
 	if (conn->nci->last_getblocks < cutoff) {
+		LOG("compose blocks message");
 		struct msg_getblocks gb;
 		msg_getblocks_init(&gb);
 		blkdb_locator(&db, NULL, &gb.locator);
@@ -407,18 +518,55 @@ static bool nc_msg_verack(struct nc_conn *conn)
 	return rc;
 }
 
+/*
+ *
+struct msg_vinv {
+        parr    *invs;    array of bp_inv  
+};
+
+struct bp_inv {
+        uint32_t        type;
+        bu256_t         hash;
+};
+ *
+ * */
 static bool nc_msg_inv(struct nc_conn *conn)
 {
 	struct const_buffer buf = { conn->msg.data, conn->msg.hdr.data_len };
 	struct msg_vinv mv, mv_out;
 	bool rc = false;
+	unsigned int i=0;
+	
+	int msg_tx, msg_block, msg_other;
+		
+	msg_tx = msg_block = msg_other = 0;
 
-	msg_vinv_init(&mv);
-	msg_vinv_init(&mv_out);
+	msg_vinv_init(&mv);//memset
+	msg_vinv_init(&mv_out);//memset
 
 	if (!deser_msg_vinv(&mv, &buf))
 		goto out;
-
+	if (mv.invs){
+		//LOG("Peer [%s] gave %d inventory vectors",conn->addr_str, mv.invs->len);
+		for (i = 0;i < mv.invs->len; i++){
+			struct bp_inv *inv = parr_idx(mv.invs, 0);
+			switch (inv->type){
+			case MSG_TX:
+				msg_tx++;
+				break;
+			case MSG_BLOCK:
+				msg_block++;
+				break;
+			default:
+				msg_other++;
+			} 
+		}
+		if (mv.invs->len > 0){
+			LOG("Inventory vectors: msg[%d], block[%d], other[%d]",
+				msg_tx, msg_block, msg_other);
+		}
+	}
+		
 	if (debugging && mv.invs && mv.invs->len == 1) {
 		struct bp_inv *inv = parr_idx(mv.invs, 0);
 		char hexstr[BU256_STRSZ];
@@ -443,7 +591,7 @@ static bool nc_msg_inv(struct nc_conn *conn)
 		goto out_ok;
 
 	/* scan incoming inv's for interesting material */
-	unsigned int i;
+	/*declared at beginnning of function--> unsigned int i;*/
 	for (i = 0; i < mv.invs->len; i++) {
 		struct bp_inv *inv = parr_idx(mv.invs, i);
 		switch (inv->type) {
@@ -532,7 +680,6 @@ static bool nc_msg_block(struct nc_conn *conn)
 			strerror(errno));
 		goto out;
 	}
-
 	/* process block */
 	if (!process_block(&block, fpos64)) {
 		fprintf(plog, "blocks: process-block failed\n");
@@ -559,8 +706,10 @@ static bool nc_conn_message(struct nc_conn *conn)
 	}
 
 	/* incoming message: version */
-	if (!strncmp(command, "version", 12))
+	if (!strncmp(command, "version", 12)){
+		LOG("version command received from %s.", conn->addr_str);	
 		return nc_msg_version(conn);
+	}
 
 	/* "version" must be first message */
 	if (!conn->seen_version) {
@@ -570,8 +719,10 @@ static bool nc_conn_message(struct nc_conn *conn)
 	}
 
 	/* incoming message: verack */
-	if (!strncmp(command, "verack", 12))
+	if (!strncmp(command, "verack", 12)){
+		LOG("verack command received from %s.", conn->addr_str);	
 		return nc_msg_verack(conn);
+	}
 
 	/* "verack" must be second message */
 	if (!conn->seen_verack) {
@@ -581,16 +732,22 @@ static bool nc_conn_message(struct nc_conn *conn)
 	}
 
 	/* incoming message: addr */
-	if (!strncmp(command, "addr", 12))
+	if (!strncmp(command, "addr", 12)){
+		LOG("addr command received from %s.", conn->addr_str);
 		return nc_msg_addr(conn);
+	}
 
 	/* incoming message: inv */
-	else if (!strncmp(command, "inv", 12))
+	else if (!strncmp(command, "inv", 12)){
+		LOG("inv command received from %s.", conn->addr_str);
 		return nc_msg_inv(conn);
+	}
 
 	/* incoming message: block */
-	else if (!strncmp(command, "block", 12))
+	else if (!strncmp(command, "block", 12)){
+		LOG("block command received from %s.", conn->addr_str);
 		return nc_msg_block(conn);
+	}
 
 	if (debugging)
 		fprintf(plog, "net: %s unknown message %s\n",
@@ -703,6 +860,7 @@ static bool nc_conn_start(struct nc_conn *conn)
 {
 	char errpfx[64];
 
+	LOG("connect start to:%s", conn->addr_str);
 	/* create socket */
 	conn->ipv4 = is_ipv4_mapped(conn->peer.addr.ip);
 	conn->fd = socket(conn->ipv4 ? AF_INET : AF_INET6,
@@ -843,21 +1001,36 @@ err_out:
 	nc_conn_kill(conn);
 }
 
+/**
+ struct msg_version {
+        uint32_t        nVersion;
+        uint64_t        nServices;
+        int64_t         nTime;
+        struct bp_address addrTo;
+        struct bp_address addrFrom;
+        uint64_t        nonce;
+        char            strSubVer[80];
+        uint32_t        nStartingHeight;
+        bool            bRelay;
+};
+*/
+
 static cstring *nc_version_build(struct nc_conn *conn)
 {
 	struct msg_version mv;
 
 	msg_version_init(&mv);
 
-	mv.nVersion = PROTO_VERSION;
+	mv.nVersion = PROTO_VERSION;/* from picocoin.h (60002) */
+	/* from core.hi: enum { NODE_NETWORK	= (1 << 0)}*/
 	mv.nServices = blocks_fd >= 0 ? NODE_NETWORK : 0;
-	mv.nTime = (int64_t) time(NULL);
-	mv.nonce = instance_nonce;
+	mv.nTime = (int64_t) time(NULL); /* number of seconds since 1970*/
+	mv.nonce = instance_nonce;/* generated by RAND_bytes (OpenSSL) */
+	/* VERSION in picocoin-config.h  "0.1git" */
 	sprintf(mv.strSubVer, "/brd:%s/", VERSION);
 	mv.nStartingHeight = db.best_chain ? db.best_chain->height : 0;
 
 	cstring *rs = ser_msg_version(&mv);
-
 	msg_version_free(&mv);
 
 	return rs;
@@ -927,7 +1100,7 @@ static bool nc_conn_write_disable(struct nc_conn *conn)
 
 	return true;
 }
-
+/*  connection begins */
 static void nc_conn_evt_connected(int fd, short events, void *priv)
 {
 	struct nc_conn *conn = priv;
@@ -958,6 +1131,7 @@ static void nc_conn_evt_connected(int fd, short events, void *priv)
 	conn->ev = NULL;
 
 	/* build and send "version" message */
+
 	cstring *msg_data = nc_version_build(conn);
 	bool rc = nc_conn_send(conn, "version", msg_data->str, msg_data->len);
 	cstr_free(msg_data, true);
@@ -969,6 +1143,7 @@ static void nc_conn_evt_connected(int fd, short events, void *priv)
 
 	/* switch to read-header state */
 	conn->msg_p = conn->hdrbuf;
+	/* from message.c #define P2P_HDR_SZ	(4 + 12 + 4 + 4)*/
 	conn->expected = P2P_HDR_SZ;
 	conn->reading_hdr = true;
 
@@ -983,10 +1158,59 @@ err_out:
 	nc_conn_kill(conn);
 }
 
+/**
+struct net_child_info {
+        int                     read_fd;
+        int                     write_fd;
+
+        struct peer_manager     *peers;
+
+        parr            *conns;
+        struct event_base       *eb;
+
+        time_t                  last_getblocks;
+};
+*/
+
+/*
+ struct nc_conn {
+        bool                    dead;
+
+        int                     fd;
+
+        struct peer             peer;
+        char                    addr_str[64];
+
+        bool                    ipv4;
+        bool                    connected;
+        struct event            *ev;
+        struct net_child_info   *nci;
+
+        struct event            *write_ev;
+        clist                   *write_q;       
+        unsigned int            write_partial;
+
+        struct p2p_message      msg;
+
+        void                    *msg_p;
+        unsigned int            expected;
+        bool                    reading_hdr;
+        unsigned char           hdrbuf[P2P_HDR_SZ];
+
+        bool                    seen_version;
+        bool                    seen_verack;
+        uint32_t                protover;
+};
+*/
+
+
 static void nc_conns_gc(struct net_child_info *nci, bool free_all)
 {
 	clist *dead = NULL;
 	unsigned int n_gc = 0;
+        
+	/*nr of dead connections*/
+	size_t nr_dead = 0;
 
 	/* build list of dead connections */
 	unsigned int i;
@@ -994,6 +1218,12 @@ static void nc_conns_gc(struct net_child_info *nci, bool free_all)
 		struct nc_conn *conn = parr_idx(nci->conns, i);
 		if (free_all || conn->dead)
 			dead = clist_prepend(dead, conn);
+	}
+        
+	nr_dead = clist_length( dead );
+	
+	if (nr_dead){
+		LOG("Nr of dead connections:%d\n", nr_dead);
 	}
 
 	/* remove and free dead connections */
@@ -1015,7 +1245,7 @@ static void nc_conns_gc(struct net_child_info *nci, bool free_all)
 
 static void nc_conns_open(struct net_child_info *nci)
 {
-	if (debugging)
+	/*if (debugging)*/
 		fprintf(plog, "net: open connections (have %zu, want %zu more)\n",
 			nci->conns->len,
 			NC_MAX_CONN - nci->conns->len);
@@ -1038,6 +1268,7 @@ static void nc_conns_open(struct net_child_info *nci)
 				conn->addr_str);
 
 		/* are we already connected to this IP? */
+		/** check if (peer.addr.ip) is already a member of parr nci->conns */  
 		if (nc_conn_ip_active(nci, conn->peer.addr.ip)) {
 			fprintf(plog, "net: already connected to %s\n",
 				conn->addr_str);
@@ -1045,6 +1276,7 @@ static void nc_conns_open(struct net_child_info *nci)
 		}
 
 		/* are we already connected to this network group? */
+		/** this function is a dud */
 		if (nc_conn_group_active(nci, &conn->peer)) {
 			fprintf(plog, "net: already grouped to %s\n",
 				conn->addr_str);
@@ -1059,6 +1291,7 @@ static void nc_conns_open(struct net_child_info *nci)
 		}
 
 		/* add to our list of monitored event sources */
+		/* nc_conn_evt_connected is the callback */
 		conn->ev = event_new(nci->eb, conn->fd, EV_WRITE,
 				     nc_conn_evt_connected, conn);
 		if (!conn->ev) {
@@ -1086,7 +1319,7 @@ err_loop:
 
 static void nc_conns_process(struct net_child_info *nci)
 {
-	nc_conns_gc(nci, false);
+	nc_conns_gc(nci, false);// garbage collect dead connections
 	nc_conns_open(nci);
 }
 
@@ -1169,14 +1402,18 @@ static bool do_setting(const char *arg)
 
 static bool preload_settings(void)
 {
+	LOG_BEGIN;
 	unsigned int i;
 
 	/* preload static settings */
 	for (i = 0; i < ARRAY_SIZE(const_settings); i++)
-		if (!do_setting(const_settings[i]))
-			return false;
+		if (!do_setting(const_settings[i])){
+			LOG_END_RC ( false );	
+			//return false;
+		}
 
-	return true;
+	LOG_END_RC( true );
+	//return true;
 }
 
 static void chain_set(void)
@@ -1624,6 +1861,7 @@ static void shutdown_nci(struct net_child_info *nci)
 
 static void shutdown_daemon(struct net_child_info *nci)
 {
+	LOG_BEGIN;
 	bool rc = peerman_write(nci->peers);
 	fprintf(plog, "net: %s %u/%zu peers\n",
 		rc ? "wrote" : "failed to write",
@@ -1642,6 +1880,7 @@ static void shutdown_daemon(struct net_child_info *nci)
 		blkdb_free(&db);
 		bp_utxo_set_free(&uset);
 	}
+	LOG_END;
 }
 
 static void term_signal(int signo)
@@ -1652,21 +1891,31 @@ static void term_signal(int signo)
 
 int main (int argc, char *argv[])
 {
+	LOG_INIT(LOG_ALL);
+	LOG_GMT_ZONE;
+
+	LOG_BEGIN;
+
 	settings = bp_hashtab_new_ext(czstr_hash, czstr_equal,
 				      free, free);
 
-	if (!preload_settings())
-		return 1;
+	if (!preload_settings()){
+		LOG_END_RC(1);
+		//return 1;
+	}
 	chain_set();
-
+	LOG("chain-set");
 	RAND_bytes((unsigned char *)&instance_nonce, sizeof(instance_nonce));
 
 	unsigned int arg;
 	for (arg = 1; arg < argc; arg++) {
 		const char *argstr = argv[arg];
-		if (!do_setting(argstr))
-			return 1;
+		if (!do_setting(argstr)){
+			LOG_END_RC(1);
+			//return 1;
+		}
 	}
+	LOG("arguments processed");
 
 	/*
 	 * properly capture TERM and other signals
@@ -1676,13 +1925,15 @@ int main (int argc, char *argv[])
 	signal(SIGINT, term_signal);
 	signal(SIGTERM, term_signal);
 
+	LOG("signals set");
+
 	init_daemon(&global_nci);
 	run_daemon(&global_nci);
 
 	fprintf(plog, "daemon exiting\n");
 
 	shutdown_daemon(&global_nci);
-
-	return 0;
+	LOG_END_RC(0);
+	//return 0;
 }
 

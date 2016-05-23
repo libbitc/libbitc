@@ -28,6 +28,21 @@ static const char *dns_seeds[] = {
 	"bitseed.xf2.org",
 };
 
+static uint32_t jenkins_one_at_a_time_hash(char *key, size_t len)
+{
+    uint32_t hash, i;
+    for(hash = i = 0; i < len; ++i)
+    {
+        hash += key[i];
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+    hash += (hash << 3);
+    hash ^= (hash >> 11);
+    hash += (hash << 15);
+    return hash;
+}
+
 static clist *add_seed_addr(clist *l, const struct addrinfo *ai,
 			    unsigned int def_port)
 {
@@ -64,17 +79,24 @@ err_out:
 clist *bu_dns_lookup(clist *l, const char *seedname, unsigned int def_port)
 {
 	struct addrinfo hints, *res;
+	struct bp_address *node;
 
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
+	/*hints.ai_family = AF_UNSPEC;*/
+	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_CANONNAME;
 
 	if (getaddrinfo(seedname, NULL, &hints, &res))
 		return l;
 
 	struct addrinfo *rp;
-	for (rp = res; rp != NULL; rp = rp->ai_next)
+	printf("canon-name:%s\n", res->ai_canonname);
+	for (rp = res; rp != NULL; rp = rp->ai_next){
 		l = add_seed_addr(l, rp, def_port);
+		node = (struct bp_address *)(clist_last(l)->data);
+		printf("%03d.%03d.%03d.%03d\n", node->ip[12],node->ip[13], node->ip[14], node->ip[15]);
+	}
 
 	freeaddrinfo(res);
 

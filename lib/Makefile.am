@@ -40,5 +40,6 @@ libccoin_la_SOURCES=	\
 	serialize.c	\
 	util.c		\
 	utxo.c		\
-	wallet.c
+	wallet.c	\
+	logging.c
 

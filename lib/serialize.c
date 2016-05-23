@@ -164,12 +164,15 @@ bool deser_bool(bool *vo, struct const_buffer *buf)
 	*vo = (0 != v);
 	return true;
 }
-
+/*
+ https://bitcoin.org/en/developer-reference#compactsize-unsigned-integers
+ * */
 bool deser_varlen(uint32_t *lo, struct const_buffer *buf)
 {
 	uint32_t len;
 
 	unsigned char c;
+
 	if (!deser_bytes(&c, buf, 1)) return false;
 
 	if (c == 253) {
