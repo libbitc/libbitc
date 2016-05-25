@@ -2,7 +2,7 @@
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/libbitc/libbitc/master/COPYING) [![Build Status](https://travis-ci.org/libbitc/libbitc.svg?branch=master)](https://travis-ci.org/libbitc/libbitc) [![Coverage Status](https://coveralls.io/repos/github/libbitc/libbitc/badge.svg?branch=master)](https://coveralls.io/github/libbitc/libbitc?branch=master) [![Coverity Scan Build Status](https://scan.coverity.com/projects/8959/badge.svg)](https://scan.coverity.com/projects/libbitc-libbitc)
 
-[![Join the chat at https://gitter.im/libbitc/libbitc](https://badges.gitter.im/libbitc/libbitc.svg)](https://gitter.im/libbitc/libbitc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Join the chat at https://irc.gitter.im/#libbitc](https://img.shields.io/badge/chat-on%20irc-green.svg)](https://kiwiirc.com/client/irc.gitter.im/#libbitc) [![Join the chat at https://libbitc.slack.com](https://img.shields.io/badge/chat-on%20slack-yellowgreen.svg)](https://libbitc.slack.com)
+[![Join the chat at https://gitter.im/libbitc/libbitc](https://badges.gitter.im/libbitc/libbitc.svg)](https://gitter.im/libbitc/libbitc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Join the chat at https://irc.gitter.im/#libbitc](https://img.shields.io/badge/chat-on%20irc-green.svg)](https://irc.gitter.im/) [![Join the chat at https://libbitc.slack.com](https://img.shields.io/badge/chat-on%20slack-yellowgreen.svg)](https://libbitc.slack.com)
 
 An itsy-bitsy bitcoin library, with lightweight client and utils
 
