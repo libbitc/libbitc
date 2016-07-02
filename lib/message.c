@@ -6,7 +6,6 @@
 
 #include <stdint.h>
 #include <string.h>
-#include <openssl/sha.h>
 #include <ccoin/message.h>
 #include <ccoin/serialize.h>
 #include <ccoin/util.h>
@@ -368,4 +367,3 @@ void msg_vinv_push(struct msg_vinv *mv, uint32_t msg_type,
 
 	parr_add(mv->invs, inv);
 }
-
