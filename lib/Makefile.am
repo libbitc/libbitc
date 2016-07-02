@@ -36,7 +36,6 @@ libccoin_la_SOURCES=	\
 	core.c		\
 	coredefs.c	\
 	cstr.c		\
-	dns.c		\
 	file_seq.c	\
 	hashtab.c	\
 	hdkeys.c	\
@@ -47,7 +46,6 @@ libccoin_la_SOURCES=	\
 	mbr.c		\
 	memmem.c	\
 	message.c	\
-	net.c		\
 	parr.c		\
 	script.c	\
 	script_eval.c	\
@@ -57,3 +55,12 @@ libccoin_la_SOURCES=	\
 	util.c		\
 	utxo.c		\
 	wallet.c
+
+noinst_LTLIBRARIES= libccoinnet.la
+
+libccoinnet_la_SOURCES=	\
+	net/dns.c	\
+	net/net.c	\
+	net/netbase.c	\
+	net/peerman.c
+
