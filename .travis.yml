@@ -14,13 +14,16 @@ sudo: false
 env:
   global:
     - secure: "bJurUlhy79EDF5N/6al+J6Hq5AY9lS019hWKSp8djCFMatX6RZbfiAbyHGaVBgDTU4sVD5Hpr447pf+6p6M+0BiWEOqpvc1ALrd50xJ5Wa6pUESmTLNWa47bDjIO37cHTjH7JR8Q0/8vZ9I9vDIRUkwEn296ztF5K8e1kLFf4wLDyMa4UWB/g6LakS15AI+H+E4MSrnBlYO8GJEmfPepDdBXs49FF8cFWzR8lZYmKgO46JYeUihYUEnmWDZVRVrd7Iot0JRKSo0gUZPAyA47cWGtMXPoGAo/10TONZzfQu95xYuA53s9XJOgdvtwNVW0XfG5ZivvbrDVkoPX/tJ+5Cqpf5Fx+IFguP0lBb6xusUO6unLd1YM9wlb94/ip+bNS5fsaCmEwWBn0+vEISolYcMKmYKOMkEarll7wfyK3w5NJ0NR9I+3cCB8pNIDXAkjl+n6z8TWxUkV+VrdN37OJyOgIvi8O3EDrZUiv8T04xlU+CnqYWdRCiqjtEul4agjs0WSBpWPsOSI8gMyXqAKOGlKyu1kfcBhMzuNIrxaW33HdqNQItxAMdlfP7YW0AEzN+rYhTYG8PltaDwU3o38hBh2hmW1io+cN3miwvy4IEAi/tWkrnkKaV4FX0W82o2ym/rvwAbCQhGQ23ca0nqqs1YVrtDOMgd/gqBwzR2R3gs="
-    - MAKEJOBS=-j3
     - BASE_OUTDIR=$TRAVIS_BUILD_DIR/out
+    - MAKEJOBS=-j3
+    - BUILD=check
+    - ENABLE_COVERAGE=no
+    - ENABLE_VALGRIND=no
 
   matrix:
-    - RUN_TESTS=true
-    - COVERAGE_STATS=true
-    - USE_VALGRIND=true
+    - BUILD=distcheck MAKEJOBS=-j3
+    - ENABLE_COVERAGE=yes
+    - ENABLE_VALGRIND=yes
 
 cache:
   apt: true
@@ -62,24 +65,21 @@ install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install libevent; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install argp-standalone; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install openssl; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$COVERAGE_STATS" = "true" ]; then brew install lcov; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$USE_VALGRIND" = "true" ]; then brew install valgrind; fi
-  - if [ "$COVERAGE_STATS" = "true" ]; then gem install coveralls-lcov; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$ENABLE_COVERAGE" = "yes" ]; then brew install lcov; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$ENABLE_VALGRIND" = "yes" ]; then brew install valgrind; fi
+  - if [ "$ENABLE_COVERAGE" = "yes" ]; then gem install coveralls-lcov; fi
 
 before_script:
   - if [ -n "$USE_SHELL" ]; then export CONFIG_SHELL="$USE_SHELL"; fi
   - test -n "$USE_SHELL" && eval '"$USE_SHELL" -c "./autogen.sh"' || ./autogen.sh
-  - if [ "$USE_VALGRIND" = "true" ]; then VALGRIND_OPT="--enable-valgrind"; fi
-  - if [ "$COVERAGE_STATS" = "true" ]; then COVERAGE_OPT="--enable-coverage"; fi
 
 script:
   - OUTDIR=$BASE_OUTDIR/$TRAVIS_PULL_REQUEST/$TRAVIS_JOB_NUMBER-$HOST
   - PICOCOIN_CONFIG_ALL="--prefix=$TRAVIS_BUILD_DIR/depends/$HOST --bindir=$OUTDIR/bin --libdir=$OUTDIR/lib"
-  - ./configure --cache-file=config.cache $COVERAGE_OPT $VALGRIND_OPT $PICOCOIN_CONFIG_ALL $PICOCOIN_CONFIG || ( cat config.log && false)
+  - ./configure --cache-file=config.cache --enable-coverage=$ENABLE_COVERAGE --enable-valgrind=$ENABLE_VALGRIND $PICOCOIN_CONFIG_ALL $PICOCOIN_CONFIG || ( cat config.log && false)
   - make -s $MAKEJOBS $GOAL || ( echo "Build failure. Verbose build follows." && make $GOAL ; false )
   - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/lib
-  - if [ "$RUN_TESTS" = "true" ]; then make $MAKEJOBS distcheck; fi
-  - if [ "$COVERAGE_STATS" = "true" ] || [ "$USE_VALGRIND" = "true" ]; then make check; fi
+  - make $MAKEJOBS $BUILD
 
 after_success:
-  - if [ "$COVERAGE_STATS" = "true" ]; then lcov --compat-libtool --directory . --capture --output-file coverage.info && coveralls-lcov coverage.info; fi
+  - if [ "$ENABLE_COVERAGE" = "yes" ]; then lcov --compat-libtool --directory . --capture --output-file coverage.info && coveralls-lcov coverage.info; fi
