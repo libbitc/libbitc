@@ -1,28 +1,28 @@
 
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <assert.h>
 #include <jansson.h>
-#include <ccoin/core.h>
-#include <ccoin/hexcode.h>
-#include <ccoin/buint.h>
-#include <ccoin/script.h>
-#include <ccoin/hashtab.h>
-#include <ccoin/compat.h>		/* for parr_new */
+#include <bitc/core.h>
+#include <bitc/hexcode.h>
+#include <bitc/buint.h>
+#include <bitc/script.h>
+#include <bitc/hashtab.h>
+#include <bitc/compat.h>		/* for parr_new */
 #include "libtest.h"
 
 parr *comments = NULL;
 
 static unsigned long input_hash(const void *key_)
 {
-	const struct bp_outpt *key = key_;
+	const struct bitc_outpt *key = key_;
 
 	return key->hash.dword[4];
 }
 
 static bool input_equal(const void *a, const void *b)
 {
-	return bp_outpt_equal(a, b);
+	return bitc_outpt_equal(a, b);
 }
 
 static void input_value_free(void *v)
@@ -39,39 +39,39 @@ static void dump_comments(void)
 	}
 }
 
-static void test_tx_valid(bool is_valid, struct bp_hashtab *input_map,
+static void test_tx_valid(bool is_valid, struct bitc_hashtab *input_map,
 			  cstring *tx_ser, bool enforce_p2sh)
 {
-	struct bp_tx tx;
+	struct bitc_tx tx;
 
-	bp_tx_init(&tx);
+	bitc_tx_init(&tx);
 
 	struct const_buffer buf = { tx_ser->str, tx_ser->len };
-	assert(deser_bp_tx(&tx, &buf) == true);
+	assert(deser_bitc_tx(&tx, &buf) == true);
 
 	if (is_valid) {
-		/* checking for valid tx; !bp_tx_valid implies test fail */
-		assert(bp_tx_valid(&tx) == true);
+		/* checking for valid tx; !bitc_tx_valid implies test fail */
+		assert(bitc_tx_valid(&tx) == true);
 	} else {
-		/* checking for invalid tx; bp_tx_valid==false implies test
-		 * succeeded; no more work to do; bp_tx_valid==true
+		/* checking for invalid tx; bitc_tx_valid==false implies test
+		 * succeeded; no more work to do; bitc_tx_valid==true
 		 * implies the test will detect the invalid condition
 		 * further down in the code
 		 */
-		if (bp_tx_valid(&tx) == false)
+		if (bitc_tx_valid(&tx) == false)
 			goto out;
 	}
 
-	bp_tx_calc_sha256(&tx);
+	bitc_tx_calc_sha256(&tx);
 
 	unsigned int i;
 	for (i = 0; i < tx.vin->len; i++) {
-		struct bp_txin *txin;
+		struct bitc_txin *txin;
 
 		txin = parr_idx(tx.vin, i);
 		assert(txin != NULL);
 
-		cstring *scriptPubKey = bp_hashtab_get(input_map,
+		cstring *scriptPubKey = bitc_hashtab_get(input_map,
 						       &txin->prevout);
 		if (scriptPubKey == NULL) {
 			if (!is_valid) {
@@ -93,7 +93,7 @@ static void test_tx_valid(bool is_valid, struct bp_hashtab *input_map,
 			assert(scriptPubKey != NULL);
 		}
 
-		bool rc = bp_script_verify(txin->scriptSig, scriptPubKey,
+		bool rc = bitc_script_verify(txin->scriptSig, scriptPubKey,
 					&tx, i,
 					enforce_p2sh ? SCRIPT_VERIFY_P2SH :
 					SCRIPT_VERIFY_NONE, 0);
@@ -111,7 +111,7 @@ static void test_tx_valid(bool is_valid, struct bp_hashtab *input_map,
 	}
 
 out:
-	bp_tx_free(&tx);
+	bitc_tx_free(&tx);
 }
 
 static void runtest(bool is_valid, const char *basefn)
@@ -120,7 +120,7 @@ static void runtest(bool is_valid, const char *basefn)
 	json_t *tests = read_json(fn);
 	assert(json_is_array(tests));
 
-	struct bp_hashtab *input_map = bp_hashtab_new_ext(
+	struct bitc_hashtab *input_map = bitc_hashtab_new_ext(
 		input_hash, input_equal,
 		free, input_value_free);
 
@@ -146,7 +146,7 @@ static void runtest(bool is_valid, const char *basefn)
 		json_t *inputs = json_array_get(test, 0);
 		assert(json_is_array(inputs));
 
-		bp_hashtab_clear(input_map);
+		bitc_hashtab_clear(input_map);
 
 		unsigned int i;
 		for (i = 0; i < json_array_size(inputs); i++) {
@@ -164,7 +164,7 @@ static void runtest(bool is_valid, const char *basefn)
 			assert(json_is_integer(json_array_get(input, 1)));
 			assert(prev_pubkey_enc != NULL);
 
-			struct bp_outpt *outpt;
+			struct bitc_outpt *outpt;
 			outpt = malloc(sizeof(*outpt));
 			hex_bu256(&outpt->hash, prev_hashstr);
 			outpt->n = prev_n;
@@ -172,7 +172,7 @@ static void runtest(bool is_valid, const char *basefn)
 			cstring *script = parse_script_str(prev_pubkey_enc);
 			assert(script != NULL);
 
-			bp_hashtab_put(input_map, outpt, script);
+			bitc_hashtab_put(input_map, outpt, script);
 		}
 
 		const char *tx_hexser =
@@ -197,7 +197,7 @@ static void runtest(bool is_valid, const char *basefn)
 	parr_free(comments, true);
 	comments = NULL;
 
-	bp_hashtab_unref(input_map);
+	bitc_hashtab_unref(input_map);
 	json_decref(tests);
 	free(fn);
 }
@@ -207,6 +207,6 @@ int main (int argc, char *argv[])
 	runtest(true, "tx_valid.json");
 	runtest(false, "tx_invalid.json");
 
-	bp_key_static_shutdown();
+	bitc_key_static_shutdown();
 	return 0;
 }

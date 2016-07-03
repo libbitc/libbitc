@@ -2,31 +2,31 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <assert.h>
-#include <ccoin/message.h>
-#include <ccoin/mbr.h>
-#include <ccoin/buffer.h>
-#include <ccoin/util.h>
-#include <ccoin/key.h>
+#include <bitc/message.h>
+#include <bitc/mbr.h>
+#include <bitc/buffer.h>
+#include <bitc/util.h>
+#include <bitc/key.h>
 #include "libtest.h"
 
 static void handle_block(struct p2p_message *msg)
 {
-	struct bp_block block;
-	bp_block_init(&block);
+	struct bitc_block block;
+	bitc_block_init(&block);
 
 	struct const_buffer buf = { msg->data, msg->hdr.data_len };
 
-	bool rc = deser_bp_block(&block, &buf);
+	bool rc = deser_bitc_block(&block, &buf);
 	assert(rc);
 
-	bp_block_free(&block);
+	bitc_block_free(&block);
 }
 
 static void runtest(const char *ser_fn_base)
@@ -60,6 +60,6 @@ int main (int argc, char *argv[])
 {
 	runtest("blks10.ser");
 
-	bp_key_static_shutdown();
+	bitc_key_static_shutdown();
 	return 0;
 }

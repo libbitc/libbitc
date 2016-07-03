@@ -2,10 +2,10 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <string.h>
-#include <ccoin/cstr.h>
+#include <bitc/cstr.h>
 
 static bool cstr_alloc_min_sz(cstring *s, size_t sz)
 {

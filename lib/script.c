@@ -2,14 +2,14 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <assert.h>
-#include <ccoin/script.h>
-#include <ccoin/serialize.h>
-#include <ccoin/util.h>
-#include <ccoin/buffer.h>
-#include <ccoin/endian.h>
+#include <bitc/script.h>
+#include <bitc/serialize.h>
+#include <bitc/util.h>
+#include <bitc/buffer.h>
+#include <bitc/endian.h>
 
 bool bsp_getop(struct bscript_op *op, struct bscript_parser *bp)
 {

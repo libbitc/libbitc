@@ -87,7 +87,7 @@ Issue Date: 20/12/2007
 #if !defined( _AESOPT_H )
 #define _AESOPT_H
 
-#include "ccoin/crypto/aes.h"
+#include "bitc/crypto/aes.h"
 
 /*  PLATFORM SPECIFIC INCLUDES */
 

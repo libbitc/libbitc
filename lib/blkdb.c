@@ -2,7 +2,7 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -10,14 +10,14 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <string.h>
-#include <ccoin/blkdb.h>
-#include <ccoin/message.h>
-#include <ccoin/serialize.h>
-#include <ccoin/buint.h>
-#include <ccoin/mbr.h>
-#include <ccoin/util.h>
-#include <ccoin/cstr.h>
-#include <ccoin/compat.h>		/* for fdatasync */
+#include <bitc/blkdb.h>
+#include <bitc/message.h>
+#include <bitc/serialize.h>
+#include <bitc/buint.h>
+#include <bitc/mbr.h>
+#include <bitc/util.h>
+#include <bitc/cstr.h>
+#include <bitc/compat.h>		/* for fdatasync */
 
 struct blkinfo *bi_new(void)
 {
@@ -29,7 +29,7 @@ struct blkinfo *bi_new(void)
 	bi->n_file = -1;
 	bi->n_pos = -1LL;
 
-	bp_block_init(&bi->hdr);
+	bitc_block_init(&bi->hdr);
 
 	return bi;
 }
@@ -41,7 +41,7 @@ void bi_free(struct blkinfo *bi)
 
 	mpz_clear(bi->work);
 
-	bp_block_free(&bi->hdr);
+	bitc_block_free(&bi->hdr);
 
 	memset(bi, 0, sizeof(*bi));
 	free(bi);
@@ -57,8 +57,8 @@ bool blkdb_init(struct blkdb *db, const unsigned char *netmagic,
 	bu256_copy(&db->block0, genesis_block);
 
 	memcpy(db->netmagic, netmagic, sizeof(db->netmagic));
-	db->blocks = bp_hashtab_new_ext(bu256_hash, bu256_equal_,
-					NULL, (bp_freefunc) bi_free);
+	db->blocks = bitc_hashtab_new_ext(bu256_hash, bu256_equal_,
+					NULL, (bitc_freefunc) bi_free);
 
 	return true;
 }
@@ -80,7 +80,7 @@ static bool blkdb_connect(struct blkdb *db, struct blkinfo *bi,
 	bool best_chain = false;
 
 	/* verify genesis block matches first record */
-	if (bp_hashtab_size(db->blocks) == 0) {
+	if (bitc_hashtab_size(db->blocks) == 0) {
 		if (!bu256_equal(&bi->hdr.sha256, &db->block0))
 			goto out;
 
@@ -108,7 +108,7 @@ static bool blkdb_connect(struct blkdb *db, struct blkinfo *bi,
 	}
 
 	/* add to block map */
-	bp_hashtab_put(db->blocks, &bi->hash, bi);
+	bitc_hashtab_put(db->blocks, &bi->hash, bi);
 
 	/* if new best chain found, update pointers */
 	if (best_chain) {
@@ -173,13 +173,13 @@ static bool blkdb_read_rec(struct blkdb *db, const struct p2p_message *msg)
 	/* deserialize record */
 	if (!deser_u256(&bi->hash, &buf))
 		goto err_out;
-	if (!deser_bp_block(&bi->hdr, &buf))
+	if (!deser_bitc_block(&bi->hdr, &buf))
 		goto err_out;
 
 	/* verify that provided hash matches block header, as an additional
 	 * self-verification step
 	 */
-	bp_block_calc_sha256(&bi->hdr);
+	bitc_block_calc_sha256(&bi->hdr);
 	if (!bu256_equal(&bi->hash, &bi->hdr.sha256))
 		goto err_out;
 
@@ -200,7 +200,7 @@ static cstring *ser_blkinfo(const struct blkinfo *bi)
 	cstring *rs = cstr_new_sz(sizeof(*bi));
 
 	ser_u256(rs, &bi->hash);
-	ser_bp_block(rs, &bi->hdr);
+	ser_bitc_block(rs, &bi->hdr);
 
 	return rs;
 }
@@ -270,18 +270,18 @@ void blkdb_free(struct blkdb *db)
 	if (db->close_fd && (db->fd >= 0))
 		close(db->fd);
 
-	bp_hashtab_unref(db->blocks);
+	bitc_hashtab_unref(db->blocks);
 }
 
 void blkdb_locator(struct blkdb *db, struct blkinfo *bi,
-		   struct bp_locator *locator)
+		   struct bitc_locator *locator)
 {
 	if (!bi)
 		bi = db->best_chain;
 
 	int step = 1;
 	while (bi) {
-		bp_locator_push(locator, &bi->hash);
+		bitc_locator_push(locator, &bi->hash);
 
 		unsigned int i;
 		for (i = 0; bi && i < step; i++)
@@ -290,6 +290,6 @@ void blkdb_locator(struct blkdb *db, struct blkinfo *bi,
 			step *= 2;
 	}
 
-	bp_locator_push(locator, &db->block0);
+	bitc_locator_push(locator, &db->block0);
 }
 

@@ -2,15 +2,15 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <stdint.h>
 #include <string.h>
-#include <ccoin/message.h>
-#include <ccoin/serialize.h>
-#include <ccoin/util.h>
-#include <ccoin/compat.h>		/* for parr_new */
-#include <ccoin/endian.h>
+#include <bitc/message.h>
+#include <bitc/serialize.h>
+#include <bitc/util.h>
+#include <bitc/compat.h>		/* for parr_new */
+#include <bitc/endian.h>
 
 void parse_message_hdr(struct p2p_message_hdr *hdr, const unsigned char *data)
 {
@@ -81,10 +81,10 @@ bool deser_msg_addr(unsigned int protover, struct msg_addr *ma,
 
 	unsigned int i;
 	for (i = 0; i < vlen; i++) {
-		struct bp_address *addr;
+		struct bitc_address *addr;
 
 		addr = calloc(1, sizeof(*addr));
-		if (!deser_bp_addr(protover, addr, buf)) {
+		if (!deser_bitc_addr(protover, addr, buf)) {
 			free(addr);
 			goto err_out;
 		}
@@ -112,11 +112,11 @@ cstring *ser_msg_addr(unsigned int protover, const struct msg_addr *ma)
 
 	unsigned int i;
 	for (i = 0; i < ma->addrs->len; i++) {
-		struct bp_address *addr;
+		struct bitc_address *addr;
 
 		addr = parr_idx(ma->addrs, i);
 
-		ser_bp_addr(s, protover, addr);
+		ser_bitc_addr(s, protover, addr);
 	}
 
 	return s;
@@ -134,7 +134,7 @@ bool deser_msg_getblocks(struct msg_getblocks *gb, struct const_buffer *buf)
 {
 	msg_getblocks_free(gb);
 
-	if (!deser_bp_locator(&gb->locator, buf)) return false;
+	if (!deser_bitc_locator(&gb->locator, buf)) return false;
 	if (!deser_u256(&gb->hash_stop, buf)) return false;
 	return true;
 }
@@ -143,7 +143,7 @@ cstring *ser_msg_getblocks(const struct msg_getblocks *gb)
 {
 	cstring *s = cstr_new_sz(256);
 
-	ser_bp_locator(s, &gb->locator);
+	ser_bitc_locator(s, &gb->locator);
 	ser_u256(s, &gb->hash_stop);
 
 	return s;
@@ -160,10 +160,10 @@ bool deser_msg_headers(struct msg_headers *mh, struct const_buffer *buf)
 
 	unsigned int i;
 	for (i = 0; i < vlen; i++) {
-		struct bp_block *block;
+		struct bitc_block *block;
 
 		block = calloc(1, sizeof(*block));
-		if (!deser_bp_block(block, buf)) {
+		if (!deser_bitc_block(block, buf)) {
 			free(block);
 			goto err_out;
 		}
@@ -191,11 +191,11 @@ cstring *ser_msg_headers(const struct msg_headers *mh)
 
 	unsigned int i;
 	for (i = 0; i < mh->headers->len; i++) {
-		struct bp_block *block;
+		struct bitc_block *block;
 
 		block = parr_idx(mh->headers, i);
 
-		ser_bp_block(s, block);
+		ser_bitc_block(s, block);
 	}
 
 	return s;
@@ -210,10 +210,10 @@ void msg_headers_free(struct msg_headers *mh)
 		unsigned int i;
 
 		for (i = 0; i < mh->headers->len; i++) {
-			struct bp_block *block;
+			struct bitc_block *block;
 
 			block = parr_idx(mh->headers, i);
-			bp_block_free(block);
+			bitc_block_free(block);
 		}
 
 		parr_free(mh->headers, true);
@@ -252,10 +252,10 @@ bool deser_msg_version(struct msg_version *mv, struct const_buffer *buf)
 		mv->nVersion = 300;
 	if (!deser_u64(&mv->nServices, buf)) return false;
 	if (!deser_s64(&mv->nTime, buf)) return false;
-	if (!deser_bp_addr(MIN_PROTO_VERSION, &mv->addrTo, buf)) return false;
+	if (!deser_bitc_addr(MIN_PROTO_VERSION, &mv->addrTo, buf)) return false;
 
 	if (mv->nVersion >= 106) {
-		if (!deser_bp_addr(MIN_PROTO_VERSION, &mv->addrFrom, buf)) return false;
+		if (!deser_bitc_addr(MIN_PROTO_VERSION, &mv->addrFrom, buf)) return false;
 		if (!deser_u64(&mv->nonce, buf)) return false;
 		if (!deser_str(mv->strSubVer, buf, sizeof(mv->strSubVer)))
 			return false;
@@ -279,8 +279,8 @@ cstring *ser_msg_version(const struct msg_version *mv)
 	ser_u64(s, mv->nServices);
 	ser_s64(s, mv->nTime);
 
-	ser_bp_addr(s, MIN_PROTO_VERSION, &mv->addrTo);
-	ser_bp_addr(s, MIN_PROTO_VERSION, &mv->addrFrom);
+	ser_bitc_addr(s, MIN_PROTO_VERSION, &mv->addrTo);
+	ser_bitc_addr(s, MIN_PROTO_VERSION, &mv->addrFrom);
 
 	ser_u64(s, mv->nonce);
 	ser_str(s, mv->strSubVer, sizeof(mv->strSubVer));
@@ -303,10 +303,10 @@ bool deser_msg_vinv(struct msg_vinv *mv, struct const_buffer *buf)
 
 	unsigned int i;
 	for (i = 0; i < vlen; i++) {
-		struct bp_inv *inv;
+		struct bitc_inv *inv;
 
 		inv = calloc(1, sizeof(*inv));
-		if (!deser_bp_inv(inv, buf)) {
+		if (!deser_bitc_inv(inv, buf)) {
 			free(inv);
 			goto err_out;
 		}
@@ -334,11 +334,11 @@ cstring *ser_msg_vinv(const struct msg_vinv *mv)
 
 	unsigned int i;
 	for (i = 0; i < mv->invs->len; i++) {
-		struct bp_inv *inv;
+		struct bitc_inv *inv;
 
 		inv = parr_idx(mv->invs, i);
 
-		ser_bp_inv(s, inv);
+		ser_bitc_inv(s, inv);
 	}
 
 	return s;
@@ -361,7 +361,7 @@ void msg_vinv_push(struct msg_vinv *mv, uint32_t msg_type,
 	if (!mv->invs)
 		mv->invs = parr_new(512, free);
 
-	struct bp_inv *inv = malloc(sizeof(struct bp_inv));
+	struct bitc_inv *inv = malloc(sizeof(struct bitc_inv));
 	inv->type = msg_type;
 	bu256_copy(&inv->hash, hash_in);
 

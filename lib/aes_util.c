@@ -3,17 +3,17 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include <ccoin/util.h>
-#include <ccoin/cstr.h>
-#include <ccoin/aes_util.h>
-#include <ccoin/crypto/aes.h>
-#include <ccoin/crypto/sha2.h>
+#include <bitc/util.h>
+#include <bitc/cstr.h>
+#include <bitc/aes_util.h>
+#include <bitc/crypto/aes.h>
+#include <bitc/crypto/sha2.h>
 
 /**
  * Create an 256 bit key and IV using the supplied key_data. salt can be added for taste.
  * Fills in the encryption and decryption ctx objects and returns 0 on success
  **/
-static bool ccoin_aes_init(const uint8_t *key_data,
+static bool bitc_aes_init(const uint8_t *key_data,
 			   int key_data_len,
 			   uint8_t *salt_8,
 			   uint8_t *iv_32,
@@ -71,7 +71,7 @@ static bool ccoin_aes_init(const uint8_t *key_data,
 	return true;
 }
 
-static uint8_t *ccoin_aes_encrypt(aes_encrypt_ctx *ctx,
+static uint8_t *bitc_aes_encrypt(aes_encrypt_ctx *ctx,
 				  uint8_t *iv,
 				  const void *_plaintext,
 				  const size_t pt_len,
@@ -117,7 +117,7 @@ static uint8_t *ccoin_aes_encrypt(aes_encrypt_ctx *ctx,
 /*
  * Decrypt *len bytes of ciphertext
  */
-static uint8_t *ccoin_aes_decrypt(aes_decrypt_ctx *ctx,
+static uint8_t *bitc_aes_decrypt(aes_decrypt_ctx *ctx,
 				  uint8_t *iv,
 				  const uint8_t *ciphertext,
 				  size_t ct_len,
@@ -152,13 +152,13 @@ void *encrypt_aes_buffer(const void *plaintext, size_t pt_len,
 	aes_decrypt_ctx d_ctx;
 	uint8_t iv[32];
 	unsigned int salt[] = { 4185398345U, 2729682459U };
-	if (!ccoin_aes_init(key, key_len, (uint8_t *)salt, iv, &e_ctx, &d_ctx))
+	if (!bitc_aes_init(key, key_len, (uint8_t *)salt, iv, &e_ctx, &d_ctx))
 	{
 		return NULL;
 	}
 
 	*ct_len = pt_len;
-	return ccoin_aes_encrypt(&e_ctx, iv, plaintext, pt_len, ct_len);
+	return bitc_aes_encrypt(&e_ctx, iv, plaintext, pt_len, ct_len);
 }
 
 cstring *decrypt_aes_buffer(const void *ciphertext,
@@ -170,14 +170,14 @@ cstring *decrypt_aes_buffer(const void *ciphertext,
 	aes_decrypt_ctx d_ctx;
 	uint8_t iv[32];
 	unsigned int salt[] = { 4185398345U, 2729682459U };
-	if (!ccoin_aes_init(key, key_len, (uint8_t *)salt, iv, &e_ctx, &d_ctx))
+	if (!bitc_aes_init(key, key_len, (uint8_t *)salt, iv, &e_ctx, &d_ctx))
 	{
 		return NULL;
 	}
 
 	size_t pt_len = ct_len;
 	void *plaintext =
-		ccoin_aes_decrypt(&d_ctx, iv, ciphertext, ct_len, &pt_len);
+		bitc_aes_decrypt(&d_ctx, iv, ciphertext, ct_len, &pt_len);
 	if (!plaintext)
 	{
 		return NULL;

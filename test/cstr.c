@@ -4,7 +4,7 @@
  */
 #include <assert.h>
 #include <string.h>
-#include <ccoin/cstr.h>
+#include <bitc/cstr.h>
 
 static void test_basic(void)
 {

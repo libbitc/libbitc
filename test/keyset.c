@@ -2,13 +2,13 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <string.h>
 #include <assert.h>
-#include <ccoin/crypto/ripemd160.h>
-#include <ccoin/key.h>
-#include <ccoin/util.h>
+#include <bitc/crypto/ripemd160.h>
+#include <bitc/key.h>
+#include <bitc/util.h>
 #include "libtest.h"
 
 static void keytest_secp256k1()
@@ -32,9 +32,9 @@ static void keytest_secp256k1()
 static void keytest()
 {
 	{
-		struct bp_key k;
-		bp_key_init(&k);
-		bp_key_free(&k);
+		struct bitc_key k;
+		bitc_key_init(&k);
+		bitc_key_free(&k);
 	}
 
 	// Signature
@@ -50,24 +50,24 @@ static void keytest()
 		void *sig = NULL;
 		size_t siglen = 0;
 
-		struct bp_key k;
-		bp_key_init(&k);
-		assert(bp_key_secret_set(&k, test_secret, sizeof(test_secret)));
-		assert(bp_pubkey_get(&k, &pub, &publen));
+		struct bitc_key k;
+		bitc_key_init(&k);
+		assert(bitc_key_secret_set(&k, test_secret, sizeof(test_secret)));
+		assert(bitc_pubkey_get(&k, &pub, &publen));
 		assert(NULL != pub);
 		assert(0 != publen);
 
-		assert(bp_sign(&k, (uint8_t *)&hash, sizeof(hash), &sig, &siglen));
+		assert(bitc_sign(&k, (uint8_t *)&hash, sizeof(hash), &sig, &siglen));
 		assert(NULL != sig);
 		assert(0 != siglen);
-		bp_key_free(&k);
+		bitc_key_free(&k);
 
-		struct bp_key pubk;
-		bp_key_init(&k);
-		assert(bp_pubkey_set(&pubk, pub, publen));
-		assert(bp_verify(&pubk, (uint8_t *)&hash, sizeof(hash), sig, siglen));
+		struct bitc_key pubk;
+		bitc_key_init(&k);
+		assert(bitc_pubkey_set(&pubk, pub, publen));
+		assert(bitc_verify(&pubk, (uint8_t *)&hash, sizeof(hash), sig, siglen));
 
-		bp_key_free(&k);
+		bitc_key_free(&k);
 		free(pub);
 		free(sig);
 	}
@@ -76,22 +76,22 @@ static void keytest()
 static void runtest(void)
 {
 	unsigned int i;
-	struct bp_key keys[4];
+	struct bitc_key keys[4];
 
 	/* generate keys */
 	for (i = 0; i < ARRAY_SIZE(keys); i++) {
-		struct bp_key *key = &keys[i];
-		assert(bp_key_init(key) == true);
-		assert(bp_key_generate(key) == true);
+		struct bitc_key *key = &keys[i];
+		assert(bitc_key_init(key) == true);
+		assert(bitc_key_generate(key) == true);
 	}
 
-	struct bp_keyset ks;
+	struct bitc_keyset ks;
 
-	bpks_init(&ks);
+	bitc_keyset_init(&ks);
 
 	/* add all but one to keyset */
 	for (i = 0; i < (ARRAY_SIZE(keys) - 1); i++)
-		assert(bpks_add(&ks, &keys[i]) == true);
+		assert(bitc_keyset_add(&ks, &keys[i]) == true);
 
 	/* verify all-but-one are in keyset */
 	for (i = 0; i < (ARRAY_SIZE(keys) - 1); i++) {
@@ -99,15 +99,15 @@ static void runtest(void)
 		void *pubkey;
 		size_t pklen;
 
-		assert(bp_pubkey_get(&keys[i], &pubkey, &pklen) == true);
+		assert(bitc_pubkey_get(&keys[i], &pubkey, &pklen) == true);
 
 		bu_Hash160(md160, pubkey, pklen);
 
-		assert(bpks_lookup(&ks, pubkey, pklen, true) == false);
-		assert(bpks_lookup(&ks, pubkey, pklen, false) == true);
+		assert(bitc_keyset_lookup(&ks, pubkey, pklen, true) == false);
+		assert(bitc_keyset_lookup(&ks, pubkey, pklen, false) == true);
 
-		assert(bpks_lookup(&ks, md160, sizeof(md160), true) == true);
-		assert(bpks_lookup(&ks, md160, sizeof(md160), false) == false);
+		assert(bitc_keyset_lookup(&ks, md160, sizeof(md160), true) == true);
+		assert(bitc_keyset_lookup(&ks, md160, sizeof(md160), false) == false);
 
 		free(pubkey);
 	}
@@ -118,25 +118,25 @@ static void runtest(void)
 		void *pubkey;
 		size_t pklen;
 
-		struct bp_key *key = &keys[ARRAY_SIZE(keys) - 1];
-		assert(bp_pubkey_get(key, &pubkey, &pklen) == true);
+		struct bitc_key *key = &keys[ARRAY_SIZE(keys) - 1];
+		assert(bitc_pubkey_get(key, &pubkey, &pklen) == true);
 
 		bu_Hash160(md160, pubkey, pklen);
 
-		assert(bpks_lookup(&ks, pubkey, pklen, true) == false);
-		assert(bpks_lookup(&ks, pubkey, pklen, false) == false);
+		assert(bitc_keyset_lookup(&ks, pubkey, pklen, true) == false);
+		assert(bitc_keyset_lookup(&ks, pubkey, pklen, false) == false);
 
-		assert(bpks_lookup(&ks, md160, sizeof(md160), true) == false);
-		assert(bpks_lookup(&ks, md160, sizeof(md160), false) == false);
+		assert(bitc_keyset_lookup(&ks, md160, sizeof(md160), true) == false);
+		assert(bitc_keyset_lookup(&ks, md160, sizeof(md160), false) == false);
 
 		free(pubkey);
 	}
 
-	bpks_free(&ks);
+	bitc_keyset_free(&ks);
 
 	for (i = 0; i < ARRAY_SIZE(keys); i++) {
-		struct bp_key *key = &keys[i];
-		bp_key_free(key);
+		struct bitc_key *key = &keys[i];
+		bitc_key_free(key);
 	}
 }
 
@@ -146,6 +146,6 @@ int main (int argc, char *argv[])
 	keytest();
 	runtest();
 
-	bp_key_static_shutdown();
+	bitc_key_static_shutdown();
 	return 0;
 }

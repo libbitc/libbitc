@@ -2,14 +2,14 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <stdbool.h>
 #include <assert.h>
-#include <ccoin/checkpoints.h>
-#include <ccoin/util.h>
+#include <bitc/checkpoints.h>
+#include <bitc/util.h>
 
-static const struct bp_checkpoint bp_ck_main[] = {
+static const struct bitc_checkpoint bitc_ck_main[] = {
         { 11111, "0x0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d"},
         { 33333, "0x000000002dd5588a74784eaa7ab0507a18ad16a236e7b1ce69f00d7ddfb5d0a6"},
         { 74000, "0x0000000000573993a3c9e41ce34471c079dcf5f52a0e824a81e7f953b8661a20"},
@@ -19,24 +19,24 @@ static const struct bp_checkpoint bp_ck_main[] = {
         {193000, "0x000000000000059f452a5f7340de6682a977387c17010ff6e6c3bd83ca8b1317"},
 };
 
-static const struct bp_checkpoint bp_ck_testnet3[] = {
+static const struct bitc_checkpoint bitc_ck_testnet3[] = {
         { 546, "000000002a936ca763904c3c35fce2f3556c559c0214345d31b1bcebf76acb70" },
 };
 
-const struct bp_checkpoint_set bp_ckpts[] = {
+const struct bitc_checkpoint_set bitc_ckpts[] = {
 	[CHAIN_BITCOIN] =
-	{ CHAIN_BITCOIN, ARRAY_SIZE(bp_ck_main), bp_ck_main },
+	{ CHAIN_BITCOIN, ARRAY_SIZE(bitc_ck_main), bitc_ck_main },
 
 	[CHAIN_TESTNET3] =
-	{ CHAIN_TESTNET3, ARRAY_SIZE(bp_ck_testnet3), bp_ck_testnet3 },
+	{ CHAIN_TESTNET3, ARRAY_SIZE(bitc_ck_testnet3), bitc_ck_testnet3 },
 
 	{}
 };
 
-bool bp_ckpt_block(enum chains chain, unsigned int height, const bu256_t *hash)
+bool bitc_ckpt_block(enum chains chain, unsigned int height, const bu256_t *hash)
 {
 	assert(chain <= CHAIN_LAST);
-	const struct bp_checkpoint_set *ckset = &bp_ckpts[chain];
+	const struct bitc_checkpoint_set *ckset = &bitc_ckpts[chain];
 	unsigned int i;
 
 	for (i = 0; i < ckset->ckpt_len; i++) {
@@ -53,10 +53,10 @@ bool bp_ckpt_block(enum chains chain, unsigned int height, const bu256_t *hash)
 	return true;
 }
 
-unsigned int bp_ckpt_last(enum chains chain)
+unsigned int bitc_ckpt_last(enum chains chain)
 {
 	assert(chain <= CHAIN_LAST);
-	const struct bp_checkpoint_set *ckset = &bp_ckpts[chain];
+	const struct bitc_checkpoint_set *ckset = &bitc_ckpts[chain];
 	return ckset->ckpts[ckset->ckpt_len - 1].height;
 }
 

@@ -1,25 +1,25 @@
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <assert.h>
 #include <stdio.h>
 #include <openssl/err.h>
-#include <ccoin/buffer.h>
-#include <ccoin/coredefs.h>
-#include <ccoin/cstr.h>
-#include <ccoin/key.h>
-#include <ccoin/wallet.h>
+#include <bitc/buffer.h>
+#include <bitc/coredefs.h>
+#include <bitc/cstr.h>
+#include <bitc/key.h>
+#include <bitc/wallet.h>
 
-static bool key_eq(const struct bp_key *key1,
-		   const struct bp_key *key2)
+static bool key_eq(const struct bitc_key *key1,
+		   const struct bitc_key *key2)
 {
 	void *data1, *data2;
 	size_t len1, len2;
 	int ret;
 
-	if (!bp_privkey_get(key1, &data1, &len1))
+	if (!bitc_privkey_get(key1, &data1, &len1))
 		return false;
 
-	if (!bp_privkey_get(key2, &data2, &len2)){
+	if (!bitc_privkey_get(key2, &data2, &len2)){
 		free(data1);
 		return false;
 	}
@@ -53,7 +53,7 @@ static bool wallet_eq(const struct wallet *wlt1,
 		return false;
 
 	for (i = 0; i < wlt1->keys->len; i++) {
-		const struct bp_key *key1, *key2;
+		const struct bitc_key *key1, *key2;
 
 		key1 = parr_idx(wlt1->keys, i);
 		key2 = parr_idx(wlt2->keys, i);
@@ -123,6 +123,6 @@ int main(int argc, char *argv[])
 		check_with_chain(&chain_metadata[i]);
 
 	ERR_remove_state(0);
-	bp_key_static_shutdown();
+	bitc_key_static_shutdown();
 	return 0;
 }

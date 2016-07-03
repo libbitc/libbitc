@@ -2,17 +2,17 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
 #include <jansson.h>
 #include "libtest.h"
-#include <ccoin/base58.h>
-#include <ccoin/hexcode.h>
-#include <ccoin/key.h>
-#include <ccoin/coredefs.h>
+#include <bitc/base58.h>
+#include <bitc/hexcode.h>
+#include <bitc/key.h>
+#include <bitc/coredefs.h>
 
 static void test_encode(const char *hexstr, const char *enc)
 {
@@ -139,7 +139,7 @@ static void test_pubkey_valid_enc(const char *base58_str,
 	bool addrtype_script = (strcmp(addrtype_str, "script") == 0);
 	assert(addrtype_pubkey || addrtype_script);
 
-	enum bp_address_type addrtype;
+	enum bitc_address_type addrtype;
 	if (addrtype_pubkey) {
 		if (is_testnet)
 			addrtype = PUBKEY_ADDRESS_TEST;
@@ -210,7 +210,7 @@ static void test_pubkey_valid_dec(const char *base58_str,
 	bool addrtype_script = (strcmp(addrtype_str, "script") == 0);
 	assert(addrtype_pubkey || addrtype_script);
 
-	enum bp_address_type addrtype;
+	enum bitc_address_type addrtype;
 	if (addrtype_pubkey) {
 		if (is_testnet)
 			addrtype = PUBKEY_ADDRESS_TEST;
@@ -305,6 +305,6 @@ int main (int argc, char *argv[])
 	runtest_encdec("base58_encode_decode.json");
 	runtest_keys_valid("base58_keys_valid.json");
 
-	bp_key_static_shutdown();
+	bitc_key_static_shutdown();
 	return 0;
 }

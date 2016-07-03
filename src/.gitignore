@@ -1,6 +1,4 @@
 
-libnode.a
-
 blkscan
 blkstats
 rawtx
@@ -9,8 +7,8 @@ brd
 brd.peers
 brd.blocks
 
-picocoin
-picocoin.peers
-picocoin.blkdb
+bitsy
+bitsy.peers
+bitsy.blkdb
 *.wallet
 

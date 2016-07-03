@@ -5,11 +5,11 @@
 #include <stdlib.h>
 
 #include <string.h>
-#include <ccoin/buffer.h>
-#include <ccoin/bloom.h>
-#include <ccoin/serialize.h>
-#include <ccoin/cstr.h>
-#include <ccoin/util.h>
+#include <bitc/buffer.h>
+#include <bitc/bloom.h>
+#include <bitc/serialize.h>
+#include <bitc/cstr.h>
+#include <bitc/util.h>
 
 #define LN2SQUARED 0.4804530139182014246671025263266649717305529515945455L
 #define LN2 0.6931471805599453094172321214581765680755001343602552L

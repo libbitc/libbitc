@@ -1,21 +1,21 @@
 
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
-#include <ccoin/script.h>
-#include <ccoin/key.h>
-#include <ccoin/core.h>
-#include <ccoin/buint.h>
-#include <ccoin/key.h>
-#include <ccoin/util.h>
+#include <bitc/script.h>
+#include <bitc/key.h>
+#include <bitc/core.h>
+#include <bitc/buint.h>
+#include <bitc/key.h>
+#include <bitc/util.h>
 
-static bool sign1(const bu160_t *key_id, struct bp_keystore *ks,
+static bool sign1(const bu160_t *key_id, struct bitc_keystore *ks,
 		  const bu256_t *hash, int nHashType,
 		  cstring *scriptSig)
 {
-	struct bp_key key;
+	struct bitc_key key;
 	bool rc = false;
 
-	bp_key_init(&key);
+	bitc_key_init(&key);
 
 	/* find private key in keystore */
 	if (!bkeys_key_get(ks, key_id, &key))
@@ -25,7 +25,7 @@ static bool sign1(const bu160_t *key_id, struct bp_keystore *ks,
 	size_t siglen = 0;
 
 	/* sign hash with private key */
-	if (!bp_sign(&key, hash, sizeof(*hash), &sig, &siglen))
+	if (!bitc_sign(&key, hash, sizeof(*hash), &sig, &siglen))
 		goto out;
 
 	/* append nHashType to signature */
@@ -41,22 +41,22 @@ static bool sign1(const bu160_t *key_id, struct bp_keystore *ks,
 	rc = true;
 
 out:
-	bp_key_free(&key);
+	bitc_key_free(&key);
 	return rc;
 }
 
-bool bp_script_sign(struct bp_keystore *ks, const cstring *fromPubKey,
-		    const struct bp_tx *txTo, unsigned int nIn,
+bool bitc_script_sign(struct bitc_keystore *ks, const cstring *fromPubKey,
+		    const struct bitc_tx *txTo, unsigned int nIn,
 		    int nHashType)
 {
 	if (!txTo || !txTo->vin || nIn >= txTo->vin->len)
 		return false;
 
-	struct bp_txin *txin = parr_idx(txTo->vin, nIn);
+	struct bitc_txin *txin = parr_idx(txTo->vin, nIn);
 
 	/* get signature hash */
 	bu256_t hash;
-	bp_tx_sighash(&hash, fromPubKey, txTo, nIn, nHashType);
+	bitc_tx_sighash(&hash, fromPubKey, txTo, nIn, nHashType);
 
 	/* match fromPubKey against templates, to find what pubkey[hashes]
 	 * are required for signing
@@ -111,21 +111,21 @@ out:
 	return rc;
 }
 
-bool bp_sign_sig(struct bp_keystore *ks, const struct bp_utxo *txFrom,
-		 struct bp_tx *txTo, unsigned int nIn,
+bool bitc_sign_sig(struct bitc_keystore *ks, const struct bitc_utxo *txFrom,
+		 struct bitc_tx *txTo, unsigned int nIn,
 		 unsigned int flags, int nHashType)
 {
 	if (!ks || !txFrom || !txFrom->vout ||
 	    !txTo || !txTo->vin || nIn >= txTo->vin->len)
 		return false;
 
-	struct bp_txin *txin = parr_idx(txTo->vin, nIn);
+	struct bitc_txin *txin = parr_idx(txTo->vin, nIn);
 
 	if (txin->prevout.n >= txFrom->vout->len)
 		return false;
-	struct bp_txout *txout = parr_idx(txFrom->vout,
+	struct bitc_txout *txout = parr_idx(txFrom->vout,
 						   txin->prevout.n);
 
-	return bp_script_sign(ks, txout->scriptPubKey, txTo, nIn, nHashType);
+	return bitc_script_sign(ks, txout->scriptPubKey, txTo, nIn, nHashType);
 }
 

@@ -2,27 +2,27 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ccoin/hashtab.h>
+#include <bitc/hashtab.h>
 
-struct bp_hashtab *bp_hashtab_new_ext(
+struct bitc_hashtab *bitc_hashtab_new_ext(
 	unsigned long (*hash_f)(const void *p),
 	bool (*equal_f)(const void *a, const void *b),
-	bp_freefunc keyfree_f,
-	bp_freefunc valfree_f)
+	bitc_freefunc keyfree_f,
+	bitc_freefunc valfree_f)
 {
 	// alloc container ds
-	struct bp_hashtab *ht = calloc(1, sizeof(*ht));
+	struct bitc_hashtab *ht = calloc(1, sizeof(*ht));
 	if (!ht)
 		return NULL;
 
 	// alloc empty hash table
 	ht->tab_size = BP_HT_INIT_TAB_SZ;
-	ht->tab = calloc(ht->tab_size, sizeof(struct bp_ht_ent *));
+	ht->tab = calloc(ht->tab_size, sizeof(struct bitc_ht_ent *));
 	if (!ht->tab) {
 		free(ht);
 		return NULL;
@@ -37,7 +37,7 @@ struct bp_hashtab *bp_hashtab_new_ext(
 	return ht;
 }
 
-static void bp_ht_ent_cb(struct bp_hashtab *ht, struct bp_ht_ent *ent)
+static void bitc_ht_ent_cb(struct bitc_hashtab *ht, struct bitc_ht_ent *ent)
 {
 	// call destructors
 	if (ht->keyfree_f)
@@ -46,17 +46,17 @@ static void bp_ht_ent_cb(struct bp_hashtab *ht, struct bp_ht_ent *ent)
 		ht->valfree_f(ent->value);
 }
 
-static void bp_ht_ent_free(struct bp_hashtab *ht, struct bp_ht_ent *ent)
+static void bitc_ht_ent_free(struct bitc_hashtab *ht, struct bitc_ht_ent *ent)
 {
 	if (!ht || !ent)
 		return;
 
-	bp_ht_ent_cb(ht, ent);
+	bitc_ht_ent_cb(ht, ent);
 	memset(ent, 0, sizeof(*ent));
 	free(ent);
 }
 
-static void bp_hashtab_free_tab(struct bp_hashtab *ht)
+static void bitc_hashtab_free_tab(struct bitc_hashtab *ht)
 {
 	if (!ht->tab)
 		return;
@@ -64,16 +64,16 @@ static void bp_hashtab_free_tab(struct bp_hashtab *ht)
 	// iterate through entire table
 	unsigned int i;
 	for (i = 0; i < ht->tab_size; i++) {
-		struct bp_ht_ent *iter;
+		struct bitc_ht_ent *iter;
 
 		// iterate for each entry in bucket
 		iter = ht->tab[i];
 		while (iter) {
-			struct bp_ht_ent *tmp = iter;
+			struct bitc_ht_ent *tmp = iter;
 			iter = iter->next;
 
 			// free & clear entry
-			bp_ht_ent_free(ht, tmp);
+			bitc_ht_ent_free(ht, tmp);
 		}
 
 		ht->tab[i] = NULL;
@@ -85,12 +85,12 @@ static void bp_hashtab_free_tab(struct bp_hashtab *ht)
 	ht->size = 0;
 }
 
-bool bp_hashtab_clear(struct bp_hashtab *ht)
+bool bitc_hashtab_clear(struct bitc_hashtab *ht)
 {
-	bp_hashtab_free_tab(ht);
+	bitc_hashtab_free_tab(ht);
 
 	ht->tab_size = BP_HT_INIT_TAB_SZ;
-	ht->tab = calloc(ht->tab_size, sizeof(struct bp_ht_ent *));
+	ht->tab = calloc(ht->tab_size, sizeof(struct bitc_ht_ent *));
 	if (!ht->tab) {
 		ht->tab_size = 0;
 		return false;
@@ -99,7 +99,7 @@ bool bp_hashtab_clear(struct bp_hashtab *ht)
 	return true;
 }
 
-void bp_hashtab_unref(struct bp_hashtab *ht)
+void bitc_hashtab_unref(struct bitc_hashtab *ht)
 {
 	if (!ht)
 		return;
@@ -112,19 +112,19 @@ void bp_hashtab_unref(struct bp_hashtab *ht)
 		return;
 
 	// clear table and buckets
-	bp_hashtab_free_tab(ht);
+	bitc_hashtab_free_tab(ht);
 
 	// free & clear
 	memset(ht, 0, sizeof(*ht));
 	free(ht);
 }
 
-static bool bp_hashtab_get_ent(struct bp_hashtab *ht,
+static bool bitc_hashtab_get_ent(struct bitc_hashtab *ht,
 			       unsigned long hash,
 			       const void *key,
 			       unsigned int *bucket_out,
-			       struct bp_ht_ent **prev_out,
-			       struct bp_ht_ent **ent_out)
+			       struct bitc_ht_ent **prev_out,
+			       struct bitc_ht_ent **ent_out)
 {
 	// hash key (if needed), determine bucket
 	if (!hash)
@@ -136,13 +136,13 @@ static bool bp_hashtab_get_ent(struct bp_hashtab *ht,
 	*ent_out = NULL;
 
 	// find desired bucket
-	struct bp_ht_ent *iter;
+	struct bitc_ht_ent *iter;
 	iter = ht->tab[bucket];
 	if (!iter)
 		return false;
 
 	// iterate through bucket, looking for exact match
-	struct bp_ht_ent *prev = NULL;
+	struct bitc_ht_ent *prev = NULL;
 	while (iter) {
 		if ((iter->hash == hash) &&
 		    (ht->equal_f(iter->key, key))) {
@@ -158,13 +158,13 @@ static bool bp_hashtab_get_ent(struct bp_hashtab *ht,
 	return false;
 }
 
-bool bp_hashtab_del(struct bp_hashtab *ht, const void *key)
+bool bitc_hashtab_del(struct bitc_hashtab *ht, const void *key)
 {
 	// lookup key and bucket
 	unsigned int bucket = 0;
-	struct bp_ht_ent *prev = NULL;
-	struct bp_ht_ent *ent = NULL;
-	bool match = bp_hashtab_get_ent(ht, 0, key, &bucket, &prev, &ent);
+	struct bitc_ht_ent *prev = NULL;
+	struct bitc_ht_ent *ent = NULL;
+	bool match = bitc_hashtab_get_ent(ht, 0, key, &bucket, &prev, &ent);
 	if (!match)
 		return false;
 
@@ -175,7 +175,7 @@ bool bp_hashtab_del(struct bp_hashtab *ht, const void *key)
 		prev->next = ent->next;
 
 	// free & clear
-	bp_ht_ent_free(ht, ent);
+	bitc_ht_ent_free(ht, ent);
 
 	// adjust cached size
 	ht->size--;
@@ -183,14 +183,14 @@ bool bp_hashtab_del(struct bp_hashtab *ht, const void *key)
 	return true;
 }
 
-bool bp_hashtab_get_ext(struct bp_hashtab *ht, const void *lookup_key,
+bool bitc_hashtab_get_ext(struct bitc_hashtab *ht, const void *lookup_key,
 		        void **orig_key, void **value)
 {
 	// lookup key
 	unsigned int bucket = 0;
-	struct bp_ht_ent *prev = NULL;
-	struct bp_ht_ent *ent = NULL;
-	bool match = bp_hashtab_get_ent(ht, 0, lookup_key, &bucket, &prev,&ent);
+	struct bitc_ht_ent *prev = NULL;
+	struct bitc_ht_ent *ent = NULL;
+	bool match = bitc_hashtab_get_ent(ht, 0, lookup_key, &bucket, &prev,&ent);
 
 	// if found, store original key and value
 	if (match) {
@@ -203,9 +203,9 @@ bool bp_hashtab_get_ext(struct bp_hashtab *ht, const void *lookup_key,
 	return match;
 }
 
-static bool bp_hashtab_grow(struct bp_hashtab *ht)
+static bool bitc_hashtab_grow(struct bitc_hashtab *ht)
 {
-	struct bp_ht_ent **new_tab = NULL;
+	struct bitc_ht_ent **new_tab = NULL;
 	unsigned int new_tab_size;
 
 	// if table small, grow by larger factor
@@ -215,14 +215,14 @@ static bool bp_hashtab_grow(struct bp_hashtab *ht)
 		new_tab_size = (ht->tab_size * 2) - 1;
 
 	// alloc new table; our main failure point
-	new_tab = calloc(new_tab_size, sizeof(struct bp_ht_ent *));
+	new_tab = calloc(new_tab_size, sizeof(struct bitc_ht_ent *));
 	if (!new_tab)
 		return false;
 
 	// iterate through old table
 	unsigned int i, new_buck;
 	for (i = 0; i < ht->tab_size; i++) {
-		struct bp_ht_ent *tmp, *iter;
+		struct bitc_ht_ent *tmp, *iter;
 
 		// iterate through bucket, re-sorting into new table
 		iter = ht->tab[i];
@@ -249,18 +249,18 @@ static bool bp_hashtab_grow(struct bp_hashtab *ht)
 	return true;
 }
 
-bool bp_hashtab_put(struct bp_hashtab *ht, void *key, void *val)
+bool bitc_hashtab_put(struct bitc_hashtab *ht, void *key, void *val)
 {
 	// lookup key and bucket
 	unsigned long hash = ht->hash_f(key);
 	unsigned int bucket = 0;
-	struct bp_ht_ent *prev = NULL;
-	struct bp_ht_ent *ent = NULL;
-	bool match = bp_hashtab_get_ent(ht, hash, key, &bucket, &prev, &ent);
+	struct bitc_ht_ent *prev = NULL;
+	struct bitc_ht_ent *ent = NULL;
+	bool match = bitc_hashtab_get_ent(ht, hash, key, &bucket, &prev, &ent);
 
 	// if found, overwrite existing entry
 	if (match) {
-		bp_ht_ent_cb(ht, ent);
+		bitc_ht_ent_cb(ht, ent);
 
 		ent->key = key;
 		ent->value = val;
@@ -269,7 +269,7 @@ bool bp_hashtab_put(struct bp_hashtab *ht, void *key, void *val)
 	}
 
 	// construct new entry
-	struct bp_ht_ent *b = calloc(1, sizeof(*b));
+	struct bitc_ht_ent *b = calloc(1, sizeof(*b));
 	if (!b)
 		return false;
 
@@ -286,7 +286,7 @@ bool bp_hashtab_put(struct bp_hashtab *ht, void *key, void *val)
 	if (b->next) {
 		// count chain length
 		unsigned int count = 0;
-		struct bp_ht_ent *tmp = b;
+		struct bitc_ht_ent *tmp = b;
 		while (tmp) {
 			count++;
 			tmp = tmp->next;
@@ -294,17 +294,17 @@ bool bp_hashtab_put(struct bp_hashtab *ht, void *key, void *val)
 
 		// if chain too long, grow table by one iteration
 		if (count > BP_HT_MAX_BUCKET_SZ)
-			bp_hashtab_grow(ht);
+			bitc_hashtab_grow(ht);
 	}
 
 	return true;
 }
 
-void bp_hashtab_iter(struct bp_hashtab *ht, bp_kvu_func cb, void *priv)
+void bitc_hashtab_iter(struct bitc_hashtab *ht, bitc_kvu_func cb, void *priv)
 {
 	unsigned int bucket;
 	for (bucket = 0; bucket < ht->tab_size; bucket++) {
-		struct bp_ht_ent *ent = ht->tab[bucket];
+		struct bitc_ht_ent *ent = ht->tab[bucket];
 		while (ent) {
 			cb(ent->key, ent->value, priv);
 			ent = ent->next;

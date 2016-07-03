@@ -2,14 +2,14 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <stdint.h>
 #include <string.h>
-#include <ccoin/serialize.h>
-#include <ccoin/util.h>
-#include <ccoin/compat.h>
-#include <ccoin/endian.h>
+#include <bitc/serialize.h>
+#include <bitc/util.h>
+#include <bitc/compat.h>
+#include <bitc/endian.h>
 
 void ser_bytes(cstring *s, const void *p, size_t len)
 {

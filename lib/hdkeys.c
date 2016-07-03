@@ -4,12 +4,12 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include <ccoin/hdkeys.h>
-#include <ccoin/buffer.h>
-#include <ccoin/serialize.h>
-#include <ccoin/util.h>
-#include <ccoin/crypto/ripemd160.h>
-#include <ccoin/crypto/hmac.h>
+#include <bitc/hdkeys.h>
+#include <bitc/buffer.h>
+#include <bitc/serialize.h>
+#include <bitc/util.h>
+#include <bitc/crypto/ripemd160.h>
+#include <bitc/crypto/hmac.h>
 
 #define MAIN_PUBLIC 0x0488B21E
 #define MAIN_PRIVATE 0x0488ADE4
@@ -18,7 +18,7 @@
 
 bool hd_extended_key_init(struct hd_extended_key *ek)
 {
-	if (bp_key_init(&ek->key)) {
+	if (bitc_key_init(&ek->key)) {
 		memset(ek->chaincode.data, 0, sizeof(ek->chaincode.data));
 		ek->index = 0;
 		ek->version = 0;
@@ -31,7 +31,7 @@ bool hd_extended_key_init(struct hd_extended_key *ek)
 
 void hd_extended_key_free(struct hd_extended_key *ek)
 {
-	bp_key_free(&ek->key);
+	bitc_key_free(&ek->key);
 }
 
 bool hd_extended_key_deser(struct hd_extended_key *ek, const void *_data,
@@ -51,13 +51,13 @@ bool hd_extended_key_deser(struct hd_extended_key *ek, const void *_data,
 	if (!deser_bytes(&ek->chaincode.data, &buf, 32)) return false;
 
 	if (MAIN_PUBLIC == version || TEST_PUBLIC == version) {
-		if (bp_pubkey_set(&ek->key, buf.p, 33)) {
+		if (bitc_pubkey_set(&ek->key, buf.p, 33)) {
 			return true;
 		}
 	} else if (MAIN_PRIVATE == version || TEST_PRIVATE == version) {
 		uint8_t zero;
 		if (deser_bytes(&zero, &buf, 1) && 0 == zero) {
-			if (bp_key_secret_set(&ek->key, buf.p, 32)) {
+			if (bitc_key_secret_set(&ek->key, buf.p, 32)) {
 				return true;
 			}
 		}
@@ -82,7 +82,7 @@ bool hd_extended_key_ser_pub(const struct hd_extended_key *ek, cstring *s)
 
 	void *pub;
 	size_t pub_len;
-	if (bp_pubkey_get(&ek->key, &pub, &pub_len) && 33 == pub_len) {
+	if (bitc_pubkey_get(&ek->key, &pub, &pub_len) && 33 == pub_len) {
 		ser_bytes(s, pub, 33);
 		free(pub);
 		return true;
@@ -96,7 +96,7 @@ bool hd_extended_key_ser_priv(const struct hd_extended_key *ek, cstring *s)
 
 	const uint8_t zero = 0;
 	ser_bytes(s, &zero, 1);
-	return bp_key_secret_get(s->str + s->len, 32, &ek->key);
+	return bitc_key_secret_get(s->str + s->len, 32, &ek->key);
 }
 
 bool hd_extended_key_generate_master(struct hd_extended_key *ek,
@@ -106,7 +106,7 @@ bool hd_extended_key_generate_master(struct hd_extended_key *ek,
 	uint8_t I[64];
 	hmac_sha512(key, (uint32_t )sizeof(key), seed, (uint32_t )seed_len, I);
 
-	if (bp_key_secret_set(&ek->key, I, 32)) {
+	if (bitc_key_secret_set(&ek->key, I, 32)) {
 		memcpy(ek->chaincode.data, &I[32], 32);
 		ek->index = 0;
 		ek->version = MAIN_PRIVATE; // get's set public / private during
@@ -130,18 +130,18 @@ bool hd_extended_key_generate_child(const struct hd_extended_key *parent,
 	uint8_t data[33 + sizeof(uint32_t)];
 	if (0 != (0x80000000 & index)) {
 
-		if (!bp_key_secret_get(&data[1], 32, &parent->key)) {
+		if (!bitc_key_secret_get(&data[1], 32, &parent->key)) {
 			return false;
 		}
 		data[0] = 0;
 
-		if (!bp_pubkey_get(&parent->key, &parent_pub, &parent_pub_len)) {
+		if (!bitc_pubkey_get(&parent->key, &parent_pub, &parent_pub_len)) {
 			return false;
 		}
 
 	} else {
 
-		if (!bp_pubkey_get(&parent->key, &parent_pub, &parent_pub_len)) {
+		if (!bitc_pubkey_get(&parent->key, &parent_pub, &parent_pub_len)) {
 			return false;
 		}
 		memcpy(&data[0], parent_pub, parent_pub_len);
@@ -159,7 +159,7 @@ bool hd_extended_key_generate_child(const struct hd_extended_key *parent,
 	hmac_sha512(parent->chaincode.data, (int)sizeof(parent->chaincode.data),
 		    data, (int)sizeof(data), I);
 
-	if (!bp_key_add_secret(&out_child->key, &parent->key, I)) {
+	if (!bitc_key_add_secret(&out_child->key, &parent->key, I)) {
 		goto free_parent_pub;
 	}
 

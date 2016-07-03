@@ -2,12 +2,12 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <string.h>
 #include <assert.h>
-#include <ccoin/crypto/sha2.h>
-#include <ccoin/bloom.h>
+#include <bitc/crypto/sha2.h>
+#include <bitc/bloom.h>
 #include "libtest.h"
 
 static const char *data1 = "foo";

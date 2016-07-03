@@ -26,7 +26,7 @@
  * SUCH DAMAGE.
  */
 
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #ifndef HAVE_MEMMEM
 

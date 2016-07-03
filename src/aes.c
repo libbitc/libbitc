@@ -11,9 +11,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <ccoin/util.h>
-#include <ccoin/cstr.h>
-#include <ccoin/aes_util.h>
+#include <bitc/util.h>
+#include <bitc/cstr.h>
+#include <bitc/aes_util.h>
 
 cstring *read_aes_file(const char *filename, void *key, size_t key_len,
 		       size_t max_file_len)

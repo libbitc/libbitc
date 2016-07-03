@@ -4,10 +4,10 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include <ccoin/hdkeys.h>
+#include <bitc/hdkeys.h>
 
 #include <assert.h>
-#include <ccoin/base58.h>
+#include <bitc/base58.h>
 #include <openssl/err.h>
 
 #define MAIN_PUBLIC 0x1EB28804
@@ -86,8 +86,8 @@ static bool check_keys_match(const struct hd_extended_key *ekA,
 	void *pubkeyB;
 	size_t pubkeyB_len;
 	bool result = false;
-	if (bp_pubkey_get(&ekA->key, &pubkeyA, &pubkeyA_len)) {
-		if (bp_pubkey_get(&ekB->key, &pubkeyB, &pubkeyB_len)) {
+	if (bitc_pubkey_get(&ekA->key, &pubkeyA, &pubkeyA_len)) {
+		if (bitc_pubkey_get(&ekB->key, &pubkeyB, &pubkeyB_len)) {
 			result = (pubkeyB_len == pubkeyA_len) &&
 				(0 == memcmp(pubkeyA, pubkeyB, pubkeyA_len));
 			free(pubkeyB);
@@ -110,7 +110,7 @@ static void print_ek_public(const struct hd_extended_key *ek)
 
 	void *pub;
 	size_t pub_len = 0;
-	bp_pubkey_get(&ek->key, &pub, &pub_len);
+	bitc_pubkey_get(&ek->key, &pub, &pub_len);
 	printf(" pub key   : ");
 	print_n(pub, pub_len); NEWLINE;
 	free(pub);
@@ -252,7 +252,7 @@ static void test_serialize()
 {
 	printf("TEST: test_serialize\n");
 
-	const char seed[] = "picocoin test seed";
+	const char seed[] = "libbitc test seed";
 
 	struct hd_extended_key m;
 	struct hd_extended_key_serialized m_xpub;
@@ -379,11 +379,11 @@ static void test_serialize()
 
 		assert(hd_extended_key_init(&m_));
 		assert(hd_extended_key_deser(&m_, m_xpub.data, sizeof(m_xpub)));
-		assert(!bp_key_secret_get(&priv[0], sizeof(priv), &m_.key));
+		assert(!bitc_key_secret_get(&priv[0], sizeof(priv), &m_.key));
 
 		assert(hd_extended_key_init(&m_1_));
 		assert(hd_extended_key_generate_child(&m_, 1, &m_1_));
-		assert(!bp_key_secret_get(&priv[0], sizeof(priv), &m_1_.key));
+		assert(!bitc_key_secret_get(&priv[0], sizeof(priv), &m_1_.key));
 
 		assert(check_keys_match(&m_1, &m_1_));
 
@@ -624,7 +624,7 @@ int main(int argc, char **argv)
 
 	// Keep valgrind happy
 	ERR_remove_state(0);
-	bp_key_static_shutdown();
+	bitc_key_static_shutdown();
 
 	return 0;
 }

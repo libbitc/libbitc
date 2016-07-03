@@ -4,8 +4,8 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include "picocoin-config.h"
-#include <ccoin/key.h>
+#include "libbitc-config.h"
+#include <bitc/key.h>
 
 #include <lax_der_privatekey_parsing.c>
 #include <lax_der_parsing.c>
@@ -36,7 +36,7 @@ secp256k1_context *get_secp256k1_context()
 	return s_context;
 }
 
-void bp_key_static_shutdown()
+void bitc_key_static_shutdown()
 {
 	if (s_context) {
 		secp256k1_context_destroy(s_context);
@@ -44,17 +44,17 @@ void bp_key_static_shutdown()
 	}
 }
 
-bool bp_key_init(struct bp_key *key)
+bool bitc_key_init(struct bitc_key *key)
 {
 	memset(key->secret, 0, sizeof(key->secret));
 	return true;
 }
 
-void bp_key_free(struct bp_key *key)
+void bitc_key_free(struct bitc_key *key)
 {
 }
 
-bool bp_key_generate(struct bp_key *key)
+bool bitc_key_generate(struct bitc_key *key)
 {
 	secp256k1_context *ctx = get_secp256k1_context();
 	if (!ctx) {
@@ -72,7 +72,7 @@ bool bp_key_generate(struct bp_key *key)
 	return true;
 }
 
-bool bp_privkey_set(struct bp_key *key, const void *privkey, size_t pk_len)
+bool bitc_privkey_set(struct bitc_key *key, const void *privkey, size_t pk_len)
 {
 	secp256k1_context *ctx = get_secp256k1_context();
 	if (!ctx) {
@@ -87,7 +87,7 @@ bool bp_privkey_set(struct bp_key *key, const void *privkey, size_t pk_len)
 	return false;
 }
 
-bool bp_pubkey_set(struct bp_key *key, const void *pubkey, size_t pk_len)
+bool bitc_pubkey_set(struct bitc_key *key, const void *pubkey, size_t pk_len)
 {
 	secp256k1_context *ctx = get_secp256k1_context();
 	if (!ctx) {
@@ -101,7 +101,7 @@ bool bp_pubkey_set(struct bp_key *key, const void *pubkey, size_t pk_len)
 	return false;
 }
 
-bool bp_key_secret_set(struct bp_key *key, const void *privkey_, size_t pk_len)
+bool bitc_key_secret_set(struct bitc_key *key, const void *privkey_, size_t pk_len)
 {
 	secp256k1_context *ctx = get_secp256k1_context();
 	if (!ctx) {
@@ -117,7 +117,7 @@ bool bp_key_secret_set(struct bp_key *key, const void *privkey_, size_t pk_len)
 	return false;
 }
 
-bool bp_privkey_get(const struct bp_key *key, void **privkey, size_t *pk_len)
+bool bitc_privkey_get(const struct bitc_key *key, void **privkey, size_t *pk_len)
 {
 	secp256k1_context *ctx = get_secp256k1_context();
 	if (!ctx) {
@@ -137,7 +137,7 @@ bool bp_privkey_get(const struct bp_key *key, void **privkey, size_t *pk_len)
 	return false;
 }
 
-bool bp_pubkey_get(const struct bp_key *key, void **pubkey, size_t *pk_len)
+bool bitc_pubkey_get(const struct bitc_key *key, void **pubkey, size_t *pk_len)
 {
 	secp256k1_context *ctx = get_secp256k1_context();
 	if (!ctx) {
@@ -158,7 +158,7 @@ bool bp_pubkey_get(const struct bp_key *key, void **pubkey, size_t *pk_len)
 	return false;
 }
 
-bool bp_key_secret_get(void *p, size_t len, const struct bp_key *key)
+bool bitc_key_secret_get(void *p, size_t len, const struct bitc_key *key)
 {
 	if (!p || sizeof(key->secret) > len) {
 		return false;
@@ -177,7 +177,7 @@ bool bp_key_secret_get(void *p, size_t len, const struct bp_key *key)
 	return true;
 }
 
-bool bp_sign(const struct bp_key *key, const void *data, size_t data_len,
+bool bitc_sign(const struct bitc_key *key, const void *data, size_t data_len,
 	     void **sig_, size_t *sig_len_)
 {
 	secp256k1_ecdsa_signature sig;
@@ -215,7 +215,7 @@ bool bp_sign(const struct bp_key *key, const void *data, size_t data_len,
 	return true;
 }
 
-bool bp_verify(const struct bp_key *key, const void *data, size_t data_len,
+bool bitc_verify(const struct bitc_key *key, const void *data, size_t data_len,
 	       const void *sig_, size_t sig_len)
 {
 	if (32 != data_len) {
@@ -236,8 +236,8 @@ bool bp_verify(const struct bp_key *key, const void *data, size_t data_len,
 	return false;
 }
 
-bool bp_key_add_secret(struct bp_key *out,
-		       const struct bp_key *key,
+bool bitc_key_add_secret(struct bitc_key *out,
+		       const struct bitc_key *key,
 		       const uint8_t *tweak32)
 {
 	secp256k1_context *ctx = get_secp256k1_context();

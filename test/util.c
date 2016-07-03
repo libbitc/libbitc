@@ -2,12 +2,12 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <string.h>
 #include <assert.h>
-#include <ccoin/util.h>
-#include <ccoin/net/netbase.h>
+#include <bitc/util.h>
+#include <bitc/net/netbase.h>
 
 static const char *s_a = "12345";
 static const char *s_b = "54321";

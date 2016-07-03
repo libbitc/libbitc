@@ -2,10 +2,10 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <gmp.h>
-#include <ccoin/util.h>
+#include <bitc/util.h>
 
 void bn_setvch(mpz_t vo, const void *data_, size_t data_len)
 {

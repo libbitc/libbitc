@@ -2,25 +2,25 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <jansson.h>
-#include <ccoin/coredefs.h>
-#include "picocoin.h"
+#include <bitc/coredefs.h>
+#include "bitsy.h"
 #include "wallet.h"
-#include <ccoin/crypto/ripemd160.h>
-#include <ccoin/message.h>
-#include <ccoin/address.h>
-#include <ccoin/serialize.h>
-#include <ccoin/key.h>
-#include <ccoin/util.h>
-#include <ccoin/mbr.h>
-#include <ccoin/hexcode.h>
-#include <ccoin/compat.h>		/* for parr_new */
-#include <ccoin/wallet.h>
+#include <bitc/crypto/ripemd160.h>
+#include <bitc/message.h>
+#include <bitc/address.h>
+#include <bitc/serialize.h>
+#include <bitc/key.h>
+#include <bitc/util.h>
+#include <bitc/mbr.h>
+#include <bitc/hexcode.h>
+#include <bitc/compat.h>		/* for parr_new */
+#include <bitc/wallet.h>
 
 static char *wallet_filename(void)
 {
@@ -32,9 +32,9 @@ static char *wallet_filename(void)
 
 static struct wallet *load_wallet(void)
 {
-	char *passphrase = getenv("PICOCOIN_PASSPHRASE");
+	char *passphrase = getenv("BITSY_PASSPHRASE");
 	if (!passphrase) {
-		fprintf(stderr, "missing PICOCOIN_PASSPHRASE\n");
+		fprintf(stderr, "missing BITSY_PASSPHRASE\n");
 		return NULL;
 	}
 
@@ -85,9 +85,9 @@ err_out:
 
 static bool store_wallet(struct wallet *wlt)
 {
-	char *passphrase = getenv("PICOCOIN_PASSPHRASE");
+	char *passphrase = getenv("BITSY_PASSPHRASE");
 	if (!passphrase) {
-		fprintf(stderr, "wallet: Missing PICOCOIN_PASSPHRASE for AES crypto\n");
+		fprintf(stderr, "wallet: Missing BITSY_PASSPHRASE for AES crypto\n");
 		return false;
 	}
 
@@ -199,7 +199,7 @@ void cur_wallet_addresses(void)
 	if (!cur_wallet_load())
 		return;
 	struct wallet *wlt = cur_wallet;
-	struct bp_key *key;
+	struct bitc_key *key;
 	unsigned int i;
 
 	printf("[\n");
@@ -207,7 +207,7 @@ void cur_wallet_addresses(void)
 	wallet_for_each_key_numbered(wlt, key, i) {
 		cstring *btc_addr;
 
-		btc_addr = bp_pubkey_get_address(key, chain->addr_pubkey);
+		btc_addr = bitc_pubkey_get_address(key, chain->addr_pubkey);
 
 		printf("  \"%s\"%s\n",
 		       btc_addr->str,
@@ -240,7 +240,7 @@ void cur_wallet_info(void)
 
 static void wallet_dump_keys(json_t *keys_a, struct wallet *wlt)
 {
-	struct bp_key *key;
+	struct bitc_key *key;
 
 	wallet_for_each_key(wlt, key) {
 
@@ -248,7 +248,7 @@ static void wallet_dump_keys(json_t *keys_a, struct wallet *wlt)
 		size_t priv_len = 0, pub_len = 0;
 		json_t *o = json_object();
 
-		if (!bp_privkey_get(key, &privkey, &priv_len)) {
+		if (!bitc_privkey_get(key, &privkey, &priv_len)) {
 			free(privkey);
 			privkey = NULL;
 			priv_len = 0;
@@ -262,7 +262,7 @@ static void wallet_dump_keys(json_t *keys_a, struct wallet *wlt)
 			free(privkey);
 		}
 
-		if (!bp_pubkey_get(key, &pubkey, &pub_len)) {
+		if (!bitc_pubkey_get(key, &pubkey, &pub_len)) {
 			json_decref(o);
 			continue;
 		}
@@ -273,7 +273,7 @@ static void wallet_dump_keys(json_t *keys_a, struct wallet *wlt)
 			json_object_set_new(o, "pubkey", json_string(pubkey_str));
 			free(pubkey_str);
 
-			cstring *btc_addr = bp_pubkey_get_address(key, chain->addr_pubkey);
+			cstring *btc_addr = bitc_pubkey_get_address(key, chain->addr_pubkey);
 			json_object_set_new(o, "address", json_string(btc_addr->str));
 
 			cstr_free(btc_addr, true);

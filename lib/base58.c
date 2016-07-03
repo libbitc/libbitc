@@ -2,13 +2,13 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <ctype.h>
 #include <string.h>
 #include <gmp.h>
-#include <ccoin/util.h>
-#include <ccoin/cstr.h>
+#include <bitc/util.h>
+#include <bitc/cstr.h>
 
 static const char base58_chars[] =
 	"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";

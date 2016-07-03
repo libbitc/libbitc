@@ -6,11 +6,11 @@
 
 An itsy-bitsy bitcoin library, with lightweight client and utils
 
-libccoin library dependencies:
+libbitc library dependencies:
 	OpenSSL
 	GMP
 
-picocoin client dependencies:
+bitsy client dependencies:
 	OpenSSL
 	GMP
 	libevent 2.x
@@ -31,14 +31,14 @@ parameters may be specified on the command line, or in a configuration file.
 
 The command line is processed in-order.  For example
 
-`$ ./picocoin value=1 list-settings value=2 list-settings`
+`$ ./bitsy value=1 list-settings value=2 list-settings`
 
 will execute the "list-settings" command twice, each with "value" setting
 initialized to a different parameter.
 
 Similarly, you may read multiple configuration files into the settings map:
 
-`$ ./picocoin config=file1 config=file2 config=file3`
+`$ ./bitsy config=file1 config=file2 config=file3`
 
 
 Recognized parameters
@@ -58,10 +58,10 @@ Specify a pathname to the configuration file.
 
 wallet (alias "w")
 ------------------
-Specify a pathname to the wallet data file.  Default "picocoin.wallet"
+Specify a pathname to the wallet data file.  Default "bitsy.wallet"
 
 AES encryption is applied to the wallet.  Passphrase is specified via
-environment variable PICOCOIN_PASSPHRASE.
+environment variable BITSY_PASSPHRASE.
 
 
 debug

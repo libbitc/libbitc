@@ -25,7 +25,7 @@
  *  http://ehash.iaik.tugraz.at/wiki/RIPEMD-160
  */
 
-#include <ccoin/crypto/ripemd160.h>
+#include <bitc/crypto/ripemd160.h>
 #include <string.h>
 
 /*

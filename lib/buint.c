@@ -2,13 +2,13 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <stdio.h>
 #include <string.h>
-#include <ccoin/buint.h>
-#include <ccoin/hexcode.h>
-#include <ccoin/endian.h>
+#include <bitc/buint.h>
+#include <bitc/hexcode.h>
+#include <bitc/endian.h>
 
 void bu256_bn(mpz_t vo, const bu256_t *vi)
 {

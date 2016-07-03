@@ -2,7 +2,7 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -10,11 +10,11 @@
 #include <argp.h>
 #include <ctype.h>
 #include <jansson.h>
-#include <ccoin/core.h>
-#include <ccoin/util.h>
-#include <ccoin/hexcode.h>
-#include <ccoin/base58.h>
-#include <ccoin/script.h>
+#include <bitc/core.h>
+#include <bitc/util.h>
+#include <bitc/hexcode.h>
+#include <bitc/base58.h>
+#include <bitc/script.h>
 #include <assert.h>
 
 const char *argp_program_version = PACKAGE_VERSION;
@@ -47,7 +47,7 @@ static struct argp_option options[] = {
 	{ }
 };
 
-static struct bp_tx tx;
+static struct bitc_tx tx;
 
 static char *opt_locktime;
 static char *opt_version;
@@ -215,12 +215,12 @@ static void append_input(char *txid_str, char *vout_str)
 
 	unsigned int vout = atoi(vout_str);
 
-	struct bp_txin *txin = calloc(1, sizeof(struct bp_txin));
+	struct bitc_txin *txin = calloc(1, sizeof(struct bitc_txin));
 	if (!txin) {
 		fprintf(stderr, "OOM\n");
 		exit(1);
 	}
-	bp_txin_init(txin);
+	bitc_txin_init(txin);
 
 	bu256_copy(&txin->prevout.hash, &txid);
 	txin->prevout.n = vout;
@@ -233,7 +233,7 @@ static void append_input(char *txid_str, char *vout_str)
 static void mutate_inputs(void)
 {
 	if (!tx.vin)
-		tx.vin = parr_new(8, bp_txin_free_cb);
+		tx.vin = parr_new(8, bitc_txin_free_cb);
 
 	// delete inputs
 	clist *tmp = opt_del_txin;
@@ -284,7 +284,7 @@ static void append_output(char *addr_str, char *amount_str)
 
 	uint64_t amt = (uint64_t) strtoull(amount_str, NULL, 10);
 
-	struct bp_txout *txout = calloc(1, sizeof(struct bp_txout));
+	struct bitc_txout *txout = calloc(1, sizeof(struct bitc_txout));
 	if (!txout) {
 		fprintf(stderr, "OOM\n");
 		exit(1);
@@ -303,7 +303,7 @@ static void append_output(char *addr_str, char *amount_str)
 static void mutate_outputs(void)
 {
 	if (!tx.vout)
-		tx.vout = parr_new(8, bp_txout_free_cb);
+		tx.vout = parr_new(8, bitc_txout_free_cb);
 
 	// delete outputs
 	clist *tmp = opt_del_txout;
@@ -361,7 +361,7 @@ static void read_data(void)
 	}
 	struct const_buffer cbuf = { txbuf->str, txbuf->len };
 
-	if (!deser_bp_tx(&tx, &cbuf)) {
+	if (!deser_bitc_tx(&tx, &cbuf)) {
 		fprintf(stderr, "TX decode failed\n");
 		exit(1);
 	}
@@ -369,7 +369,7 @@ static void read_data(void)
 	cstr_free(txbuf, true);
 }
 
-static void bp_json_set_new_int(json_t *obj, const char *key, json_int_t i)
+static void bitc_json_set_new_int(json_t *obj, const char *key, json_int_t i)
 {
 	json_t *val = json_integer(i);
 	assert(val != NULL);
@@ -378,7 +378,7 @@ static void bp_json_set_new_int(json_t *obj, const char *key, json_int_t i)
 	assert(rc == 0);
 }
 
-static void bp_json_set_new_int256(json_t *obj, const char *key, const bu256_t *i)
+static void bitc_json_set_new_int256(json_t *obj, const char *key, const bu256_t *i)
 {
 	char hexstr[(32 * 2) + 1];
 	bu256_hex(hexstr, i);
@@ -390,7 +390,7 @@ static void bp_json_set_new_int256(json_t *obj, const char *key, const bu256_t *
 	assert(rc == 0);
 }
 
-static void bp_json_set_new_script(json_t *obj_parent, const char *key,
+static void bitc_json_set_new_script(json_t *obj_parent, const char *key,
 				   cstring *s)
 {
 	json_t *obj = json_object();
@@ -411,20 +411,20 @@ static void bp_json_set_new_script(json_t *obj_parent, const char *key,
 
 static void output_json_txid(json_t *obj)
 {
-	bp_tx_calc_sha256(&tx);
+	bitc_tx_calc_sha256(&tx);
 
-	bp_json_set_new_int256(obj, "txid", &tx.sha256);
+	bitc_json_set_new_int256(obj, "txid", &tx.sha256);
 }
 
-static void output_json_txin(json_t *arr, const struct bp_txin *txin)
+static void output_json_txin(json_t *arr, const struct bitc_txin *txin)
 {
 	json_t *obj = json_object();
 	assert(obj != NULL);
 
-	bp_json_set_new_int256(obj, "txid", &txin->prevout.hash);
-	bp_json_set_new_int(obj, "vout", txin->prevout.n);
-	bp_json_set_new_script(obj, "scriptSig", txin->scriptSig);
-	bp_json_set_new_int(obj, "sequence", txin->nSequence);
+	bitc_json_set_new_int256(obj, "txid", &txin->prevout.hash);
+	bitc_json_set_new_int(obj, "vout", txin->prevout.n);
+	bitc_json_set_new_script(obj, "scriptSig", txin->scriptSig);
+	bitc_json_set_new_int(obj, "sequence", txin->nSequence);
 
 	json_array_append_new(arr, obj);
 }
@@ -442,12 +442,12 @@ static void output_json_vin(json_t *obj)
 
 	unsigned int i;
 	for (i = 0; i < tx.vin->len; i++) {
-		struct bp_txin *txin = parr_idx(tx.vin, i);
+		struct bitc_txin *txin = parr_idx(tx.vin, i);
 		output_json_txin(arr, txin);
 	}
 }
 
-static void output_json_txout(json_t *arr, const struct bp_txout *txout,
+static void output_json_txout(json_t *arr, const struct bitc_txout *txout,
 				unsigned int n_idx)
 {
 	json_t *obj = json_object();
@@ -463,8 +463,8 @@ static void output_json_txout(json_t *arr, const struct bp_txout *txout,
 	int rc = json_object_set_new(obj, "value_FIXME", val);
 	assert(rc == 0);
 
-	bp_json_set_new_int(obj, "n", n_idx);
-	bp_json_set_new_script(obj, "scriptPubKey", txout->scriptPubKey);
+	bitc_json_set_new_int(obj, "n", n_idx);
+	bitc_json_set_new_script(obj, "scriptPubKey", txout->scriptPubKey);
 
 	json_array_append_new(arr, obj);
 }
@@ -482,7 +482,7 @@ static void output_json_vout(json_t *obj)
 
 	unsigned int i;
 	for (i = 0; i < tx.vout->len; i++) {
-		struct bp_txout *txout = parr_idx(tx.vout, i);
+		struct bitc_txout *txout = parr_idx(tx.vout, i);
 		output_json_txout(arr, txout, i);
 	}
 }
@@ -493,8 +493,8 @@ static void output_data_json(void)
 	assert(obj != NULL);
 
 	output_json_txid(obj);
-	bp_json_set_new_int(obj, "version", tx.nVersion);
-	bp_json_set_new_int(obj, "locktime", tx.nLockTime);
+	bitc_json_set_new_int(obj, "version", tx.nVersion);
+	bitc_json_set_new_int(obj, "locktime", tx.nLockTime);
 	output_json_vin(obj);
 	output_json_vout(obj);
 
@@ -511,7 +511,7 @@ static void output_data_hex(void)
 {
 	size_t alloc_len = opt_hexdata ? strlen(opt_hexdata) : 512;
 	cstring *s = cstr_new_sz(alloc_len);
-	ser_bp_tx(s, &tx);
+	ser_bitc_tx(s, &tx);
 
 	char hexstr[(s->len * 2) + 1];
 	encode_hex(hexstr, s->str, s->len);
@@ -538,7 +538,7 @@ int main (int argc, char *argv[])
 		return 1;
 	}
 
-	bp_tx_init(&tx);
+	bitc_tx_init(&tx);
 
 	if (!opt_blank)
 		read_data();
@@ -548,7 +548,7 @@ int main (int argc, char *argv[])
 	output_data();
 
 	if (opt_strict_free)
-		bp_tx_free(&tx);
+		bitc_tx_free(&tx);
 
 	return 0;
 }

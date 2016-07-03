@@ -20,7 +20,7 @@ Issue Date: 20/12/2007
 
 #define DO_TABLES
 
-#include <ccoin/crypto/aes.h>
+#include <bitc/crypto/aes.h>
 #include "aesopt.h"
 
 #if defined(FIXED_TABLES)

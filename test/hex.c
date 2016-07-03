@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <ccoin/hexcode.h>
+#include <bitc/hexcode.h>
 
 static const char *data = "chitty chitty bang bang\x1\x2\x3\x4";
 static size_t data_len;

@@ -2,7 +2,7 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 
 #include <stdio.h>
@@ -13,11 +13,11 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
-#include <ccoin/coredefs.h>
-#include <ccoin/util.h>
-#include <ccoin/compat.h>		/* for mkstemp */
-#include <ccoin/crypto/sha2.h>
-#include <ccoin/crypto/ripemd160.h>
+#include <bitc/coredefs.h>
+#include <bitc/util.h>
+#include <bitc/compat.h>		/* for mkstemp */
+#include <bitc/crypto/sha2.h>
+#include <bitc/crypto/ripemd160.h>
 
 void bu_reverse_copy(unsigned char *dst, const unsigned char *src, size_t len)
 {

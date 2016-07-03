@@ -1,3 +1,3 @@
 
-SUBDIRS = ccoin
+SUBDIRS = bitc
 

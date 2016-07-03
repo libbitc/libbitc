@@ -2,18 +2,18 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"            // for VERSION
+#include "libbitc-config.h"            // for VERSION
 
-#include "ccoin/net/net.h"              // for nc_conn, net_child_info, etc
-#include <ccoin/net/netbase.h>          // for bn_address_str, etc
-#include <ccoin/blkdb.h>                // for blkdb, blkdb_locator, etc
-#include <ccoin/buffer.h>               // for buffer, const_buffer
-#include <ccoin/core.h>                 // for bp_address, bp_inv, etc
-#include <ccoin/coredefs.h>             // for ::CADDR_TIME_VERSION, etc
-#include <ccoin/cstr.h>                 // for cstring, cstr_free
-#include <ccoin/hashtab.h>              // for bp_hashtab_size
-#include <ccoin/parr.h>                 // for parr, parr_idx, parr_add, etc
-#include <ccoin/util.h>                 // for MIN
+#include "bitc/net/net.h"              // for nc_conn, net_child_info, etc
+#include <bitc/net/netbase.h>          // for bn_address_str, etc
+#include <bitc/blkdb.h>                // for blkdb, blkdb_locator, etc
+#include <bitc/buffer.h>               // for buffer, const_buffer
+#include <bitc/core.h>                 // for bitc_address, bitc_inv, etc
+#include <bitc/coredefs.h>             // for ::CADDR_TIME_VERSION, etc
+#include <bitc/cstr.h>                 // for cstring, cstr_free
+#include <bitc/hashtab.h>              // for bitc_hashtab_size
+#include <bitc/parr.h>                 // for parr, parr_idx, parr_add, etc
+#include <bitc/util.h>                 // for MIN
 
 #include <assert.h>                     // for assert
 #include <errno.h>                      // for errno, EAGAIN, EWOULDBLOCK, etc
@@ -27,7 +27,7 @@
 #include <sys/wait.h>                   // for waitpid, WNOHANG
 #include <unistd.h>                     // for close, read, write
 #ifdef WIN32
-#include <ccoin/net/fakepoll.h>
+#include <bitc/net/fakepoll.h>
 #include <mingw.h>
 #else
 #include <netinet/in.h>                 // for sockaddr_in, sockaddr_in6, etc
@@ -254,7 +254,7 @@ static bool nc_msg_addr(struct nc_conn *conn)
 	if (conn->nci->debugging) {
 		unsigned int old = 0;
 		for (i = 0; i < ma.addrs->len; i++) {
-			struct bp_address *addr = parr_idx(ma.addrs, i);
+			struct bitc_address *addr = parr_idx(ma.addrs, i);
 			if (addr->nTime < cutoff)
 				old++;
 		}
@@ -268,7 +268,7 @@ static bool nc_msg_addr(struct nc_conn *conn)
 
 	/* feed addresses to peer manager */
 	for (i = 0; i < ma.addrs->len; i++) {
-		struct bp_address *addr = parr_idx(ma.addrs, i);
+		struct bitc_address *addr = parr_idx(ma.addrs, i);
 		if (addr->nTime > cutoff)
 			peerman_add_addr(conn->nci->peers, addr, false);
 	}
@@ -341,7 +341,7 @@ static bool nc_msg_inv(struct nc_conn *conn)
 		goto out;
 
 	if (conn->nci->debugging && mv.invs && mv.invs->len == 1) {
-		struct bp_inv *inv = parr_idx(mv.invs, 0);
+		struct bitc_inv *inv = parr_idx(mv.invs, 0);
 		char hexstr[BU256_STRSZ];
 		bu256_hex(hexstr, &inv->hash);
 
@@ -366,7 +366,7 @@ static bool nc_msg_inv(struct nc_conn *conn)
 	/* scan incoming inv's for interesting material */
 	unsigned int i;
 	for (i = 0; i < mv.invs->len; i++) {
-		struct bp_inv *inv = parr_idx(mv.invs, i);
+		struct bitc_inv *inv = parr_idx(mv.invs, i);
 		switch (inv->type) {
 		case MSG_BLOCK:
 			if (conn->nci->inv_block_process(&inv->hash))
@@ -400,14 +400,14 @@ out:
 static bool nc_msg_block(struct nc_conn *conn)
 {
 	struct const_buffer buf = { conn->msg.data, conn->msg.hdr.data_len };
-	struct bp_block block;
-	bp_block_init(&block);
+	struct bitc_block block;
+	bitc_block_init(&block);
 
 	bool rc = false;
 
-	if (!deser_bp_block(&block, &buf))
+	if (!deser_bitc_block(&block, &buf))
 		goto out;
-	bp_block_calc_sha256(&block);
+	bitc_block_calc_sha256(&block);
 	char hexstr[BU256_STRSZ];
 	bu256_hex(hexstr, &block.sha256);
 
@@ -417,7 +417,7 @@ static bool nc_msg_block(struct nc_conn *conn)
 			hexstr);
 	}
 
-	if (!bp_block_valid(&block)) {
+	if (!bitc_block_valid(&block)) {
 		fprintf(conn->nci->plog, "net: %s invalid block %s\n",
 			conn->addr_str,
 			hexstr);
@@ -430,7 +430,7 @@ static bool nc_msg_block(struct nc_conn *conn)
 	rc = true;
 
 out:
-	bp_block_free(&block);
+	bitc_block_free(&block);
 	return rc;
 }
 
@@ -739,7 +739,7 @@ static cstring *nc_version_build(struct nc_conn *conn)
 	mv.nVersion = PROTO_VERSION;
 	mv.nTime = (int64_t) time(NULL);
 	mv.nonce = *conn->nci->instance_nonce;
-	sprintf(mv.strSubVer, "/picocoin:%s/", VERSION);
+	sprintf(mv.strSubVer, "/libbitc:%s/", VERSION);
 	mv.nStartingHeight =
 		conn->nci->db->best_chain ?
 			conn->nci->db->best_chain->height : 0;
@@ -908,7 +908,7 @@ static void nc_conns_open(struct net_child_info *nci)
 			nci->conns->len,
 			NC_MAX_CONN - nci->conns->len);
 
-	while ((bp_hashtab_size(nci->peers->map_addr) > 0) &&
+	while ((bitc_hashtab_size(nci->peers->map_addr) > 0) &&
 	       (nci->conns->len < NC_MAX_CONN)) {
 
 		/* delete peer from front of address list.  it will be

@@ -1,5 +1,5 @@
 
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -7,8 +7,8 @@
 #include <assert.h>
 #include <string.h>
 #include <jansson.h>
-#include <ccoin/script.h>
-#include <ccoin/core.h>
+#include <bitc/script.h>
+#include <bitc/core.h>
 #include "libtest.h"
 
 static void test_script(bool is_valid,cstring *scriptSig, cstring *scriptPubKey,
@@ -16,12 +16,12 @@ static void test_script(bool is_valid,cstring *scriptSig, cstring *scriptPubKey,
 			const char *scriptPubKeyEnc,
 			const unsigned int test_flags)
 {
-	struct bp_tx tx;
+	struct bitc_tx tx;
 
-	bp_tx_init(&tx);
+	bitc_tx_init(&tx);
 
 	bool rc;
-	rc = bp_script_verify(scriptSig, scriptPubKey, &tx, 0,
+	rc = bitc_script_verify(scriptSig, scriptPubKey, &tx, 0,
 			      test_flags, SIGHASH_NONE);
 	if (rc != is_valid) {
 		fprintf(stderr,
@@ -32,7 +32,7 @@ static void test_script(bool is_valid,cstring *scriptSig, cstring *scriptPubKey,
 		assert(rc == is_valid);
 	}
 
-	bp_tx_free(&tx);
+	bitc_tx_free(&tx);
 }
 
 static void runtest(const char *basefn)

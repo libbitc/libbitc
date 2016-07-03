@@ -2,18 +2,18 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"           // for VERSION, _LARGE_FILES, etc
+#include "libbitc-config.h"           // for VERSION, _LARGE_FILES, etc
 
-#include "ccoin/net/peerman.h"          // for peer, peer_manager, etc
-#include <ccoin/buffer.h>               // for const_buffer
-#include <ccoin/coredefs.h>             // for ::CADDR_TIME_VERSION, etc
-#include <ccoin/hashtab.h>              // for bp_hashtab_del, etc
-#include <ccoin/message.h>              // for p2p_message, etc
-#include <ccoin/mbr.h>                  // for fread_message
-#include <ccoin/net/dns.h>              // for bu_dns_lookup, etc
-#include <ccoin/net/netbase.h>          // for bn_group
-#include <ccoin/serialize.h>            // for deser_s64, deser_u32, etc
-#include <ccoin/util.h>                 // for clist_shuffle, djb2_hash, etc
+#include "bitc/net/peerman.h"          // for peer, peer_manager, etc
+#include <bitc/buffer.h>               // for const_buffer
+#include <bitc/coredefs.h>             // for ::CADDR_TIME_VERSION, etc
+#include <bitc/hashtab.h>              // for bitc_hashtab_del, etc
+#include <bitc/message.h>              // for p2p_message, etc
+#include <bitc/mbr.h>                  // for fread_message
+#include <bitc/net/dns.h>              // for bu_dns_lookup, etc
+#include <bitc/net/netbase.h>          // for bn_group
+#include <bitc/serialize.h>            // for deser_s64, deser_u32, etc
+#include <bitc/util.h>                 // for clist_shuffle, djb2_hash, etc
 
 #include <stdio.h>                      // for NULL, fprintf, stderr, etc
 #include <stdlib.h>                     // for free, calloc, malloc, atoi, etc
@@ -36,7 +36,7 @@ bool deser_peer(unsigned int protover,
 {
 	peer_free(peer);
 
-	if (!deser_bp_addr(protover, &peer->addr, buf)) return false;
+	if (!deser_bitc_addr(protover, &peer->addr, buf)) return false;
 
 	if (!deser_s64(&peer->last_ok, buf)) return false;
 	if (!deser_u32(&peer->n_ok, buf)) return false;
@@ -49,7 +49,7 @@ bool deser_peer(unsigned int protover,
 
 void ser_peer(cstring *s, unsigned int protover, const struct peer *peer)
 {
-	ser_bp_addr(s, protover, &peer->addr);
+	ser_bitc_addr(s, protover, &peer->addr);
 
 	ser_s64(s, peer->last_ok);
 	ser_u32(s, peer->n_ok);
@@ -77,7 +77,7 @@ static struct peer_manager *peerman_new(void)
 	if (!peers)
 		return NULL;
 
-	peers->map_addr = bp_hashtab_new(addr_hash, addr_equal);
+	peers->map_addr = bitc_hashtab_new(addr_hash, addr_equal);
 	if (!peers->map_addr) {
 		free(peers);
 		return NULL;
@@ -106,7 +106,7 @@ void peerman_free(struct peer_manager *peers)
 	if (!peers)
 		return;
 
-	bp_hashtab_unref(peers->map_addr);
+	bitc_hashtab_unref(peers->map_addr);
 
 	clist_free_ext(peers->addrlist, peer_ent_free);
 
@@ -124,12 +124,12 @@ static void __peerman_add(struct peer_manager *peers, struct peer *peer,
 	else
 		peers->addrlist = clist_append(peers->addrlist, peer);
 
-	bp_hashtab_put(peers->map_addr, peer->addr.ip, peer);
+	bitc_hashtab_put(peers->map_addr, peer->addr.ip, peer);
 }
 
 static bool peerman_has_addr(struct peer_manager *peers,const unsigned char *ip)
 {
-	return bp_hashtab_get_ext(peers->map_addr, ip, NULL, NULL);
+	return bitc_hashtab_get_ext(peers->map_addr, ip, NULL, NULL);
 }
 
 static bool peerman_read_rec(struct peer_manager *peers,
@@ -224,7 +224,7 @@ struct peer_manager *peerman_seed(bool use_dns)
 	/* import seed data into peerman */
 	tmp = seedlist;
 	while (tmp) {
-		struct bp_address *addr = tmp->data;
+		struct bitc_address *addr = tmp->data;
 		tmp = tmp->next;
 
 		peerman_add_addr(peers, addr, true);
@@ -331,7 +331,7 @@ struct peer *peerman_pop(struct peer_manager *peers)
 
 	peers->addrlist = clist_delete(tmp, tmp);
 
-	bp_hashtab_del(peers->map_addr, peer->addr.ip);
+	bitc_hashtab_del(peers->map_addr, peer->addr.ip);
 
 	return peer;
 }
@@ -353,7 +353,7 @@ void peerman_add(struct peer_manager *peers,
 }
 
 void peerman_add_addr(struct peer_manager *peers,
-		 const struct bp_address *addr_in, bool known_working)
+		 const struct bitc_address *addr_in, bool known_working)
 {
 	if (peerman_has_addr(peers, addr_in->ip))
 		return;
@@ -364,7 +364,7 @@ void peerman_add_addr(struct peer_manager *peers,
 		return;
 
 	peer_init(peer);
-	bp_addr_copy(&peer->addr, addr_in);
+	bitc_addr_copy(&peer->addr, addr_in);
 
 	__peerman_add(peers, peer, !known_working);
 }
@@ -404,7 +404,7 @@ void peerman_addstr(struct peer_manager *peers,
 	/* import seed data into peerman */
 	tmp = seedlist;
 	while (tmp) {
-		struct bp_address *addr = tmp->data;
+		struct bitc_address *addr = tmp->data;
 		tmp = tmp->next;
 
 		peerman_add_addr(peers, addr, true);

@@ -22,8 +22,8 @@
  */
 
 #include <string.h>
-#include <ccoin/crypto/sha2.h>
-#include <ccoin/crypto/hmac.h>
+#include <bitc/crypto/sha2.h>
+#include <bitc/crypto/hmac.h>
 
 #define MEMSET_BZERO(p,l)	memset((p), 0, (l))
 

@@ -2,11 +2,11 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <stdlib.h>
 #include <string.h>
-#include <ccoin/clist.h>
+#include <bitc/clist.h>
 
 void clist_free_ext(clist *l, void (*free_f)(void *))
 {

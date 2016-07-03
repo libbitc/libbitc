@@ -7,9 +7,9 @@
 #include <string.h>
 #include <assert.h>
 
-#include <ccoin/crypto/sha1.h>
-#include <ccoin/util.h>
-#include <ccoin/hexcode.h>
+#include <bitc/crypto/sha1.h>
+#include <bitc/util.h>
+#include <bitc/hexcode.h>
 
 #include "libtest.h"
 

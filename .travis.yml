@@ -75,8 +75,8 @@ before_script:
 
 script:
   - OUTDIR=$BASE_OUTDIR/$TRAVIS_PULL_REQUEST/$TRAVIS_JOB_NUMBER-$HOST
-  - PICOCOIN_CONFIG_ALL="--prefix=$TRAVIS_BUILD_DIR/depends/$HOST --bindir=$OUTDIR/bin --libdir=$OUTDIR/lib"
-  - ./configure --cache-file=config.cache --enable-coverage=$ENABLE_COVERAGE --enable-valgrind=$ENABLE_VALGRIND $PICOCOIN_CONFIG_ALL $PICOCOIN_CONFIG || ( cat config.log && false)
+  - LIBBITC_CONFIG_ALL="--prefix=$TRAVIS_BUILD_DIR/depends/$HOST --bindir=$OUTDIR/bin --libdir=$OUTDIR/lib"
+  - ./configure --cache-file=config.cache --enable-coverage=$ENABLE_COVERAGE --enable-valgrind=$ENABLE_VALGRIND $LIBBITC_CONFIG_ALL $LIBBITC_CONFIG || ( cat config.log && false)
   - make -s $MAKEJOBS $GOAL || ( echo "Build failure. Verbose build follows." && make $GOAL ; false )
   - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/lib
   - make $MAKEJOBS $BUILD

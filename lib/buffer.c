@@ -2,12 +2,12 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <stdlib.h>
 #include <string.h>
-#include <ccoin/util.h>
-#include <ccoin/buffer.h>
+#include <bitc/util.h>
+#include <bitc/buffer.h>
 
 unsigned long buffer_hash(const void *key_)
 {

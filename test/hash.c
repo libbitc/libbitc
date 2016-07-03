@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <ccoin/crypto/sha1.h>
+#include <bitc/crypto/sha1.h>
 
 static void print_n(const void *_data, size_t len)
 {

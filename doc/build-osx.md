@@ -1,4 +1,4 @@
-Building `picocoin` on OS X
+Building `libbitc` on OS X
 ===========================
 
 Instructions by @[colindean](http://github.com/colindean).
@@ -11,8 +11,8 @@ Dependencies
 This guide assumes usage of [Homebrew](http://brew.sh) or
 [MacPorts](https://www.macports.org) for installing dependencies.
 
-You will need to install `OpenSSL` and `GMP` in order to build *libccoin*, and
-those plus `libevent` and `jansson` to build *picocoin*.
+You will need to install `OpenSSL` and `GMP` in order to build *libbitc*, and
+those plus `libevent` and `jansson` to build *libbitc*.
 
 Install these packages. It will take a few minutes.
 
@@ -40,28 +40,28 @@ MacPorts
 
 
 You should also run `make check` in order to run tests. This is a vital step
-early in the development of `picocoin`.
+early in the development of `libbitc`.
 
 You can install it if you want with `make install`. It will be installed to 
-`/usr/local/picocoin`.
+`/usr/local/libbitc`.
 
-The `picocoin` binary will be in `./src`.
+The `bitsy` binary will be in `./src`.
 
 Running
 -------
 
 To ensure that at least the basics compiled correctly, execute a command:
 
-    src/picocoin list-settings
+    src/bitsy list-settings
 
 You should see output formatted in JSON,
 
     {
-      "wallet": "picocoin.wallet",
+      "wallet": "bitsy.wallet",
       "chain": "bitcoin",
       "net.connect.timeout": "11",
-      "peers": "picocoin.peers",
-      "blkdb": "picocoin.blkdb"
+      "peers": "bitsy.peers",
+      "blkdb": "bitsy.blkdb"
     }
 
-If that works, `picocoin` is ready for use.
+If that works, `bitsy` is ready for use.

@@ -5,7 +5,7 @@
 
 #include <assert.h>
 #include <string.h>
-#include <ccoin/clist.h>
+#include <bitc/clist.h>
 
 static int cstr_cmp(const void *a_, const void *b_, void *user_priv)
 {

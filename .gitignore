@@ -30,6 +30,6 @@ stamp-h1
 test-driver
 
 # app-specific
-picocoin*.tar.gz
-picocoin-config.h*
+libbitc*.tar.gz
+libbitc-config.h*
 

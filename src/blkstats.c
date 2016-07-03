@@ -2,7 +2,7 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -10,13 +10,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <argp.h>
-#include <ccoin/coredefs.h>
-#include <ccoin/buffer.h>
-#include <ccoin/core.h>
-#include <ccoin/util.h>
-#include <ccoin/mbr.h>
-#include <ccoin/script.h>
-#include <ccoin/message.h>
+#include <bitc/coredefs.h>
+#include <bitc/buffer.h>
+#include <bitc/core.h>
+#include <bitc/util.h>
+#include <bitc/mbr.h>
+#include <bitc/script.h>
+#include <bitc/message.h>
 
 const char *argp_program_version = PACKAGE_VERSION;
 
@@ -110,7 +110,7 @@ static bool match_op_pos(parr *script, enum opcodetype opcode,
 	return (op->op == opcode);
 }
 
-static void scan_txout(struct bp_txout *txout)
+static void scan_txout(struct bitc_txout *txout)
 {
 	incstat(STA_TXOUT);
 
@@ -150,11 +150,11 @@ static void scan_txout(struct bp_txout *txout)
 	parr_free(script, true);
 }
 
-static void scan_tx(struct bp_tx *tx)
+static void scan_tx(struct bitc_tx *tx)
 {
 	unsigned int i;
 	for (i = 0; i < tx->vout->len; i++) {
-		struct bp_txout *txout;
+		struct bitc_txout *txout;
 
 		txout = parr_idx(tx->vout, i);
 
@@ -164,11 +164,11 @@ static void scan_tx(struct bp_tx *tx)
 	incstat(STA_TX);
 }
 
-static void scan_block(struct bp_block *block)
+static void scan_block(struct bitc_block *block)
 {
 	unsigned int n;
 	for (n = 0; n < block->vtx->len; n++) {
-		struct bp_tx *tx;
+		struct bitc_tx *tx;
 
 		tx = parr_idx(block->vtx, n);
 
@@ -180,12 +180,12 @@ static void scan_block(struct bp_block *block)
 
 static void scan_decode_block(struct p2p_message *msg, uint64_t *fpos)
 {
-	struct bp_block block;
-	bp_block_init(&block);
+	struct bitc_block block;
+	bitc_block_init(&block);
 
 	struct const_buffer buf = { msg->data, msg->hdr.data_len };
 
-	bool rc = deser_bp_block(&block, &buf);
+	bool rc = deser_bitc_block(&block, &buf);
 	if (!rc) {
 		fprintf(stderr, "block deser failed at block %lu\n",
 			getstat(STA_BLOCK));
@@ -197,7 +197,7 @@ static void scan_decode_block(struct p2p_message *msg, uint64_t *fpos)
 	uint64_t pos_tmp = msg->hdr.data_len;
 	*fpos += (pos_tmp + 8);
 
-	bp_block_free(&block);
+	bitc_block_free(&block);
 }
 
 static void scan_blocks(void)

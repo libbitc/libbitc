@@ -2,11 +2,11 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"           // for VERSION, _LARGE_FILES, etc
+#include "libbitc-config.h"           // for VERSION, _LARGE_FILES, etc
 
-#include "ccoin/net/dns.h"
-#include <ccoin/core.h>                 // for bp_address, etc
-#include <ccoin/util.h>                 // for ARRAY_SIZE
+#include "bitc/net/dns.h"
+#include <bitc/core.h>                 // for bitc_address, etc
+#include <bitc/util.h>                 // for ARRAY_SIZE
 
 #include <stdint.h>                     // for uint32_t
 #include <stdlib.h>                     // for NULL, calloc, free
@@ -33,7 +33,7 @@ static const char *dns_seeds[] = {
 static clist *add_seed_addr(clist *l, const struct addrinfo *ai,
 			    unsigned int def_port)
 {
-	struct bp_address *addr;
+	struct bitc_address *addr;
 
 	addr = calloc(1, sizeof(*addr));
 	if (!addr)

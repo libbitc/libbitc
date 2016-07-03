@@ -5,7 +5,7 @@
 
 #include <assert.h>
 #include <string.h>
-#include <ccoin/parr.h>
+#include <bitc/parr.h>
 
 static void test_basic(void)
 {

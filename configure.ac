@@ -17,13 +17,13 @@ dnl You should have received a copy of the GNU General Public License
 dnl along with this program; if not, write to the Free Software
 dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-AC_INIT(picocoin, 0.1git, [Jeff Garzik <jgarzik@exmulti.com>])
+AC_INIT(libbitc, 0.0.1-alpha, [libbitc <libbitc@users.noreply.github.com>])
 AC_PREREQ(2.60)
 LT_INIT
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_SRCDIR([src/main.c])
+AC_CONFIG_SRCDIR([src/bitsy.c])
 AM_INIT_AUTOMAKE(foreign subdir-objects)
-AC_CONFIG_HEADERS([picocoin-config.h])
+AC_CONFIG_HEADERS([libbitc-config.h])
 
 dnl Make sure anyone changing configure.ac/Makefile.am has a clue
 AM_MAINTAINER_MODE
@@ -161,7 +161,7 @@ AC_CONFIG_FILES([
 	m4/Makefile
 	doc/Makefile
 	include/Makefile
-	include/ccoin/Makefile
+	include/bitc/Makefile
 	lib/Makefile
 	src/Makefile
 	test/Makefile

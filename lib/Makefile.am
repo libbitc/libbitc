@@ -4,12 +4,12 @@ AM_CPPFLAGS	=   -I$(top_srcdir)/include \
                 -I$(top_srcdir)/external/secp256k1/include \
                 -I$(top_srcdir)/external/secp256k1/contrib
 
-lib_LTLIBRARIES= libccoin.la
+lib_LTLIBRARIES= libbitc.la
 
-libccoin_la_LIBADD= -lm \
+libbitc_la_LIBADD= -lm \
                     $(top_builddir)/external/secp256k1/libsecp256k1.la
 
-libccoin_la_SOURCES=	\
+libbitc_la_SOURCES=	\
 	crypto/aes_modes.c	\
 	crypto/aescrypt.c	\
 	crypto/aeskey.c	\
@@ -56,9 +56,9 @@ libccoin_la_SOURCES=	\
 	utxo.c		\
 	wallet.c
 
-noinst_LTLIBRARIES= libccoinnet.la
+noinst_LTLIBRARIES= libbitcnet.la
 
-libccoinnet_la_SOURCES=	\
+libbitcnet_la_SOURCES=	\
 	net/dns.c	\
 	net/net.c	\
 	net/netbase.c	\

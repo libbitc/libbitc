@@ -2,7 +2,7 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -10,15 +10,15 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
-#include <ccoin/util.h>
-#include <ccoin/script.h>
-#include <ccoin/core.h>
-#include <ccoin/mbr.h>
-#include <ccoin/message.h>
-#include <ccoin/compat.h>
+#include <bitc/util.h>
+#include <bitc/script.h>
+#include <bitc/core.h>
+#include <bitc/mbr.h>
+#include <bitc/message.h>
+#include <bitc/compat.h>
 #include "libtest.h"
 
-static void test_txout(const struct bp_txout *txout)
+static void test_txout(const struct bitc_txout *txout)
 {
 	struct const_buffer buf = { txout->scriptPubKey->str,
 				    txout->scriptPubKey->len };
@@ -87,27 +87,27 @@ static void runtest(const char *ser_fn_base)
 
 	close(fd);
 
-	struct bp_block block;
-	bp_block_init(&block);
+	struct bitc_block block;
+	bitc_block_init(&block);
 
 	struct const_buffer buf = { msg.data, msg.hdr.data_len };
 
-	rc = deser_bp_block(&block, &buf);
+	rc = deser_bitc_block(&block, &buf);
 	assert(rc);
 
 	unsigned int n_tx, n_out;
 	for (n_tx = 0; n_tx < block.vtx->len; n_tx++) {
-		struct bp_tx *tx = parr_idx(block.vtx, n_tx);
+		struct bitc_tx *tx = parr_idx(block.vtx, n_tx);
 
 		for (n_out = 0; n_out < tx->vout->len; n_out++) {
-			struct bp_txout *txout;
+			struct bitc_txout *txout;
 
 			txout = parr_idx(tx->vout, n_out);
 			test_txout(txout);
 		}
 	}
 
-	bp_block_free(&block);
+	bitc_block_free(&block);
 	free(msg.data);
 	free(ser_fn);
 }
@@ -122,6 +122,6 @@ int main (int argc, char *argv[])
 
 	runtest("blk120383.ser");
 
-	bp_key_static_shutdown();
+	bitc_key_static_shutdown();
 	return 0;
 }

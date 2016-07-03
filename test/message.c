@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 #include <assert.h>
-#include <ccoin/message.h>
+#include <bitc/message.h>
 
 static void check_buffer(const cstring *buffer,
                          const void *expected_data,

@@ -2,22 +2,22 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <string.h>
 #include <time.h>
-#include <ccoin/core.h>
-#include <ccoin/util.h>
-#include <ccoin/parr.h>
-#include <ccoin/coredefs.h>
-#include <ccoin/serialize.h>
+#include <bitc/core.h>
+#include <bitc/util.h>
+#include <bitc/parr.h>
+#include <bitc/coredefs.h>
+#include <bitc/serialize.h>
 
-static bool bp_has_dup_inputs(const struct bp_tx *tx)
+static bool bitc_has_dup_inputs(const struct bitc_tx *tx)
 {
 	if (!tx->vin || !tx->vin->len || tx->vin->len == 1)
 		return false;
 
-	struct bp_txin *txin, *txin_tmp;
+	struct bitc_txin *txin, *txin_tmp;
 	unsigned int i, j;
 	for (i = 0; i < tx->vin->len; i++) {
 		txin = parr_idx(tx->vin, i);
@@ -26,7 +26,7 @@ static bool bp_has_dup_inputs(const struct bp_tx *tx)
 				continue;
 			txin_tmp = parr_idx(tx->vin, j);
 
-			if (bp_outpt_equal(&txin->prevout,
+			if (bitc_outpt_equal(&txin->prevout,
 					   &txin_tmp->prevout))
 				return true;
 		}
@@ -35,7 +35,7 @@ static bool bp_has_dup_inputs(const struct bp_tx *tx)
 	return false;
 }
 
-bool bp_tx_valid(const struct bp_tx *tx)
+bool bitc_tx_valid(const struct bitc_tx *tx)
 {
 	unsigned int i;
 
@@ -44,46 +44,46 @@ bool bp_tx_valid(const struct bp_tx *tx)
 	if (!tx->vout || !tx->vout->len)
 		return false;
 
-	if (bp_tx_ser_size(tx) > MAX_BLOCK_SIZE)
+	if (bitc_tx_ser_size(tx) > MAX_BLOCK_SIZE)
 		return false;
 
-	if (bp_tx_coinbase(tx)) {
-		struct bp_txin *txin = parr_idx(tx->vin, 0);
+	if (bitc_tx_coinbase(tx)) {
+		struct bitc_txin *txin = parr_idx(tx->vin, 0);
 
 		if (txin->scriptSig->len < 2 ||
 		    txin->scriptSig->len > 100)
 			return false;
 	} else {
 		for (i = 0; i < tx->vin->len; i++) {
-			struct bp_txin *txin;
+			struct bitc_txin *txin;
 
 			txin = parr_idx(tx->vin, i);
-			if (!bp_txin_valid(txin))
+			if (!bitc_txin_valid(txin))
 				return false;
 		}
 	}
 
 	int64_t value_total = 0;
 	for (i = 0; i < tx->vout->len; i++) {
-		struct bp_txout *txout;
+		struct bitc_txout *txout;
 
 		txout = parr_idx(tx->vout, i);
-		if (!bp_txout_valid(txout))
+		if (!bitc_txout_valid(txout))
 			return false;
 
 		value_total += txout->nValue;
 	}
 
-	if (!bp_valid_value(value_total))
+	if (!bitc_valid_value(value_total))
 		return false;
 
-	if (bp_has_dup_inputs(tx))
+	if (bitc_has_dup_inputs(tx))
 		return false;
 
 	return true;
 }
 
-parr *bp_block_merkle_tree(const struct bp_block *block)
+parr *bitc_block_merkle_tree(const struct bitc_block *block)
 {
 	if (!block->vtx || !block->vtx->len)
 		return NULL;
@@ -92,10 +92,10 @@ parr *bp_block_merkle_tree(const struct bp_block *block)
 
 	unsigned int i;
 	for (i = 0; i < block->vtx->len; i++) {
-		struct bp_tx *tx;
+		struct bitc_tx *tx;
 
 		tx = parr_idx(block->vtx, i);
-		bp_tx_calc_sha256(tx);
+		bitc_tx_calc_sha256(tx);
 
 		parr_add(arr, bu256_new(&tx->sha256));
 	}
@@ -118,14 +118,14 @@ parr *bp_block_merkle_tree(const struct bp_block *block)
 	return arr;
 }
 
-void bp_block_merkle(bu256_t *vo, const struct bp_block *block)
+void bitc_block_merkle(bu256_t *vo, const struct bitc_block *block)
 {
 	memset(vo, 0, sizeof(*vo));
 
 	if (!block->vtx || !block->vtx->len)
 		return;
 
-	parr *arr = bp_block_merkle_tree(block);
+	parr *arr = bitc_block_merkle_tree(block);
 	if (!arr)
 		return;
 
@@ -134,7 +134,7 @@ void bp_block_merkle(bu256_t *vo, const struct bp_block *block)
 	parr_free(arr, true);
 }
 
-parr *bp_block_merkle_branch(const struct bp_block *block,
+parr *bitc_block_merkle_branch(const struct bitc_block *block,
 			       const parr *mrktree,
 			       unsigned int txidx)
 {
@@ -154,7 +154,7 @@ parr *bp_block_merkle_branch(const struct bp_block *block,
 	return ret;
 }
 
-void bp_check_merkle_branch(bu256_t *hash, const bu256_t *txhash_in,
+void bitc_check_merkle_branch(bu256_t *hash, const bu256_t *txhash_in,
 			    const parr *mrkbranch, unsigned int txidx)
 {
 	bu256_copy(hash, txhash_in);
@@ -175,7 +175,7 @@ void bp_check_merkle_branch(bu256_t *hash, const bu256_t *txhash_in,
 	}
 }
 
-static bool bp_block_valid_target(struct bp_block *block)
+static bool bitc_block_valid_target(struct bitc_block *block)
 {
 	mpz_t target, sha256;
 	mpz_init(target);
@@ -195,43 +195,43 @@ static bool bp_block_valid_target(struct bp_block *block)
 	return true;
 }
 
-static bool bp_block_valid_merkle(struct bp_block *block)
+static bool bitc_block_valid_merkle(struct bitc_block *block)
 {
 	bu256_t merkle;
 
-	bp_block_merkle(&merkle, block);
+	bitc_block_merkle(&merkle, block);
 
 	return bu256_equal(&merkle, &block->hashMerkleRoot);
 }
 
-bool bp_block_valid(struct bp_block *block)
+bool bitc_block_valid(struct bitc_block *block)
 {
-	bp_block_calc_sha256(block);
+	bitc_block_calc_sha256(block);
 
 	if (!block->vtx || !block->vtx->len)
 		return false;
 
-	if (bp_block_ser_size(block) > MAX_BLOCK_SIZE)
+	if (bitc_block_ser_size(block) > MAX_BLOCK_SIZE)
 		return false;
 
-	if (!bp_block_valid_target(block)) return false;
+	if (!bitc_block_valid_target(block)) return false;
 
 	time_t now = time(NULL);
 	if (block->nTime > (now + (2 * 60 * 60)))
 		return false;
 
-	if (!bp_block_valid_merkle(block)) return false;
+	if (!bitc_block_valid_merkle(block)) return false;
 
 	unsigned int i;
 	for (i = 0; i < block->vtx->len; i++) {
-		struct bp_tx *tx;
+		struct bitc_tx *tx;
 
 		tx = parr_idx(block->vtx, i);
-		if (!bp_tx_valid(tx))
+		if (!bitc_tx_valid(tx))
 			return false;
 
 		bool is_coinbase_idx = (i == 0);
-		bool is_coinbase = bp_tx_coinbase(tx);
+		bool is_coinbase = bitc_tx_coinbase(tx);
 
 		if (is_coinbase != is_coinbase_idx)
 			return false;

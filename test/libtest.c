@@ -2,7 +2,7 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -12,10 +12,10 @@
 #include <ctype.h>
 #include <assert.h>
 #include <jansson.h>
-#include <ccoin/cstr.h>
-#include <ccoin/parr.h>
-#include <ccoin/script.h>
-#include <ccoin/hexcode.h>
+#include <bitc/cstr.h>
+#include <bitc/parr.h>
+#include <bitc/script.h>
+#include <bitc/hexcode.h>
 #include "libtest.h"
 
 json_t *read_json(const char *filename)

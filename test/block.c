@@ -2,7 +2,7 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -10,10 +10,10 @@
 #include <unistd.h>
 #include <assert.h>
 #include <jansson.h>
-#include <ccoin/message.h>
-#include <ccoin/mbr.h>
-#include <ccoin/util.h>
-#include <ccoin/key.h>
+#include <bitc/message.h>
+#include <bitc/mbr.h>
+#include <bitc/util.h>
+#include <bitc/key.h>
 #include "libtest.h"
 
 static void runtest(const char *json_fn_base, const char *ser_fn_base)
@@ -44,16 +44,16 @@ static void runtest(const char *json_fn_base, const char *ser_fn_base)
 	unsigned int size = json_integer_value(json_object_get(meta, "size"));
 	assert((24 + msg.hdr.data_len) == size);
 
-	struct bp_block block;
-	bp_block_init(&block);
+	struct bitc_block block;
+	bitc_block_init(&block);
 
 	struct const_buffer buf = { msg.data, msg.hdr.data_len };
 
-	rc = deser_bp_block(&block, &buf);
+	rc = deser_bitc_block(&block, &buf);
 	assert(rc);
 
 	cstring *gs = cstr_new_sz(100000);
-	ser_bp_block(gs, &block);
+	ser_bitc_block(gs, &block);
 
 	if (gs->len != msg.hdr.data_len) {
 		fprintf(stderr, "gs->len %ld, msg.hdr.data_len %u\n",
@@ -62,7 +62,7 @@ static void runtest(const char *json_fn_base, const char *ser_fn_base)
 	}
 	assert(memcmp(gs->str, msg.data, msg.hdr.data_len) == 0);
 
-	bp_block_calc_sha256(&block);
+	bitc_block_calc_sha256(&block);
 
 	char hexstr[BU256_STRSZ];
 	bu256_hex(hexstr, &block.sha256);
@@ -73,10 +73,10 @@ static void runtest(const char *json_fn_base, const char *ser_fn_base)
 		assert(!strcmp(hexstr, hashstr));
 	}
 
-	rc = bp_block_valid(&block);
+	rc = bitc_block_valid(&block);
 	assert(rc);
 
-	bp_block_free(&block);
+	bitc_block_free(&block);
 	cstr_free(gs, true);
 	free(msg.data);
 	free(fn);
@@ -89,6 +89,6 @@ int main (int argc, char *argv[])
 	runtest("blk0.json", "blk0.ser");
 	runtest("blk120383.json", "blk120383.ser");
 
-	bp_key_static_shutdown();
+	bitc_key_static_shutdown();
 	return 0;
 }

@@ -30,7 +30,7 @@
 
 #include <string.h>
 #include <stdint.h>
-#include <ccoin/crypto/sha2.h>
+#include <bitc/crypto/sha2.h>
 
 /*
  * ASSERT NOTE:

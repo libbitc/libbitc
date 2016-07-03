@@ -2,9 +2,9 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"           // for VERSION, _LARGE_FILES, etc
+#include "libbitc-config.h"           // for VERSION, _LARGE_FILES, etc
 
-#include "ccoin/net/netbase.h"          // for is_ipv4_mapped
+#include "bitc/net/netbase.h"          // for is_ipv4_mapped
 
 #ifdef WIN32
 #include <winsock2.h>

@@ -6,7 +6,7 @@
  */
 
 #include <jansson.h>
-#include <ccoin/cstr.h>
+#include <bitc/cstr.h>
 
 extern json_t *read_json(const char *filename);
 extern char *test_filename(const char *basename);

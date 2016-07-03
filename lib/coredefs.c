@@ -2,11 +2,11 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <string.h>
-#include <ccoin/coredefs.h>
-#include <ccoin/util.h>
+#include <bitc/coredefs.h>
+#include <bitc/util.h>
 
 const struct chain_info chain_metadata[] = {
 	[CHAIN_BITCOIN] = {

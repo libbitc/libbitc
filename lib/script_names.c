@@ -2,10 +2,10 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
-#include <ccoin/script.h>
-#include <ccoin/util.h>
+#include <bitc/script.h>
+#include <bitc/util.h>
 
 static const char *opnames[256] = {
 	[OP_0] = "OP_0",

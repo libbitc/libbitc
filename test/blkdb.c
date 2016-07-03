@@ -2,19 +2,19 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <assert.h>
 #include <unistd.h>
-#include <ccoin/blkdb.h>
-#include <ccoin/coredefs.h>
-#include <ccoin/buint.h>
-#include <ccoin/buffer.h>
-#include <ccoin/util.h>
-#include <ccoin/key.h>
+#include <bitc/blkdb.h>
+#include <bitc/coredefs.h>
+#include <bitc/buint.h>
+#include <bitc/buffer.h>
+#include <bitc/util.h>
+#include <bitc/key.h>
 #include "libtest.h"
 
 static void add_header(struct blkdb *db, char *raw)
@@ -24,9 +24,9 @@ static void add_header(struct blkdb *db, char *raw)
 	struct blkinfo *bi = bi_new();
 	assert(bi != NULL);
 
-	assert(deser_bp_block(&bi->hdr, &buf) == true);
+	assert(deser_bitc_block(&bi->hdr, &buf) == true);
 
-	bp_block_calc_sha256(&bi->hdr);
+	bitc_block_calc_sha256(&bi->hdr);
 
 	bu256_copy(&bi->hash, &bi->hdr.sha256);
 
@@ -102,6 +102,6 @@ int main (int argc, char *argv[])
 	runtest("tn_hdr35141.ser", &chain_metadata[CHAIN_TESTNET3], 35141,
 	    "0000000000dde6ce4b9ad1e2a5be59f1b7ace6ef8d077d846263b0bfbc984f7f");
 
-	bp_key_static_shutdown();
+	bitc_key_static_shutdown();
 	return 0;
 }

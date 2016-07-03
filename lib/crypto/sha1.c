@@ -4,8 +4,8 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include <ccoin/endian.h>
-#include <ccoin/crypto/sha1.h>
+#include <bitc/endian.h>
+#include <bitc/crypto/sha1.h>
 
 #include <string.h>
 

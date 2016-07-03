@@ -1,18 +1,18 @@
 
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #define _GNU_SOURCE			/* for memmem */
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
-#include <ccoin/script.h>
-#include <ccoin/util.h>
-#include <ccoin/key.h>
-#include <ccoin/serialize.h>
-#include <ccoin/compat.h>		/* for parr_new */
-#include <ccoin/crypto/sha1.h>
-#include <ccoin/crypto/sha2.h>
-#include <ccoin/crypto/ripemd160.h>
+#include <bitc/script.h>
+#include <bitc/util.h>
+#include <bitc/key.h>
+#include <bitc/serialize.h>
+#include <bitc/compat.h>		/* for parr_new */
+#include <bitc/crypto/sha1.h>
+#include <bitc/crypto/sha2.h>
+#include <bitc/crypto/ripemd160.h>
 
 static const size_t nMaxNumSize = 4;
 
@@ -39,13 +39,13 @@ static void string_find_del(cstring *s, const struct buffer *buf)
 	cstr_free(script, true);
 }
 
-static void bp_tx_calc_sighash(bu256_t *hash, const struct bp_tx *tx,
+static void bitc_tx_calc_sighash(bu256_t *hash, const struct bitc_tx *tx,
 			       int nHashType)
 {
 	/* TODO: introduce hashing-only serialization mode */
 
 	cstring *s = cstr_new_sz(512);
-	ser_bp_tx(s, tx);
+	ser_bitc_tx(s, tx);
 	ser_s32(s, nHashType);
 
 	bu_Hash((unsigned char *) hash, s->str, s->len);
@@ -53,8 +53,8 @@ static void bp_tx_calc_sighash(bu256_t *hash, const struct bp_tx *tx,
 	cstr_free(s, true);
 }
 
-void bp_tx_sighash(bu256_t *hash, const cstring *scriptCode,
-		   const struct bp_tx *txTo, unsigned int nIn,
+void bitc_tx_sighash(bu256_t *hash, const cstring *scriptCode,
+		   const struct bitc_tx *txTo, unsigned int nIn,
 		   int nHashType)
 {
 	if (nIn >= txTo->vin->len) {
@@ -62,15 +62,15 @@ void bp_tx_sighash(bu256_t *hash, const cstring *scriptCode,
 		return;
 	}
 
-	struct bp_tx txTmp;
-	bp_tx_init(&txTmp);
-	bp_tx_copy(&txTmp, txTo);
+	struct bitc_tx txTmp;
+	bitc_tx_init(&txTmp);
+	bitc_tx_copy(&txTmp, txTo);
 
 	/* TODO: find-and-delete OP_CODESEPARATOR from scriptCode */
 
 	/* Blank out other inputs' signatures */
 	unsigned int i;
-	struct bp_txin *txin;
+	struct bitc_txin *txin;
 	for (i = 0; i < txTmp.vin->len; i++) {
 		txin = parr_idx(txTmp.vin, i);
 		cstr_resize(txin->scriptSig, 0);
@@ -83,8 +83,8 @@ void bp_tx_sighash(bu256_t *hash, const cstring *scriptCode,
 	/* Blank out some of the outputs */
 	if ((nHashType & 0x1f) == SIGHASH_NONE) {
 		/* Wildcard payee */
-		bp_tx_free_vout(&txTmp);
-		txTmp.vout = parr_new(1, bp_txout_free_cb);
+		bitc_tx_free_vout(&txTmp);
+		txTmp.vout = parr_new(1, bitc_txout_free_cb);
 
 		/* Let the others update at will */
 		for (i = 0; i < txTmp.vin->len; i++) {
@@ -105,10 +105,10 @@ void bp_tx_sighash(bu256_t *hash, const cstring *scriptCode,
 		parr_resize(txTmp.vout, nOut + 1);
 
 		for (i = 0; i < nOut; i++) {
-			struct bp_txout *txout;
+			struct bitc_txout *txout;
 
 			txout = parr_idx(txTmp.vout, i);
-			bp_txout_set_null(txout);
+			bitc_txout_set_null(txout);
 		}
 
 		/* Let the others update at will */
@@ -128,10 +128,10 @@ void bp_tx_sighash(bu256_t *hash, const cstring *scriptCode,
 	}
 
 	/* Serialize and hash */
-	bp_tx_calc_sighash(hash, &txTmp, nHashType);
+	bitc_tx_calc_sighash(hash, &txTmp, nHashType);
 
 out:
-	bp_tx_free(&txTmp);
+	bitc_tx_free(&txTmp);
 }
 
 static const unsigned char disabled_op[256] = {
@@ -269,10 +269,10 @@ static unsigned int count_false(cstring *vfExec)
 	return count;
 }
 
-static bool bp_checksig(const struct buffer *vchSigHT,
+static bool bitc_checksig(const struct buffer *vchSigHT,
 			const struct buffer *vchPubKey,
 			const cstring *scriptCode,
-			const struct bp_tx *txTo, unsigned int nIn,
+			const struct bitc_tx *txTo, unsigned int nIn,
 			int nHashType)
 {
 	if (!vchSigHT || !vchPubKey || !scriptCode || !txTo ||
@@ -289,22 +289,22 @@ static bool bp_checksig(const struct buffer *vchSigHT,
 
 	/* calculate signature hash of transaction */
 	bu256_t sighash;
-	bp_tx_sighash(&sighash, scriptCode, txTo, nIn, nHashType);
+	bitc_tx_sighash(&sighash, scriptCode, txTo, nIn, nHashType);
 
 	/* verify signature hash */
-	struct bp_key key;
-	bp_key_init(&key);
+	struct bitc_key key;
+	bitc_key_init(&key);
 
 	bool rc = false;
-	if (!bp_pubkey_set(&key, vchPubKey->p, vchPubKey->len))
+	if (!bitc_pubkey_set(&key, vchPubKey->p, vchPubKey->len))
 		goto out;
-	if (!bp_verify(&key, &sighash, sizeof(sighash), vchSig.p, vchSig.len))
+	if (!bitc_verify(&key, &sighash, sizeof(sighash), vchSig.p, vchSig.len))
 		goto out;
 
 	rc = true;
 
 out:
-	bp_key_free(&key);
+	bitc_key_free(&key);
 	return rc;
 }
 
@@ -424,8 +424,8 @@ static bool CheckPubKeyEncoding(const struct buffer *vchPubKey, unsigned int fla
     return true;
 }
 
-static bool bp_script_eval(parr *stack, const cstring *script,
-			   const struct bp_tx *txTo, unsigned int nIn,
+static bool bitc_script_eval(parr *stack, const cstring *script,
+			   const struct bitc_tx *txTo, unsigned int nIn,
 			   unsigned int flags, int nHashType)
 {
 	struct const_buffer pc = { script->str, script->len };
@@ -1006,7 +1006,7 @@ static bool bp_script_eval(parr *stack, const cstring *script,
 				goto out;
 			}
 
-			bool fSuccess = bp_checksig(vchSig, vchPubKey,
+			bool fSuccess = bitc_checksig(vchSig, vchPubKey,
 						       scriptCode,
 						       txTo, nIn, nHashType);
 
@@ -1079,7 +1079,7 @@ static bool bp_script_eval(parr *stack, const cstring *script,
 					goto out;
 				}
 
-				bool fOk = bp_checksig(vchSig, vchPubKey,
+				bool fOk = bitc_checksig(vchSig, vchPubKey,
 							  scriptCode, txTo, nIn,
 							  nHashType);
 
@@ -1129,15 +1129,15 @@ out:
 	return rc;
 }
 
-bool bp_script_verify(const cstring *scriptSig, const cstring *scriptPubKey,
-		      const struct bp_tx *txTo, unsigned int nIn,
+bool bitc_script_verify(const cstring *scriptSig, const cstring *scriptPubKey,
+		      const struct bitc_tx *txTo, unsigned int nIn,
 		      unsigned int flags, int nHashType)
 {
 	bool rc = false;
 	parr *stack = parr_new(0, buffer_free);
 	parr *stackCopy = NULL;
 
-	if (!bp_script_eval(stack, scriptSig, txTo, nIn, flags, nHashType))
+	if (!bitc_script_eval(stack, scriptSig, txTo, nIn, flags, nHashType))
 		goto out;
 
 	if (flags & SCRIPT_VERIFY_P2SH) {
@@ -1145,7 +1145,7 @@ bool bp_script_verify(const cstring *scriptSig, const cstring *scriptPubKey,
 		stack_copy(stackCopy, stack);
 	}
 
-	if (!bp_script_eval(stack, scriptPubKey, txTo, nIn, flags, nHashType))
+	if (!bitc_script_eval(stack, scriptPubKey, txTo, nIn, flags, nHashType))
 		goto out;
 	if (stack->len == 0)
 		goto out;
@@ -1168,7 +1168,7 @@ bool bp_script_verify(const cstring *scriptSig, const cstring *scriptPubKey,
 
 		buffer_free(pubkey2_buf);
 
-		bool rc2 = bp_script_eval(stackCopy, pubkey2, txTo, nIn,
+		bool rc2 = bitc_script_eval(stackCopy, pubkey2, txTo, nIn,
 					  flags, nHashType);
 		cstr_free(pubkey2, true);
 
@@ -1189,7 +1189,7 @@ out:
 	return rc;
 }
 
-bool bp_verify_sig(const struct bp_utxo *txFrom, const struct bp_tx *txTo,
+bool bitc_verify_sig(const struct bitc_utxo *txFrom, const struct bitc_tx *txTo,
 		   unsigned int nIn, unsigned int flags, int nHashType)
 {
 	if (!txFrom || !txFrom->vout || !txFrom->vout->len ||
@@ -1197,15 +1197,15 @@ bool bp_verify_sig(const struct bp_utxo *txFrom, const struct bp_tx *txTo,
 	    (txTo->vin->len <= nIn))
 		return false;
 
-	struct bp_txin *txin = parr_idx(txTo->vin, nIn);
+	struct bitc_txin *txin = parr_idx(txTo->vin, nIn);
 	if (txin->prevout.n >= txFrom->vout->len)
 		return false;
 
-	struct bp_txout *txout = parr_idx(txFrom->vout,
+	struct bitc_txout *txout = parr_idx(txFrom->vout,
 						   txin->prevout.n);
 	if (!txout)
 		return false;
 
-	return bp_script_verify(txin->scriptSig, txout->scriptPubKey,
+	return bitc_script_verify(txin->scriptSig, txout->scriptPubKey,
 				txTo, nIn, flags, nHashType);
 }

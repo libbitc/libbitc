@@ -2,12 +2,12 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <string.h>
 #include <unistd.h>
-#include <ccoin/mbr.h>
-#include <ccoin/message.h>
+#include <bitc/mbr.h>
+#include <bitc/message.h>
 
 void mbr_init(struct mbuf_reader *mbr, struct const_buffer *buf)
 {

@@ -2,23 +2,23 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"           // for VERSION, _LARGE_FILES, etc
+#include "libbitc-config.h"           // for VERSION, _LARGE_FILES, etc
 
 #include "brd.h"
-#include <ccoin/blkdb.h>                // for blkinfo, blkdb, etc
-#include <ccoin/buffer.h>               // for const_buffer, buffer_copy, etc
-#include <ccoin/clist.h>                // for clist_length
-#include <ccoin/core.h>                 // for bp_block, bp_utxo, bp_tx, etc
-#include <ccoin/coredefs.h>             // for chain_info, chain_find, etc
-#include <ccoin/cstr.h>                 // for cstring, cstr_free
-#include <ccoin/hexcode.h>              // for decode_hex
-#include <ccoin/mbr.h>                  // for fread_message
-#include <ccoin/message.h>              // for p2p_message, etc
-#include <ccoin/net/net.h>              // for net_child_info, nc_conns_gc, etc
-#include <ccoin/net/peerman.h>          // for peer_manager, peerman_write, etc
-#include <ccoin/parr.h>                 // for parr, parr_idx, parr_free, etc
-#include <ccoin/script.h>               // for bp_verify_sig
-#include <ccoin/util.h>                 // for ARRAY_SIZE, czstr_equal, etc
+#include <bitc/blkdb.h>                // for blkinfo, blkdb, etc
+#include <bitc/buffer.h>               // for const_buffer, buffer_copy, etc
+#include <bitc/clist.h>                // for clist_length
+#include <bitc/core.h>                 // for bitc_block, bitc_utxo, bitc_tx, etc
+#include <bitc/coredefs.h>             // for chain_info, chain_find, etc
+#include <bitc/cstr.h>                 // for cstring, cstr_free
+#include <bitc/hexcode.h>              // for decode_hex
+#include <bitc/mbr.h>                  // for fread_message
+#include <bitc/message.h>              // for p2p_message, etc
+#include <bitc/net/net.h>              // for net_child_info, nc_conns_gc, etc
+#include <bitc/net/peerman.h>          // for peer_manager, peerman_write, etc
+#include <bitc/parr.h>                 // for parr, parr_idx, parr_free, etc
+#include <bitc/script.h>               // for bitc_verify_sig
+#include <bitc/util.h>                 // for ARRAY_SIZE, czstr_equal, etc
 
 #include <assert.h>                     // for assert
 #include <ctype.h>                      // for isspace
@@ -45,7 +45,7 @@
 #endif
 
 const char *prog_name = "brd";
-struct bp_hashtab *settings;
+struct bitc_hashtab *settings;
 const struct chain_info *chain = NULL;
 bu256_t chain_genesis;
 uint64_t instance_nonce;
@@ -53,8 +53,8 @@ bool debugging = false;
 FILE *plog = NULL;
 
 static struct blkdb db;
-static struct bp_hashtab *orphans;
-static struct bp_utxo_set uset;
+static struct bitc_hashtab *orphans;
+static struct bitc_utxo_set uset;
 static int blocks_fd = -1;
 static bool script_verf = false;
 static unsigned int net_conn_timeout = 11;
@@ -69,7 +69,7 @@ static const char *const_settings[] = {
 	"log=-", /* "log=brd.log", */
 };
 
-static bool block_process(const struct bp_block *block, int64_t fpos);
+static bool block_process(const struct bitc_block *block, int64_t fpos);
 static bool have_orphan(const bu256_t *v);
 static bool add_orphan(const bu256_t *hash_in, struct const_buffer *buf_in);
 
@@ -119,7 +119,7 @@ static bool read_config_file(const char *cfg_fn)
 		if (!parse_kvstr(line, &key, &value))
 			continue;
 
-		bp_hashtab_put(settings, key, value);
+		bitc_hashtab_put(settings, key, value);
 	}
 
 	rc = ferror(cfg) == 0;
@@ -135,7 +135,7 @@ static bool do_setting(const char *arg)
 	if (!parse_kvstr(arg, &key, &value))
 		return false;
 
-	bp_hashtab_put(settings, key, value);
+	bitc_hashtab_put(settings, key, value);
 
 	/*
 	 * trigger special setting-specific behaviors
@@ -296,12 +296,12 @@ static void init_blocks(void)
 		init_block0();
 }
 
-static bool spend_tx(struct bp_utxo_set *uset, const struct bp_tx *tx,
+static bool spend_tx(struct bitc_utxo_set *uset, const struct bitc_tx *tx,
 		     unsigned int tx_idx, unsigned int height)
 {
 	bool is_coinbase = (tx_idx == 0);
 
-	struct bp_utxo *coin;
+	struct bitc_utxo *coin;
 
 	int64_t total_in = 0, total_out = 0;
 
@@ -310,12 +310,12 @@ static bool spend_tx(struct bp_utxo_set *uset, const struct bp_tx *tx,
 	/* verify and spend this transaction's inputs */
 	if (!is_coinbase) {
 		for (i = 0; i < tx->vin->len; i++) {
-			struct bp_txin *txin;
-			struct bp_txout *txout;
+			struct bitc_txin *txin;
+			struct bitc_txout *txout;
 
 			txin = parr_idx(tx->vin, i);
 
-			coin = bp_utxo_lookup(uset, &txin->prevout.hash);
+			coin = bitc_utxo_lookup(uset, &txin->prevout.hash);
 			if (!coin || !coin->vout)
 				return false;
 
@@ -330,17 +330,17 @@ static bool spend_tx(struct bp_utxo_set *uset, const struct bp_tx *tx,
 			total_in += txout->nValue;
 
 			if (script_verf &&
-			    !bp_verify_sig(coin, tx, i,
+			    !bitc_verify_sig(coin, tx, i,
 						/* SCRIPT_VERIFY_P2SH */ 0, 0))
 				return false;
 
-			if (!bp_utxo_spend(uset, &txin->prevout))
+			if (!bitc_utxo_spend(uset, &txin->prevout))
 				return false;
 		}
 	}
 
 	for (i = 0; i < tx->vout->len; i++) {
-		struct bp_txout *txout;
+		struct bitc_txout *txout;
 
 		txout = parr_idx(tx->vout, i);
 		total_out += txout->nValue;
@@ -353,24 +353,24 @@ static bool spend_tx(struct bp_utxo_set *uset, const struct bp_tx *tx,
 
 	/* copy-and-convert a tx into a UTXO */
 	coin = calloc(1, sizeof(*coin));
-	bp_utxo_init(coin);
+	bitc_utxo_init(coin);
 
-	if (!bp_utxo_from_tx(coin, tx, is_coinbase, height))
+	if (!bitc_utxo_from_tx(coin, tx, is_coinbase, height))
 		return false;
 
 	/* add unspent outputs to set */
-	bp_utxo_set_add(uset, coin);
+	bitc_utxo_set_add(uset, coin);
 
 	return true;
 }
 
-static bool spend_block(struct bp_utxo_set *uset, const struct bp_block *block,
+static bool spend_block(struct bitc_utxo_set *uset, const struct bitc_block *block,
 			unsigned int height)
 {
 	unsigned int i;
 
 	for (i = 0; i < block->vtx->len; i++) {
-		struct bp_tx *tx;
+		struct bitc_tx *tx;
 
 		tx = parr_idx(block->vtx, i);
 		if (!spend_tx(uset, tx, i, height)) {
@@ -384,11 +384,11 @@ static bool spend_block(struct bp_utxo_set *uset, const struct bp_block *block,
 	return true;
 }
 
-static bool block_process(const struct bp_block *block, int64_t fpos)
+static bool block_process(const struct bitc_block *block, int64_t fpos)
 {
 	struct blkinfo *bi = bi_new();
 	bu256_copy(&bi->hash, &block->sha256);
-	bp_block_copy_hdr(&bi->hdr, block);
+	bitc_block_copy_hdr(&bi->hdr, block);
 	bi->n_file = 0;
 	bi->n_pos = fpos;
 
@@ -432,17 +432,17 @@ static bool read_block_msg(struct p2p_message *msg, int64_t fpos)
 
 	bool rc = false;
 
-	struct bp_block block;
-	bp_block_init(&block);
+	struct bitc_block block;
+	bitc_block_init(&block);
 
 	struct const_buffer buf = { msg->data, msg->hdr.data_len };
-	if (!deser_bp_block(&block, &buf)) {
+	if (!deser_bitc_block(&block, &buf)) {
 		fprintf(plog, "%s: block deser fail\n", prog_name);
 		goto out;
 	}
-	bp_block_calc_sha256(&block);
+	bitc_block_calc_sha256(&block);
 
-	if (!bp_block_valid(&block)) {
+	if (!bitc_block_valid(&block)) {
 		fprintf(plog, "%s: block not valid\n", prog_name);
 		goto out;
 	}
@@ -450,7 +450,7 @@ static bool read_block_msg(struct p2p_message *msg, int64_t fpos)
 	rc = block_process(&block, fpos);
 
 out:
-	bp_block_free(&block);
+	bitc_block_free(&block);
 	return rc;
 }
 
@@ -505,13 +505,13 @@ static void readprep_blocks_file(void)
 
 static void init_orphans(void)
 {
-	orphans = bp_hashtab_new_ext(bu256_hash, bu256_equal_,
-				     (bp_freefunc) bu256_free, (bp_freefunc) buffer_free);
+	orphans = bitc_hashtab_new_ext(bu256_hash, bu256_equal_,
+				     (bitc_freefunc) bu256_free, (bitc_freefunc) buffer_free);
 }
 
 static bool have_orphan(const bu256_t *v)
 {
-	return bp_hashtab_get(orphans, v);
+	return bitc_hashtab_get(orphans, v);
 }
 
 static bool add_orphan(const bu256_t *hash_in, struct const_buffer *buf_in)
@@ -532,7 +532,7 @@ static bool add_orphan(const bu256_t *hash_in, struct const_buffer *buf_in)
 		return false;
 	}
 
-	bp_hashtab_put(orphans, hash, buf);
+	bitc_hashtab_put(orphans, hash, buf);
 
 	return true;
 }
@@ -565,7 +565,7 @@ static void init_peers(struct net_child_info *nci)
 	if (debugging)
 		fprintf(plog, "%s: have %u/%zu peers\n",
 			prog_name,
-			bp_hashtab_size(peers->map_addr),
+			bitc_hashtab_size(peers->map_addr),
 			clist_length(peers->addrlist));
 
 	nci->peers = peers;
@@ -577,7 +577,7 @@ static bool inv_block_process(bu256_t *hash)
 			    !have_orphan(hash));
 }
 
-static bool add_block(struct bp_block *block, struct p2p_message_hdr *hdr, struct const_buffer *buf)
+static bool add_block(struct bitc_block *block, struct p2p_message_hdr *hdr, struct const_buffer *buf)
 {
     bool rc = false;
 
@@ -643,7 +643,7 @@ static void init_daemon(struct net_child_info *nci)
 {
 	init_log();
 	init_blkdb();
-	bp_utxo_set_init(&uset);
+	bitc_utxo_set_init(&uset);
 	init_blocks();
 	init_orphans();
 	readprep_blocks_file();
@@ -674,7 +674,7 @@ static void shutdown_daemon(struct net_child_info *nci)
 	fprintf(plog, "%s: %s %u/%zu peers\n",
 		prog_name,
         rc ? "wrote" : "failed to write",
-		bp_hashtab_size(nci->peers->map_addr),
+		bitc_hashtab_size(nci->peers->map_addr),
 		clist_length(nci->peers->addrlist));
 
 	if (plog != stdout && plog != stderr) {
@@ -684,10 +684,10 @@ static void shutdown_daemon(struct net_child_info *nci)
 
 	if (setting("free")) {
 		shutdown_nci(nci);
-		bp_hashtab_unref(orphans);
-		bp_hashtab_unref(settings);
+		bitc_hashtab_unref(orphans);
+		bitc_hashtab_unref(settings);
 		blkdb_free(&db);
-		bp_utxo_set_free(&uset);
+		bitc_utxo_set_free(&uset);
 	}
 }
 
@@ -699,7 +699,7 @@ static void term_signal(int signo)
 
 int main (int argc, char *argv[])
 {
-	settings = bp_hashtab_new_ext(czstr_hash, czstr_equal,
+	settings = bitc_hashtab_new_ext(czstr_hash, czstr_equal,
 				      free, free);
 
 	if (!preload_settings())

@@ -2,7 +2,7 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -10,18 +10,18 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <argp.h>
-#include <ccoin/crypto/ripemd160.h>
-#include <ccoin/coredefs.h>
-#include <ccoin/base58.h>
-#include <ccoin/buffer.h>
-#include <ccoin/key.h>
-#include <ccoin/core.h>
-#include <ccoin/util.h>
-#include <ccoin/mbr.h>
-#include <ccoin/script.h>
-#include <ccoin/addr_match.h>
-#include <ccoin/message.h>
-#include <ccoin/hashtab.h>
+#include <bitc/crypto/ripemd160.h>
+#include <bitc/coredefs.h>
+#include <bitc/base58.h>
+#include <bitc/buffer.h>
+#include <bitc/key.h>
+#include <bitc/core.h>
+#include <bitc/util.h>
+#include <bitc/mbr.h>
+#include <bitc/script.h>
+#include <bitc/addr_match.h>
+#include <bitc/message.h>
+#include <bitc/hashtab.h>
 
 const char *argp_program_version = PACKAGE_VERSION;
 
@@ -48,8 +48,8 @@ static char *address_fn = "addresses.txt";
 static bool opt_quiet = false;
 static bool opt_decimal = true;
 
-static struct bp_keyset bpks;
-static struct bp_hashtab *tx_idx = NULL;
+static struct bitc_keyset bitc_ks;
+static struct bitc_hashtab *tx_idx = NULL;
 
 static error_t parse_opt (int key, char *arg, struct argp_state *state);
 
@@ -96,7 +96,7 @@ static void load_address(unsigned int line_no, const char *line)
 	}
 
 	struct buffer *buf_pkhash = buffer_copy(s->str,RIPEMD160_DIGEST_LENGTH);
-	bp_hashtab_put(bpks.pubhash, buf_pkhash, buf_pkhash);
+	bitc_hashtab_put(bitc_ks.pubhash, buf_pkhash, buf_pkhash);
 
 	cstr_free(s, true);
 }
@@ -131,11 +131,11 @@ static void load_addresses(void)
 
 	if (!opt_quiet)
 		fprintf(stderr, "%d addresses loaded\n",
-			bp_hashtab_size(bpks.pubhash));
+			bitc_hashtab_size(bitc_ks.pubhash));
 }
 
 /* file pos -> block lookup */
-static bool reload_block(int fd, uint64_t fpos, struct bp_block *block)
+static bool reload_block(int fd, uint64_t fpos, struct bitc_block *block)
 {
 	off_t save_ofs = lseek(fd, 0, SEEK_CUR);
 	if (save_ofs == (off_t)-1) {
@@ -158,7 +158,7 @@ static bool reload_block(int fd, uint64_t fpos, struct bp_block *block)
 
 	struct const_buffer buf = { msg.data, msg.hdr.data_len };
 
-	bool rc = deser_bp_block(block, &buf);
+	bool rc = deser_bitc_block(block, &buf);
 	if (!rc) {
 		fprintf(stderr, "reload_block deser_block fail\n");
 		goto err_out;
@@ -177,19 +177,19 @@ err_out:
 }
 
 /* search for tx_hash within given block; return full tx */
-static bool tx_from_block(struct bp_tx *dest, bu256_t *tx_hash,
-			  const struct bp_block *block)
+static bool tx_from_block(struct bitc_tx *dest, bu256_t *tx_hash,
+			  const struct bitc_block *block)
 {
 	unsigned int n;
 	for (n = 0; n < block->vtx->len; n++) {
-		struct bp_tx *tx;
+		struct bitc_tx *tx;
 
 		tx = parr_idx(block->vtx, n);
 
-		bp_tx_calc_sha256(tx);
+		bitc_tx_calc_sha256(tx);
 
 		if (bu256_equal(&tx->sha256, tx_hash)) {
-			bp_tx_copy(dest, tx);
+			bitc_tx_copy(dest, tx);
 			return true;
 		}
 	}
@@ -197,13 +197,13 @@ static bool tx_from_block(struct bp_tx *dest, bu256_t *tx_hash,
 	return false;
 }
 
-static bool tx_from_fpos(struct bp_tx *dest, bu256_t *tx_hash,
+static bool tx_from_fpos(struct bitc_tx *dest, bu256_t *tx_hash,
 			 int fd, uint64_t fpos)
 {
-	struct bp_block block;
+	struct bitc_block block;
 	bool rc = false;
 
-	bp_block_init(&block);
+	bitc_block_init(&block);
 
 	if (!reload_block(fd, fpos, &block))
 		goto out;
@@ -214,13 +214,13 @@ static bool tx_from_fpos(struct bp_tx *dest, bu256_t *tx_hash,
 	rc = true;
 
 out:
-	bp_block_free(&block);
+	bitc_block_free(&block);
 	return rc;
 }
 
 static int block_fd = -1;
 
-static void print_txout(bool show_from, unsigned int i, struct bp_txout *txout)
+static void print_txout(bool show_from, unsigned int i, struct bitc_txout *txout)
 {
 	char valstr[VALSTR_SZ];
 	if (opt_decimal)
@@ -250,7 +250,7 @@ static void print_txout(bool show_from, unsigned int i, struct bp_txout *txout)
 		buf = tmp->data;
 		tmp = tmp->next;
 
-		is_mine = bpks_lookup(&bpks, buf->p, buf->len, true);
+		is_mine = bitc_keyset_lookup(&bitc_ks, buf->p, buf->len, true);
 
 		cstring *addr = base58_encode_check(PUBKEY_ADDRESS, true,
 						    buf->p, buf->len);
@@ -274,11 +274,11 @@ out:
         clist_free_ext(addrs.pubhash, buffer_free);
 }
 
-static void print_txouts(struct bp_tx *tx, int idx)
+static void print_txouts(struct bitc_tx *tx, int idx)
 {
 	unsigned int i;
 	for (i = 0; i < tx->vout->len; i++) {
-		struct bp_txout *txout;
+		struct bitc_txout *txout;
 
 		txout = parr_idx(tx->vout, i);
 
@@ -289,7 +289,7 @@ static void print_txouts(struct bp_tx *tx, int idx)
 	}
 }
 
-static void print_txin(unsigned int i, struct bp_txin *txin)
+static void print_txin(unsigned int i, struct bitc_txin *txin)
 {
 	char hexstr[BU256_STRSZ];
 
@@ -298,14 +298,14 @@ static void print_txin(unsigned int i, struct bp_txin *txin)
 	printf("\tInput %u: %s %u\n",
 		i, hexstr, txin->prevout.n);
 
-	uint64_t *fpos_p = bp_hashtab_get(tx_idx, &txin->prevout.hash);
+	uint64_t *fpos_p = bitc_hashtab_get(tx_idx, &txin->prevout.hash);
 	if (!fpos_p) {
 		printf("\t\tINPUT NOT FOUND!\n");
 		return;
 	}
 
-	struct bp_tx tx;
-	bp_tx_init(&tx);
+	struct bitc_tx tx;
+	bitc_tx_init(&tx);
 
 	if (!tx_from_fpos(&tx, &txin->prevout.hash, block_fd, *fpos_p)) {
 		printf("\t\tINPUT NOT READ!\n");
@@ -315,14 +315,14 @@ static void print_txin(unsigned int i, struct bp_txin *txin)
 	print_txouts(&tx, txin->prevout.n);
 
 out:
-	bp_tx_free(&tx);
+	bitc_tx_free(&tx);
 }
 
-static void print_txins(struct bp_tx *tx)
+static void print_txins(struct bitc_tx *tx)
 {
 	unsigned int i;
 	for (i = 0; i < tx->vin->len; i++) {
-		struct bp_txin *txin;
+		struct bitc_txin *txin;
 
 		txin = parr_idx(tx->vin, i);
 
@@ -330,7 +330,7 @@ static void print_txins(struct bp_tx *tx)
 	}
 }
 
-static void index_block(unsigned int height, struct bp_block *block,
+static void index_block(unsigned int height, struct bitc_block *block,
 			uint64_t fpos)
 {
 	uint64_t *fpos_copy = malloc(sizeof(uint64_t));
@@ -338,30 +338,30 @@ static void index_block(unsigned int height, struct bp_block *block,
 
 	unsigned int n;
 	for (n = 0; n < block->vtx->len; n++) {
-		struct bp_tx *tx;
+		struct bitc_tx *tx;
 
 		tx = parr_idx(block->vtx, n);
 
-		bp_tx_calc_sha256(tx);
+		bitc_tx_calc_sha256(tx);
 
 		bu256_t *hash = bu256_new(&tx->sha256);
-		bp_hashtab_put(tx_idx, hash, fpos_copy);
+		bitc_hashtab_put(tx_idx, hash, fpos_copy);
 	}
 }
 
 static unsigned int tx_matches = 0;
 
-static void scan_block(unsigned int height, struct bp_block *block)
+static void scan_block(unsigned int height, struct bitc_block *block)
 {
 	unsigned int n;
 	for (n = 0; n < block->vtx->len; n++) {
-		struct bp_tx *tx;
+		struct bitc_tx *tx;
 
 		tx = parr_idx(block->vtx, n);
 
-		if (bp_tx_match(tx, &bpks)) {
+		if (bitc_tx_match(tx, &bitc_ks)) {
 			char hashstr[BU256_STRSZ];
-			bp_tx_calc_sha256(tx);
+			bitc_tx_calc_sha256(tx);
 			bu256_hex(hashstr, &tx->sha256);
 
 			printf("%u, %s\n",
@@ -379,12 +379,12 @@ static void scan_block(unsigned int height, struct bp_block *block)
 static void scan_decode_block(unsigned int height, struct p2p_message *msg,
 			      uint64_t *fpos)
 {
-	struct bp_block block;
-	bp_block_init(&block);
+	struct bitc_block block;
+	bitc_block_init(&block);
 
 	struct const_buffer buf = { msg->data, msg->hdr.data_len };
 
-	bool rc = deser_bp_block(&block, &buf);
+	bool rc = deser_bitc_block(&block, &buf);
 	if (!rc) {
 		fprintf(stderr, "block deser failed at height %u\n", height);
 		exit(1);
@@ -396,7 +396,7 @@ static void scan_decode_block(unsigned int height, struct p2p_message *msg,
 	uint64_t pos_tmp = msg->hdr.data_len;
 	*fpos += (pos_tmp + 8);
 
-	bp_block_free(&block);
+	bitc_block_free(&block);
 }
 
 static void scan_blocks(void)
@@ -421,7 +421,7 @@ static void scan_blocks(void)
 
 		if ((height % 10000 == 0) && (!opt_quiet))
 			fprintf(stderr, "Scanned %u transactions at height %u\n",
-				bp_hashtab_size(tx_idx),
+				bitc_hashtab_size(tx_idx),
 				height);
 	}
 
@@ -451,10 +451,10 @@ int main (int argc, char *argv[])
 		return 1;
 	}
 
-	bpks_init(&bpks);
+	bitc_keyset_init(&bitc_ks);
 
-	tx_idx = bp_hashtab_new_ext(bu256_hash, bu256_equal_,
-				    (bp_freefunc) bu256_free, NULL);
+	tx_idx = bitc_hashtab_new_ext(bu256_hash, bu256_equal_,
+				    (bitc_freefunc) bu256_free, NULL);
 
 	load_addresses();
 	scan_blocks();

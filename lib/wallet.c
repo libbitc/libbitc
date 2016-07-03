@@ -4,15 +4,15 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "picocoin-config.h"
+#include "libbitc-config.h"
 
-#include <ccoin/address.h>
-#include <ccoin/coredefs.h>
-#include <ccoin/key.h>
-#include <ccoin/mbr.h>
-#include <ccoin/message.h>
-#include <ccoin/wallet.h>
-#include <ccoin/serialize.h>
+#include <bitc/address.h>
+#include <bitc/coredefs.h>
+#include <bitc/key.h>
+#include <bitc/mbr.h>
+#include <bitc/message.h>
+#include <bitc/wallet.h>
+#include <bitc/serialize.h>
 
 #include <stdio.h>
 
@@ -27,13 +27,13 @@ bool wallet_init(struct wallet *wlt, const struct chain_info *chain)
 
 void wallet_free(struct wallet *wlt)
 {
-	struct bp_key *key;
+	struct bitc_key *key;
 
 	if (!wlt)
 		return;
 
 	wallet_for_each_key(wlt, key)
-		bp_key_free(key);
+		bitc_key_free(key);
 
 	parr_free(wlt->keys, true);
 	memset(wlt, 0, sizeof(*wlt));
@@ -41,17 +41,17 @@ void wallet_free(struct wallet *wlt)
 
 cstring *wallet_new_address(struct wallet *wlt)
 {
-	struct bp_key *key;
+	struct bitc_key *key;
 
 	key = calloc(1, sizeof(*key));
-	if (!bp_key_init(key)) {
+	if (!bitc_key_init(key)) {
 		free(key);
 		fprintf(stderr, "wallet: key init failed\n");
 		return NULL;
 	}
 
-	if (!bp_key_generate(key)) {
-		bp_key_free(key);
+	if (!bitc_key_generate(key)) {
+		bitc_key_free(key);
 		free(key);
 		fprintf(stderr, "wallet: key gen failed\n");
 		return NULL;
@@ -59,7 +59,7 @@ cstring *wallet_new_address(struct wallet *wlt)
 
 	parr_add(wlt->keys, key);
 
-	return bp_pubkey_get_address(key, wlt->chain->addr_pubkey);
+	return bitc_pubkey_get_address(key, wlt->chain->addr_pubkey);
 }
 
 static cstring *ser_wallet_root(const struct wallet *wlt)
@@ -74,7 +74,7 @@ static cstring *ser_wallet_root(const struct wallet *wlt)
 
 cstring *ser_wallet(const struct wallet *wlt)
 {
-	struct bp_key *key;
+	struct bitc_key *key;
 
 	cstring *rs = cstr_new_sz(20 * 1024);
 
@@ -93,7 +93,7 @@ cstring *ser_wallet(const struct wallet *wlt)
 		void *privkey = NULL;
 		size_t pk_len = 0;
 
-		bp_privkey_get(key, &privkey, &pk_len);
+		bitc_privkey_get(key, &privkey, &pk_len);
 
 		cstring *recdata = message_str(wlt->chain->netmagic,
 					       "privkey",
@@ -126,12 +126,12 @@ static bool deser_wallet_root(struct wallet *wlt, struct const_buffer *buf)
 
 static bool load_rec_privkey(struct wallet *wlt, const void *privkey, size_t pk_len)
 {
-	struct bp_key *key;
+	struct bitc_key *key;
 
 	key = calloc(1, sizeof(*key));
-	if (!bp_key_init(key))
+	if (!bitc_key_init(key))
 		goto err_out;
-	if (!bp_privkey_set(key, privkey, pk_len))
+	if (!bitc_privkey_set(key, privkey, pk_len))
 		goto err_out_kf;
 
 	parr_add(wlt->keys, key);
@@ -139,7 +139,7 @@ static bool load_rec_privkey(struct wallet *wlt, const void *privkey, size_t pk_
 	return true;
 
 err_out_kf:
-	bp_key_free(key);
+	bitc_key_free(key);
 err_out:
 	free(key);
 	return false;
