@@ -1,15 +1,17 @@
-AUTOMAKE_OPTIONS= subdir-objects
+AUTOMAKE_OPTIONS = subdir-objects
 
 AM_CPPFLAGS	=   -I$(top_srcdir)/include \
                 -I$(top_srcdir)/external/secp256k1/include \
                 -I$(top_srcdir)/external/secp256k1/contrib
 
-lib_LTLIBRARIES= libbitc.la
+SUBDIRS = net
 
-libbitc_la_LIBADD= -lm \
+lib_LTLIBRARIES = libbitc.la
+
+libbitc_la_LIBADD = -lm \
                     $(top_builddir)/external/secp256k1/libsecp256k1.la
 
-libbitc_la_SOURCES=	\
+libbitc_la_SOURCES =	\
 	crypto/aes_modes.c	\
 	crypto/aescrypt.c	\
 	crypto/aeskey.c	\
@@ -55,12 +57,3 @@ libbitc_la_SOURCES=	\
 	util.c		\
 	utxo.c		\
 	wallet.c
-
-noinst_LTLIBRARIES= libbitcnet.la
-
-libbitcnet_la_SOURCES=	\
-	net/dns.c	\
-	net/net.c	\
-	net/netbase.c	\
-	net/peerman.c
-

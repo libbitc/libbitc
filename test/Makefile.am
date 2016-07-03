@@ -56,6 +56,6 @@ script_LDADD		= $(COMMON_LDADD)
 script_parse_LDADD	= $(COMMON_LDADD)
 tx_LDADD            = $(COMMON_LDADD)
 tx_valid_LDADD		= $(COMMON_LDADD)
-util_LDADD		    = $(COMMON_LDADD) ../lib/libbitcnet.la
+util_LDADD		    = $(COMMON_LDADD) $(top_builddir)/lib/net/libbitcnet.la
 wallet_LDADD		= $(COMMON_LDADD)
 wallet_basics_LDADD	= $(COMMON_LDADD)

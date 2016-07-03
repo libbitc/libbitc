@@ -22,7 +22,7 @@ AC_PREREQ(2.60)
 LT_INIT
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/bitsy.c])
-AM_INIT_AUTOMAKE(foreign subdir-objects)
+AM_INIT_AUTOMAKE(foreign)
 AC_CONFIG_HEADERS([libbitc-config.h])
 
 dnl Make sure anyone changing configure.ac/Makefile.am has a clue
@@ -163,6 +163,7 @@ AC_CONFIG_FILES([
 	include/Makefile
 	include/bitc/Makefile
 	lib/Makefile
+	lib/net/Makefile
 	src/Makefile
 	test/Makefile
 	external/Makefile
