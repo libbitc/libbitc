@@ -24,12 +24,6 @@ extern uint64_t instance_nonce;
 extern bool debugging;
 extern struct wallet *cur_wallet;
 
-/* aes.c */
-extern cstring *read_aes_file(const char *filename, void *key, size_t key_len,
-			      size_t max_file_len);
-extern bool write_aes_file(const char *filename, void *key, size_t key_len,
-		    const void *plaintext, size_t pt_len);
-
 static inline char *setting(const char *key)
 {
 	return bitc_hashtab_get(settings, key);

@@ -163,7 +163,6 @@ AC_CONFIG_FILES([
 	include/Makefile
 	include/bitc/Makefile
 	lib/Makefile
-	lib/net/Makefile
 	src/Makefile
 	test/Makefile
 	external/Makefile

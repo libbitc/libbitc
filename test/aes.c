@@ -4,7 +4,7 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include <bitc/aes_util.h>
+#include <bitc/crypto/aes_util.h>
 
 #include <stdio.h>
 #include <string.h>

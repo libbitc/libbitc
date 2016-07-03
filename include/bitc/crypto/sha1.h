@@ -1,5 +1,5 @@
-#ifndef __LIBBITC_SHA1_H__
-#define __LIBBITC_SHA1_H__
+#ifndef __LIBBITC_CRYPTO_SHA1_H__
+#define __LIBBITC_CRYPTO_SHA1_H__
 /* Copyright (c) 2014 The Bitcoin Core developers
  * Copyright (c) 2016 Duncan Tebbs
  * Distributed under the MIT/X11 software license, see the accompanying
@@ -30,4 +30,4 @@ void sha1_Raw(const uint8_t *, size_t, uint8_t[SHA1_DIGEST_LENGTH]);
 }
 #endif
 
-#endif /* __LIBBITC_SHA1_H__ */
+#endif /* __LIBBITC_CRYPTO_SHA1_H__ */

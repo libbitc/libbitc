@@ -5,7 +5,7 @@
 
 #include <bitc/util.h>
 #include <bitc/cstr.h>
-#include <bitc/aes_util.h>
+#include <bitc/crypto/aes_util.h>
 #include <bitc/crypto/aes.h>
 #include <bitc/crypto/sha2.h>
 

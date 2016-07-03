@@ -28,8 +28,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef __LIBBITC_SHA2_H__
-#define __LIBBITC_SHA2_H__
+#ifndef __LIBBITC_CRYPTO_SHA2_H__
+#define __LIBBITC_CRYPTO_SHA2_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -74,4 +74,4 @@ char* sha512_Data(const uint8_t*, size_t, char[SHA512_DIGEST_STRING_LENGTH]);
 }
 #endif
 
-#endif /* __LIBBITC_SHA2_H__ */
+#endif /* __LIBBITC_CRYPTO_SHA2_H__ */

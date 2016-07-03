@@ -21,7 +21,7 @@ Issue Date: 20/12/2007
 #define DO_TABLES
 
 #include <bitc/crypto/aes.h>
-#include "aesopt.h"
+#include <bitc/crypto/aesopt.h>
 
 #if defined(FIXED_TABLES)
 
@@ -173,7 +173,7 @@ Issue Date: 20/12/2007
 
 #endif
 
-#include "aestab.h"
+#include <bitc/crypto/aestab.h>
 
 #if defined(__cplusplus)
 extern "C"

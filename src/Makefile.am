@@ -9,17 +9,17 @@ brd_SOURCES	=	\
 		brd.h
 
 brd_LDADD	= $(top_builddir)/lib/libbitc.la \
-		$(top_builddir)/lib/net/libbitcnet.la \
+		$(top_builddir)/lib/libbitcnet.la \
 		@CRYPTO_LIBS@ @GMP_LIBS@ @EVENT_LIBS@
 
 bitsy_SOURCES =	\
 	bitsy.c	\
 	bitsy.h	\
-	aes.c	\
 	wallet.c wallet.h
 
 bitsy_LDADD	= $(top_builddir)/lib/libbitc.la \
-		$(top_builddir)/lib/net/libbitcnet.la \
+		$(top_builddir)/lib/libbitcnet.la \
+		$(top_builddir)/lib/libbitcaes.la \
 		@CRYPTO_LIBS@ @GMP_LIBS@ @ARGP_LIBS@ \
 		@EVENT_LIBS@ @JANSSON_LIBS@
 

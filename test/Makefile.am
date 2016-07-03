@@ -35,7 +35,7 @@ COMMON_LDADD	= libtest.a $(top_builddir)/lib/libbitc.la \
 		  $(top_builddir)/external/secp256k1/libsecp256k1.la \
 		  @CRYPTO_LIBS@ @GMP_LIBS@ @JANSSON_LIBS@ @MATH_LIBS@
 
-aes_LDADD           = $(COMMON_LDADD)
+aes_LDADD           = $(COMMON_LDADD) $(top_builddir)/lib/libbitcaes.la
 base58_LDADD        = $(COMMON_LDADD)
 blkdb_LDADD         = $(COMMON_LDADD)
 block_LDADD         = $(COMMON_LDADD)
@@ -56,6 +56,6 @@ script_LDADD		= $(COMMON_LDADD)
 script_parse_LDADD	= $(COMMON_LDADD)
 tx_LDADD            = $(COMMON_LDADD)
 tx_valid_LDADD		= $(COMMON_LDADD)
-util_LDADD		    = $(COMMON_LDADD) $(top_builddir)/lib/net/libbitcnet.la
+util_LDADD		    = $(COMMON_LDADD) $(top_builddir)/lib/libbitcnet.la
 wallet_LDADD		= $(COMMON_LDADD)
 wallet_basics_LDADD	= $(COMMON_LDADD)

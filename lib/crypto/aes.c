@@ -13,7 +13,7 @@
 #include <unistd.h>
 #include <bitc/util.h>
 #include <bitc/cstr.h>
-#include <bitc/aes_util.h>
+#include <bitc/crypto/aes_util.h>
 
 cstring *read_aes_file(const char *filename, void *key, size_t key_len,
 		       size_t max_file_len)
