@@ -62,6 +62,14 @@ void bitc_tx_sighash(bu256_t *hash, const cstring *scriptCode,
 		return;
 	}
 
+	// Check for invalid use of SIGHASH_SINGLE
+	if ((nHashType & 0x1f) == SIGHASH_SINGLE) {
+		if (nIn >= txTo->vin->len) {
+			bu256_set_u64(hash, 1);
+			return;
+		}
+	}
+
 	struct bitc_tx txTmp;
 	bitc_tx_init(&txTmp);
 	bitc_tx_copy(&txTmp, txTo);
