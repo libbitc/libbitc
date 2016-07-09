@@ -1167,6 +1167,10 @@ bool bitc_script_verify(const cstring *scriptSig, const cstring *scriptPubKey,
 	parr *stack = parr_new(0, buffer_free);
 	parr *stackCopy = NULL;
 
+	struct const_buffer sigbuf = { scriptSig->str, scriptSig->len };
+	if ((flags & SCRIPT_VERIFY_SIGPUSHONLY) != 0 && !is_bsp_pushonly(&sigbuf))
+		goto out;
+
 	if (!bitc_script_eval(stack, scriptSig, txTo, nIn, flags, nHashType))
 		goto out;
 
@@ -1184,7 +1188,6 @@ bool bitc_script_verify(const cstring *scriptSig, const cstring *scriptPubKey,
 		goto out;
 
 	if ((flags & SCRIPT_VERIFY_P2SH) && is_bsp_p2sh_str(scriptPubKey)) {
-		struct const_buffer sigbuf = { scriptSig->str, scriptSig->len };
 		if (!is_bsp_pushonly(&sigbuf))
 			goto out;
 		if (stackCopy->len < 1)
