@@ -432,7 +432,7 @@ static bool IsValidSignatureEncoding(const struct buffer *vch)
 static bool IsLowDERSignature(const struct buffer *vchSig) {
     if (!IsValidSignatureEncoding(vchSig)) return false;
 
-    if (!bitc_pubkey_checklowS(vchSig->p, vchSig->len)) return false;
+    if (!pubkey_checklowS(vchSig->p, vchSig->len)) return false;
 
     return true;
 }

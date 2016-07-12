@@ -177,7 +177,7 @@ bool bitc_key_secret_get(void *p, size_t len, const struct bitc_key *key)
 	return true;
 }
 
-bool bitc_pubkey_checklowS(const void *sig_, size_t sig_len)
+bool pubkey_checklowS(const void *sig_, size_t sig_len)
 {
     secp256k1_ecdsa_signature sig;
 

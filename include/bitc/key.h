@@ -34,7 +34,6 @@ extern bool bitc_key_secret_set(struct bitc_key *key, const void *privkey_, size
 extern bool bitc_privkey_get(const struct bitc_key *key, void **privkey, size_t *pk_len);
 extern bool bitc_pubkey_get(const struct bitc_key *key, void **pubkey, size_t *pk_len);
 extern bool bitc_key_secret_get(void *p, size_t len, const struct bitc_key *key);
-extern bool bitc_pubkey_checklowS(const void *sig, size_t sig_len);
 extern bool bitc_sign(const struct bitc_key *key, const void *data, size_t data_len,
 	     void **sig_, size_t *sig_len_);
 extern bool bitc_verify(const struct bitc_key *key, const void *data, size_t data_len,
@@ -42,6 +41,9 @@ extern bool bitc_verify(const struct bitc_key *key, const void *data, size_t dat
 extern bool bitc_key_add_secret(struct bitc_key *out,
 			      const struct bitc_key *key,
 			      const uint8_t *tweak32);
+
+
+bool pubkey_checklowS(const void *sig, size_t sig_len);
 
 struct bitc_keyset {
 	struct bitc_hashtab	*pub;
