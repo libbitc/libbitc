@@ -166,5 +166,6 @@ AC_CONFIG_FILES([
 	src/Makefile
 	test/Makefile
 	external/Makefile
+	libbitc.pc
 	])
 AC_OUTPUT

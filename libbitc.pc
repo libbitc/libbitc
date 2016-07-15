@@ -1,0 +1,11 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libbitc
+Description: A bitcoin library in C.
+Version: 0.0.1-alpha
+URL: https://github.com/libbitc/libbitc
+Libs: -L${libdir} -lbitc
+Cflags: -I${includedir}
