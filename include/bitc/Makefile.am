@@ -24,6 +24,7 @@ libbitc_la_HEADERS =	\
 		hdkeys.h	\
 		hexcode.h	\
 		key.h		\
+		log.h		\
 		mbr.h		\
 		message.h	\
 		parr.h		\

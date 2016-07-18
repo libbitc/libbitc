@@ -9,7 +9,6 @@
 #include <bitc/cstr.h>                 // for cstring
 #include <bitc/hashtab.h>              // for bitc_hashtab_get
 
-#include <stdbool.h>                    // for bool
 #include <stddef.h>                     // for size_t
 #include <stdint.h>                     // for uint64_t
 
@@ -21,7 +20,6 @@ extern struct bitc_hashtab *settings;
 extern const struct chain_info *chain;
 extern bu256_t chain_genesis;
 extern uint64_t instance_nonce;
-extern bool debugging;
 extern struct wallet *cur_wallet;
 
 static inline char *setting(const char *key)
