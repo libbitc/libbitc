@@ -32,4 +32,5 @@ test-driver
 # app-specific
 libbitc*.tar.gz
 libbitc-config.h*
+libbitc*.deb
 

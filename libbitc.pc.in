@@ -6,6 +6,6 @@ includedir=@includedir@
 Name: @PACKAGE_NAME@
 Description: A bitcoin library in C.
 Version: @PACKAGE_VERSION@
-URL: https://github.com/libbitc/libbitc
+URL: @PACKAGE_URL@
 Libs: -L${libdir} -lbitc
 Cflags: -I${includedir}
