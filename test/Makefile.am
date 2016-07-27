@@ -25,11 +25,11 @@ libtest_a_SOURCES= libtest.h libtest.c
 
 noinst_PROGRAMS	= clist cstr hex hdkeys hashtab base58 fileio util keyset bloom \
 		  message parr script-parse tx block blockfile blkdb script \
-		  tx-valid wallet wallet-basics chain-verf hash aes
+		  tx-valid wallet wallet-basics chain-verf hash ctaes aes-util
 
 TESTS		= clist cstr hex hdkeys hashtab base58 fileio util keyset bloom \
 		  message parr script-parse tx block blockfile blkdb script \
-		  tx-valid wallet wallet-basics chain-verf hash aes
+		  tx-valid wallet wallet-basics chain-verf hash ctaes aes-util
 
 COMMON_LDADD	= libtest.a $(top_builddir)/lib/libbitc.la \
 		  $(top_builddir)/external/secp256k1/libsecp256k1.la \
@@ -44,6 +44,8 @@ bloom_LDADD         = $(COMMON_LDADD)
 chain_verf_LDADD	= $(COMMON_LDADD)
 clist_LDADD         = $(COMMON_LDADD)
 cstr_LDADD		    = $(COMMON_LDADD)
+ctaes_LDADD         = $(COMMON_LDADD) $(top_builddir)/lib/libbitcaes.la
+aes_util_LDADD		= $(COMMON_LDADD) $(top_builddir)/lib/libbitcaes.la
 fileio_LDADD		= $(COMMON_LDADD)
 hash_LDADD			= $(COMMON_LDADD)
 hex_LDADD           = $(COMMON_LDADD)

@@ -4,23 +4,21 @@
  */
 #include "libbitc-config.h"
 
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <jansson.h>
-#include <bitc/coredefs.h>
-#include "bitsy.h"
 #include "wallet.h"
-#include <bitc/crypto/ripemd160.h>
-#include <bitc/message.h>
-#include <bitc/address.h>
-#include <bitc/serialize.h>
-#include <bitc/key.h>
-#include <bitc/util.h>
-#include <bitc/mbr.h>
-#include <bitc/hexcode.h>
-#include <bitc/compat.h>		/* for parr_new */
-#include <bitc/wallet.h>
+#include "bitsy.h"                   // for cur_wallet, chain, setting
+#include <bitc/address.h>              // for bp_pubkey_get_address
+#include <bitc/buffer.h>               // for const_buffer
+#include <bitc/coredefs.h>             // for chain_info
+#include <bitc/crypto/aes_util.h>      // for read_aes_file, etc
+#include <bitc/hexcode.h>              // for encode_hex
+#include <bitc/key.h>                  // for bp_privkey_get, etc
+#include <bitc/wallet.h>               // for wallet, wallet_free, etc
+#include <bitc/compat.h>               // for parr_new
+
+#include <jansson.h>                    // for json_object_set_new, etc
+#include <stdio.h>                      // for fprintf, printf, stderr, etc
+#include <string.h>                     // for strlen, memset
+#include <unistd.h>                     // for access, F_OK
 
 static char *wallet_filename(void)
 {

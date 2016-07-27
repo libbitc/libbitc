@@ -58,9 +58,5 @@ libbitcnet_la_SOURCES =	\
 			net/peerman.c
 
 libbitcaes_la_SOURCES =	\
-			crypto/aes.c		\
-			crypto/aes_modes.c	\
-			crypto/aes_util.c	\
-			crypto/aescrypt.c	\
-			crypto/aeskey.c		\
-			crypto/aestab.c
+			crypto/aes_util.c   \
+			crypto/ctaes.c

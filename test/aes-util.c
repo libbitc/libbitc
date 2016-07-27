@@ -4,11 +4,18 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include <bitc/crypto/aes_util.h>
+#include <bitc/crypto/aes_util.h>      // for read_aes_file, etc
+#include <bitc/cstr.h>
+#include <bitc/util.h>
 
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
+#include <assert.h>                     // for assert
+#include <stddef.h>                     // for size_t
+#include <stdint.h>                     // for uint8_t
+#include <stdio.h>                      // for printf, NULL
+#include <stdlib.h>                     // for free
+#include <string.h>                     // for strlen, memcmp
+#include <stdbool.h>                    // for bool, true
+#include <unistd.h>                     // for unlink
 
 static void print_n(const void *_data, size_t len)
 {
@@ -20,6 +27,7 @@ static void print_n(const void *_data, size_t len)
 }
 
 static const char s_password[] = "test_picocoin_password";
+static const char filename[] = "aes_util.dat";
 
 static const char s_plaintext_0[418] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus cursus, tellus at commodo tristique, nisi mi euismod erat, at fringilla ligula quam semper nibh. Cras blandit venenatis venenatis. Curabitur sollicitudin fermentum cursus. Aliquam gravida augue eu tortor commodo, a consectetur nulla convallis. Nullam id mattis purus. Sed nec velit quis magna finibus suscipit. Aenean ornare accumsan ipsum at tempor.";
 static const uint8_t s_ciphertext_0[432] = {
@@ -111,13 +119,17 @@ static const uint8_t s_ciphertext_2[400] = {
 0x1b,0xf5,0xa7,0x35,0xa8,0xee,0x23,0xb4,0xe0,0x80,0x0b,0xcf,0xad,0xcb,0x80,0xeb,
 };
 
-static void do_test_encryption(const uint8_t *pt, size_t pt_len,
+static void test_write_aes_file(const uint8_t *pt, size_t pt_len,
 			       const uint8_t *ct, size_t ct_len)
 {
+	void *ciphertext;
 	size_t ciphertext_len;
-	void *ciphertext = encrypt_aes_buffer(pt, pt_len,
-					      s_password, strlen(s_password),
-					      &ciphertext_len);
+
+	bool rc = write_aes_file(filename, (char *)s_password, strlen(s_password),
+		    pt, pt_len);
+	assert(rc);
+
+	assert(bu_read_file(filename, &ciphertext, &ciphertext_len, 1024));
 	assert(ciphertext);
 	assert(ciphertext_len);
 
@@ -135,12 +147,14 @@ static void do_test_encryption(const uint8_t *pt, size_t pt_len,
 	free(ciphertext);
 }
 
-static void do_test_decryption(const uint8_t *ct, size_t ct_len,
+static void test_read_aes_file(const uint8_t *ct, size_t ct_len,
 			       const uint8_t *pt, size_t pt_len)
 {
-	cstring *plaintext = decrypt_aes_buffer(
-		ct, ct_len,
-		s_password, strlen(s_password));
+	bool rc = bu_write_file(filename, ct, ct_len);
+	assert(rc);
+
+	cstring *plaintext = read_aes_file(filename, (char *)s_password,
+			   			   strlen(s_password), ct_len);
 
 	printf("====================\n");
 	printf("DECRYPT TEST:\n");
@@ -159,26 +173,25 @@ static void do_test_decryption(const uint8_t *ct, size_t ct_len,
 
 static void test_encryption()
 {
-	do_test_encryption((const uint8_t *)s_plaintext_0, strlen(s_plaintext_0),
+	test_write_aes_file((const uint8_t *)s_plaintext_0, strlen(s_plaintext_0),
 			   s_ciphertext_0, sizeof(s_ciphertext_0));
 
-	do_test_encryption((const uint8_t *)s_plaintext_1, strlen(s_plaintext_1),
+	test_write_aes_file((const uint8_t *)s_plaintext_1, strlen(s_plaintext_1),
 			   s_ciphertext_1, sizeof(s_ciphertext_1));
 
-	do_test_encryption((const uint8_t *)s_plaintext_2, strlen(s_plaintext_2),
+	test_write_aes_file((const uint8_t *)s_plaintext_2, strlen(s_plaintext_2),
 			   s_ciphertext_2, sizeof(s_ciphertext_2));
-
 }
 
 static void test_decryption()
 {
-	do_test_decryption(s_ciphertext_0, sizeof(s_ciphertext_0),
+	test_read_aes_file(s_ciphertext_0, sizeof(s_ciphertext_0),
 			   (uint8_t *)s_plaintext_0, strlen(s_plaintext_0));
 
-	do_test_decryption(s_ciphertext_1, sizeof(s_ciphertext_1),
+	test_read_aes_file(s_ciphertext_1, sizeof(s_ciphertext_1),
 			   (uint8_t *)s_plaintext_1, strlen(s_plaintext_1));
 
-	do_test_decryption(s_ciphertext_2, sizeof(s_ciphertext_2),
+	test_read_aes_file(s_ciphertext_2, sizeof(s_ciphertext_2),
 			   (uint8_t *)s_plaintext_2, strlen(s_plaintext_2));
 }
 
@@ -186,6 +199,7 @@ int main(int argc, char **argv)
 {
 	test_encryption();
 	test_decryption();
+	unlink(filename);
 
 	return 0;
 }

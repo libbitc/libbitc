@@ -44,7 +44,5 @@ libbitcnet_la_HEADERS =	\
 libbitcaes_ladir = $(includedir)/bitc/crypto/
 
 libbitcaes_la_HEADERS =	\
-		crypto/aes.h		\
-		crypto/aes_util.h	\
-		crypto/aesopt.h		\
-		crypto/aestab.h
+		crypto/aes_util.h   \
+		crypto/ctaes.h
