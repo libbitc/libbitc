@@ -5,20 +5,39 @@
 #include "libbitc-config.h"
 
 #include "wallet.h"
-#include "bitsy.h"                   // for cur_wallet, chain, setting
-#include <bitc/address.h>              // for bp_pubkey_get_address
-#include <bitc/buffer.h>               // for const_buffer
-#include <bitc/coredefs.h>             // for chain_info
-#include <bitc/crypto/aes_util.h>      // for read_aes_file, etc
-#include <bitc/hexcode.h>              // for encode_hex
-#include <bitc/key.h>                  // for bp_privkey_get, etc
-#include <bitc/wallet.h>               // for wallet, wallet_free, etc
-#include <bitc/compat.h>               // for parr_new
+#include "bitsy.h"                      // for cur_wallet, chain, setting
+
+#include <bitc/address.h>               // for bitc_pubkey_get_address
+#include <bitc/base58.h>                // for base58_encode
+#include <bitc/buffer.h>                // for const_buffer
+#include <bitc/coredefs.h>              // for chain_info
+#include <bitc/crypto/aes_util.h>       // for read_aes_file, etc
+#include <bitc/hdkeys.h>                // for hd_extended_key_free, etc
+#include <bitc/hexcode.h>               // for encode_hex
+#include <bitc/key.h>                   // for bitc_privkey_get, etc
+#include <bitc/wallet.h>                // for wallet, wallet_free, etc
+#include <bitc/compat.h>                // for parr_new
 
 #include <jansson.h>                    // for json_object_set_new, etc
+
+#include <assert.h>                     // for assert
+#include <fcntl.h>                      // for open
 #include <stdio.h>                      // for fprintf, printf, stderr, etc
+#include <stdlib.h>                     // for free, calloc, getenv
 #include <string.h>                     // for strlen, memset
-#include <unistd.h>                     // for access, F_OK
+#include <stdbool.h>                    // for true, bool, false
+#include <unistd.h>                     // for access, close, read, F_OK
+
+struct hd_extended_key_serialized {
+	uint8_t data[78 + 1];	// 78 + NUL (the latter not written)
+};
+
+static bool write_ek_ser_prv(struct hd_extended_key_serialized *out,
+			     const struct hd_extended_key *ek)
+{
+	cstring s = { (char *)(out->data), 0, sizeof(out->data) };
+	return hd_extended_key_ser_priv(ek, &s);
+}
 
 static char *wallet_filename(void)
 {
@@ -64,8 +83,10 @@ static struct wallet *load_wallet(void)
 
 	struct const_buffer buf = { data->str, data->len };
 
-	if (!deser_wallet(wlt, &buf))
+	if (!deser_wallet(wlt, &buf)) {
+		fprintf(stderr, "wallet: deserialization failed\n");
 		goto err_out;
+	}
 
 	if (chain != wlt->chain) {
 		fprintf(stderr, "wallet root: foreign chain detected, aborting load.  Try 'chain-set' first.\n");
@@ -169,6 +190,25 @@ void cur_wallet_create(void)
 		return;
 	}
 
+	int rng_fd = open("/dev/urandom", O_RDONLY);
+	if (rng_fd < 0) {
+		perror("/dev/urandom open");
+		return;
+	}
+
+	char seed[256];
+	if (read(rng_fd, seed, sizeof(seed)) != sizeof(seed)) {
+		perror("/dev/urandom read");
+		return;
+	}
+
+	close(rng_fd);
+
+	char seed_str[(sizeof(seed) * 2) + 1];
+	encode_hex(seed_str, seed, sizeof(seed));
+	printf("Record this HD seed (it will only be shown once):\n"
+	       "%s\n", seed_str);
+
 	struct wallet *wlt = calloc(1, sizeof(*wlt));
 
 	if (!wlt) {
@@ -183,6 +223,19 @@ void cur_wallet_create(void)
 	}
 
 	cur_wallet_update(wlt);
+
+	struct hd_extended_key *hdkey;
+	hdkey = calloc(1, sizeof(*hdkey));
+	if (!hd_extended_key_init(hdkey) ||
+	    !hd_extended_key_generate_master(hdkey, seed, sizeof(seed))) {
+		fprintf(stderr, "wallet: failed to generate master hdkey\n");
+		hd_extended_key_free(hdkey);
+		free(hdkey);
+		free(wlt);
+		return;
+	}
+
+	parr_add(wlt->hdmaster, hdkey);
 
 	if (!store_wallet(wlt)) {
 		fprintf(stderr, "wallet: failed to store %s\n", filename);
@@ -283,6 +336,28 @@ static void wallet_dump_keys(json_t *keys_a, struct wallet *wlt)
 	}
 }
 
+static void wallet_dump_hdkeys(json_t *hdkeys_a, struct wallet *wlt)
+{
+	struct hd_extended_key *hdkey;
+
+	wallet_for_each_mkey(wlt, hdkey) {
+		json_t *o = json_object();
+
+		struct hd_extended_key_serialized hdraw;
+		bool rc = write_ek_ser_prv(&hdraw, hdkey);
+		assert(rc == true);
+
+		cstring *hdstr = base58_encode(hdraw.data, sizeof(hdraw.data)-1);
+		assert(hdstr != NULL);
+
+		json_object_set_new(o, "hdpriv", json_string(hdstr->str));
+
+		cstr_free(hdstr, true);
+
+		json_array_append_new(hdkeys_a, o);
+	}
+}
+
 void cur_wallet_dump(void)
 {
 	if (!cur_wallet_load())
@@ -306,6 +381,12 @@ void cur_wallet_dump(void)
 	wallet_dump_keys(keys_a, wlt);
 
 	json_object_set_new(o, "keys", keys_a);
+
+	json_t *hdkeys_a = json_array();
+
+	wallet_dump_hdkeys(hdkeys_a, wlt);
+
+	json_object_set_new(o, "hdmaster", hdkeys_a);
 
 	json_dumpf(o, stdout, JSON_INDENT(2) | JSON_SORT_KEYS);
 	json_decref(o);
