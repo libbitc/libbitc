@@ -6,7 +6,13 @@
 
 [![Join the chat at https://gitter.im/libbitc/libbitc](https://badges.gitter.im/libbitc/libbitc.svg)](https://gitter.im/libbitc/libbitc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Join the chat at https://irc.gitter.im/#libbitc](https://img.shields.io/badge/chat-on%20irc-green.svg)](https://irc.gitter.im/) [![Join the chat at https://libbitc.slack.com](https://img.shields.io/badge/chat-on%20slack-yellowgreen.svg)](https://libbitc.slack.com)
 
-An itsy-bitsy bitcoin library, with lightweight client and utils
+An itsy-bitsy bitcoin library, with lightweight client and utils.
+
+This contains several pieces of interest:
+* **libbitc** - C library for building bitcoin applications
+* **bitsy** - (WIP) Bitcoin HD wallet
+* **brd** - (WIP) Bitcoin network full node ("block relay daemon")
+* Comprehensive test suite.
 
 libbitc library dependencies:
 	OpenSSL
