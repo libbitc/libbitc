@@ -47,6 +47,33 @@ static void test_basics(void)
 
 	assert(bitc_hashtab_size(ht) == 1);
 
+	// overwrite existing entry
+	bitc_hashtab_put(ht, strdup("name"), strdup("bob"));
+
+	rc = bitc_hashtab_get_ext(ht, "name", &ret_key, &ret_value);
+	assert(rc == true);
+	assert(ret_key != NULL);
+	assert(ret_value != NULL);
+	assert(strcmp(ret_key, "name") == 0);
+	assert(strcmp(ret_value, "bob") == 0);
+	assert(bitc_hashtab_size(ht) == 1);
+
+	// test deletion
+	rc = bitc_hashtab_del(ht, "does-not-exist");
+	assert(rc == false);
+
+	assert(bitc_hashtab_size(ht) == 1);
+
+	rc = bitc_hashtab_del(ht, "name");
+	assert(rc == true);
+
+	assert(bitc_hashtab_size(ht) == 0);
+
+	rc = bitc_hashtab_del(ht, "name");
+	assert(rc == false);
+
+	assert(bitc_hashtab_size(ht) == 0);
+
 	rc = bitc_hashtab_clear(ht);
 	assert(rc == true);
 
