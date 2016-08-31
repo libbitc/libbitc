@@ -34,6 +34,19 @@ void ser_bitc_addr(cstring *s, unsigned int protover, const struct bitc_address 
 	ser_u16(s, addr->port);
 }
 
+void bitc_addr_freep(void *p)
+{
+	struct bitc_address *addr = p;
+
+	if (!addr)
+		return;
+
+	bitc_addr_free(addr);
+
+	memset(addr, 0, sizeof(*addr));
+	free(addr);
+}
+
 void bitc_inv_init(struct bitc_inv *inv)
 {
 	memset(inv, 0, sizeof(*inv));
@@ -85,7 +98,7 @@ void bitc_locator_push(struct bitc_locator *locator, const bu256_t *hash_in)
 {
 	/* TODO: replace '16' with number based on real world usage */
 	if (!locator->vHave)
-		locator->vHave = parr_new(16, bu256_free);
+		locator->vHave = parr_new(16, bu256_freep);
 
 	bu256_t *hash = bu256_new(hash_in);
 	parr_add(locator->vHave, hash);

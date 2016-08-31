@@ -53,6 +53,7 @@ extern bool deser_bitc_addr(unsigned int protover,
 		struct bitc_address *addr, struct const_buffer *buf);
 extern void ser_bitc_addr(cstring *s, unsigned int protover, const struct bitc_address *addr);
 static inline void bitc_addr_free(struct bitc_address *addr) {}
+extern void bitc_addr_freep(void *p);
 
 static inline void bitc_addr_copy(struct bitc_address *dest,
 				const struct bitc_address *src)
