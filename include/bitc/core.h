@@ -70,6 +70,7 @@ extern void bitc_inv_init(struct bitc_inv *inv);
 extern bool deser_bitc_inv(struct bitc_inv *inv, struct const_buffer *buf);
 extern void ser_bitc_inv(cstring *s, const struct bitc_inv *inv);
 static inline void bitc_inv_free(struct bitc_inv *inv) {}
+extern void bitc_inv_freep(void *bitc_inv_p);
 
 struct bitc_locator {
 	uint32_t	nVersion;
@@ -123,7 +124,7 @@ extern void bitc_txin_init(struct bitc_txin *txin);
 extern bool deser_bitc_txin(struct bitc_txin *txin, struct const_buffer *buf);
 extern void ser_bitc_txin(cstring *s, const struct bitc_txin *txin);
 extern void bitc_txin_free(struct bitc_txin *txin);
-extern void bitc_txin_free_cb(void *data);
+extern void bitc_txin_freep(void *data);
 static inline bool bitc_txin_valid(const struct bitc_txin *txin) { return true; }
 extern void bitc_txin_copy(struct bitc_txin *dest, const struct bitc_txin *src);
 
@@ -136,7 +137,7 @@ extern void bitc_txout_init(struct bitc_txout *txout);
 extern bool deser_bitc_txout(struct bitc_txout *txout, struct const_buffer *buf);
 extern void ser_bitc_txout(cstring *s, const struct bitc_txout *txout);
 extern void bitc_txout_free(struct bitc_txout *txout);
-extern void bitc_txout_free_cb(void *data);
+extern void bitc_txout_freep(void *data);
 extern void bitc_txout_set_null(struct bitc_txout *txout);
 extern void bitc_txout_copy(struct bitc_txout *dest, const struct bitc_txout *src);
 
@@ -166,6 +167,7 @@ extern bool deser_bitc_tx(struct bitc_tx *tx, struct const_buffer *buf);
 extern void ser_bitc_tx(cstring *s, const struct bitc_tx *tx);
 extern void bitc_tx_free_vout(struct bitc_tx *tx);
 extern void bitc_tx_free(struct bitc_tx *tx);
+extern void bitc_tx_freep(void *bitc_tx_p);
 extern bool bitc_tx_valid(const struct bitc_tx *tx);
 extern void bitc_tx_calc_sha256(struct bitc_tx *tx);
 extern unsigned int bitc_tx_ser_size(const struct bitc_tx *tx);
@@ -239,6 +241,7 @@ extern void bitc_block_init(struct bitc_block *block);
 extern bool deser_bitc_block(struct bitc_block *block, struct const_buffer *buf);
 extern void ser_bitc_block(cstring *s, const struct bitc_block *block);
 extern void bitc_block_free(struct bitc_block *block);
+extern void bitc_block_freep(void *bitc_block_p);
 extern void bitc_block_vtx_free(struct bitc_block *block);
 extern void bitc_block_calc_sha256(struct bitc_block *block);
 extern void bitc_block_merkle(bu256_t *vo, const struct bitc_block *block);

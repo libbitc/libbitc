@@ -41,7 +41,7 @@ bool bitc_utxo_from_tx(struct bitc_utxo *coin, const struct bitc_tx *tx,
 	coin->height = height;
 	coin->version = tx->nVersion;
 
-	coin->vout = parr_new(tx->vout->len, bitc_txout_free_cb);
+	coin->vout = parr_new(tx->vout->len, bitc_txout_freep);
 	unsigned int i;
 
 	for (i = 0; i < tx->vout->len; i++) {

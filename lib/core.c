@@ -67,6 +67,18 @@ void ser_bitc_inv(cstring *s, const struct bitc_inv *inv)
 	ser_u256(s, &inv->hash);
 }
 
+void bitc_inv_freep(void *bitc_inv_p)
+{
+	struct bitc_inv *inv = bitc_inv_p;
+	if (!inv)
+		return;
+
+	bitc_inv_free(inv);
+
+	memset(inv, 0, sizeof(*inv));
+	free(inv);
+}
+
 bool deser_bitc_locator(struct bitc_locator *locator, struct const_buffer *buf)
 {
 	bitc_locator_free(locator);
@@ -160,7 +172,7 @@ void bitc_txin_free(struct bitc_txin *txin)
 	}
 }
 
-void bitc_txin_free_cb(void *data)
+void bitc_txin_freep(void *data)
 {
 	if (!data)
 		return;
@@ -217,7 +229,7 @@ void bitc_txout_free(struct bitc_txout *txout)
 	}
 }
 
-void bitc_txout_free_cb(void *data)
+void bitc_txout_freep(void *data)
 {
 	if (!data)
 		return;
@@ -261,8 +273,8 @@ bool deser_bitc_tx(struct bitc_tx *tx, struct const_buffer *buf)
 {
 	bitc_tx_free(tx);
 
-	tx->vin = parr_new(8, bitc_txin_free_cb);
-	tx->vout = parr_new(8, bitc_txout_free_cb);
+	tx->vin = parr_new(8, bitc_txin_freep);
+	tx->vout = parr_new(8, bitc_txout_freep);
 
 	if (!deser_u32(&tx->nVersion, buf)) return false;
 
@@ -360,6 +372,18 @@ void bitc_tx_free(struct bitc_tx *tx)
 	tx->sha256_valid = false;
 }
 
+void bitc_tx_freep(void *p)
+{
+	struct bitc_tx *tx = p;
+	if (!tx)
+		return;
+
+	bitc_tx_free(tx);
+
+	memset(tx, 0, sizeof(*tx));
+	free(tx);
+}
+
 void bitc_tx_calc_sha256(struct bitc_tx *tx)
 {
 	if (tx->sha256_valid)
@@ -404,7 +428,7 @@ void bitc_tx_copy(struct bitc_tx *dest, const struct bitc_tx *src)
 	else {
 		unsigned int i;
 
-		dest->vin = parr_new(src->vin->len, bitc_txin_free_cb);
+		dest->vin = parr_new(src->vin->len, bitc_txin_freep);
 
 		for (i = 0; i < src->vin->len; i++) {
 			struct bitc_txin *txin_old, *txin_new;
@@ -421,8 +445,7 @@ void bitc_tx_copy(struct bitc_tx *dest, const struct bitc_tx *src)
 	else {
 		unsigned int i;
 
-		dest->vout = parr_new(src->vout->len,
-						  bitc_txout_free_cb);
+		dest->vout = parr_new(src->vout->len, bitc_txout_freep);
 
 		for (i = 0; i < src->vout->len; i++) {
 			struct bitc_txout *txout_old, *txout_new;
@@ -455,7 +478,7 @@ bool deser_bitc_block(struct bitc_block *block, struct const_buffer *buf)
 	if (buf->len == 0)
 		return true;
 
-	block->vtx = parr_new(512, free);
+	block->vtx = parr_new(512, bitc_tx_freep);
 
 	uint32_t vlen;
 	if (!deser_varlen(&vlen, buf)) return false;
@@ -507,23 +530,13 @@ void ser_bitc_block(cstring *s, const struct bitc_block *block)
 		}
 	}
 }
-
 void bitc_block_vtx_free(struct bitc_block *block)
 {
-	if (block && block->vtx) {
-		unsigned int i;
+	if (!block || !block->vtx)
+		return;
 
-		for (i = 0; i < block->vtx->len; i++) {
-			struct bitc_tx *tx;
-
-			tx = parr_idx(block->vtx, i);
-			bitc_tx_free(tx);
-		}
-
-		parr_free(block->vtx, true);
-
-		block->vtx = NULL;
-	}
+	parr_free(block->vtx, true);
+	block->vtx = NULL;
 }
 
 void bitc_block_free(struct bitc_block *block)
@@ -532,6 +545,18 @@ void bitc_block_free(struct bitc_block *block)
 		return;
 
 	bitc_block_vtx_free(block);
+}
+
+void bitc_block_freep(void *p)
+{
+	struct bitc_block *block = p;
+	if (!block)
+		return;
+
+	bitc_block_free(block);
+
+	memset(block, 0, sizeof(*block));
+	free(block);
 }
 
 void bitc_block_free_cb(void *data)

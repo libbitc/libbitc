@@ -16,9 +16,9 @@ void bitc_keyset_init(struct bitc_keyset *ks)
 	memset(ks, 0, sizeof(*ks));
 
 	ks->pub = bitc_hashtab_new_ext(buffer_hash, buffer_equal,
-				     (bitc_freefunc) buffer_free, NULL);
+				     buffer_freep, NULL);
 	ks->pubhash = bitc_hashtab_new_ext(buffer_hash, buffer_equal,
-					 (bitc_freefunc) buffer_free, NULL);
+					 buffer_freep, NULL);
 }
 
 bool bitc_keyset_add(struct bitc_keyset *ks, struct bitc_key *key)
