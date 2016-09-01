@@ -45,7 +45,7 @@ addons:
     notification_email: libbitc@users.noreply.github.com
     build_command_prepend: "./autogen.sh; ./configure; make clean"
     build_command:   "make check"
-    branch_pattern: master
+    branch_pattern: coverity_scan
 
 notifications:
   webhooks:
