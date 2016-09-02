@@ -333,18 +333,21 @@ static void print_txins(struct bitc_tx *tx)
 static void index_block(unsigned int height, struct bitc_block *block,
 			uint64_t fpos)
 {
-	uint64_t *fpos_copy = malloc(sizeof(uint64_t));
-	*fpos_copy = fpos;
-
 	unsigned int n;
 	for (n = 0; n < block->vtx->len; n++) {
 		struct bitc_tx *tx;
+		uint64_t *fpos_copy;
 
 		tx = parr_idx(block->vtx, n);
 
 		bitc_tx_calc_sha256(tx);
 
 		bu256_t *hash = bu256_new(&tx->sha256);
+
+		fpos_copy = malloc(sizeof(fpos));
+		if (fpos_copy)
+			*fpos_copy = fpos;
+
 		bitc_hashtab_put(tx_idx, hash, fpos_copy);
 	}
 }
@@ -454,7 +457,7 @@ int main (int argc, char *argv[])
 	bitc_keyset_init(&bitc_ks);
 
 	tx_idx = bitc_hashtab_new_ext(bu256_hash, bu256_equal_,
-				    bu256_freep, NULL);
+				    bu256_freep, free);
 
 	load_addresses();
 	scan_blocks();
