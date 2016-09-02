@@ -83,7 +83,7 @@ static void runtest(void)
 	/* generate keys */
 	for (i = 0; i < ARRAY_SIZE(keys); i++) {
 		struct bitc_key *key = &keys[i];
-		assert(bitc_key_init(key) == true);
+		bitc_key_init(key);
 		assert(bitc_key_generate(key) == true);
 	}
 

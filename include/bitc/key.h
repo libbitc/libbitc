@@ -25,7 +25,7 @@ struct bitc_key {
 /// Frees any internally allocated static data.
 extern void bitc_key_static_shutdown();
 
-extern bool bitc_key_init(struct bitc_key *key);
+extern void bitc_key_init(struct bitc_key *key);
 extern void bitc_key_free(struct bitc_key *key);
 extern bool bitc_key_generate(struct bitc_key *key);
 extern bool bitc_privkey_set(struct bitc_key *key, const void *privkey, size_t pk_len);

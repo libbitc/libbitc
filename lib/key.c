@@ -44,10 +44,9 @@ void bitc_key_static_shutdown()
 	}
 }
 
-bool bitc_key_init(struct bitc_key *key)
+void bitc_key_init(struct bitc_key *key)
 {
-	memset(key->secret, 0, sizeof(key->secret));
-	return true;
+	memset(key, 0, sizeof(*key));
 }
 
 void bitc_key_free(struct bitc_key *key)
