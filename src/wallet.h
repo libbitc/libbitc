@@ -1,4 +1,4 @@
-#ifndef __LIBBITC_WALLET_H__
+#ifndef __LIBBITC_WALLET_H___
 #define __LIBBITC_WALLET_H___
 /* Copyright 2012 exMULTI, Inc.
  * Distributed under the MIT/X11 software license, see the accompanying
@@ -14,4 +14,4 @@ extern void cur_wallet_dump(void);
 extern void cur_wallet_addresses(void);
 extern void cur_wallet_free(void);
 
-#endif /* __LIBBITC_WALLET_H__ */
+#endif /* __LIBBITC_WALLET_H___ */

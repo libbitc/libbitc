@@ -197,6 +197,7 @@ struct bitc_utxo {
 
 extern void bitc_utxo_init(struct bitc_utxo *coin);
 extern void bitc_utxo_free(struct bitc_utxo *coin);
+extern void bitc_utxo_freep(void *bitc_utxo_coin);
 extern bool bitc_utxo_from_tx(struct bitc_utxo *coin, const struct bitc_tx *tx,
 		     bool is_coinbase, unsigned int height);
 

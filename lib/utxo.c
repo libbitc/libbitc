@@ -30,6 +30,18 @@ void bitc_utxo_free(struct bitc_utxo *coin)
 	bitc_utxo_free_vout(coin);
 }
 
+void bitc_utxo_freep(void *p)
+{
+	struct bitc_utxo *coin = p;
+	if (!coin)
+		return;
+
+	bitc_utxo_free(coin);
+
+	memset(coin, 0, sizeof(*coin));
+	free(coin);
+}
+
 bool bitc_utxo_from_tx(struct bitc_utxo *coin, const struct bitc_tx *tx,
 		     bool is_coinbase, unsigned int height)
 {

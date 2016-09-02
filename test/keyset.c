@@ -9,7 +9,7 @@
 
 #include <bitc/crypto/ripemd160.h>     // for RIPEMD160_DIGEST_LENGTH
 #include <bitc/crypto/sha2.h>          // for sha256_Raw
-#include <bitc/key.h>                  // for bpks_lookup, bp_key, etc
+#include <bitc/key.h>                  // for bpks_lookup, bitc_key, etc
 #include <bitc/util.h>                 // for ARRAY_SIZE, bu_Hash160
 #include "libtest.h"
 

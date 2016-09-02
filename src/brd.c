@@ -364,8 +364,10 @@ static bool spend_tx(struct bitc_utxo_set *uset, const struct bitc_tx *tx,
 	coin = calloc(1, sizeof(*coin));
 	bitc_utxo_init(coin);
 
-	if (!bitc_utxo_from_tx(coin, tx, is_coinbase, height))
+	if (!bitc_utxo_from_tx(coin, tx, is_coinbase, height)) {
+		bitc_utxo_freep(coin);
 		return false;
+	}
 
 	/* add unspent outputs to set */
 	bitc_utxo_set_add(uset, coin);
