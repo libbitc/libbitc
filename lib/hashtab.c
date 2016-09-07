@@ -21,7 +21,7 @@ struct bitc_hashtab *bitc_hashtab_new_ext(
 		return NULL;
 
 	// alloc empty hash table
-	ht->tab_size = BP_HT_INIT_TAB_SZ;
+	ht->tab_size = BITC_HT_INIT_TAB_SZ;
 	ht->tab = calloc(ht->tab_size, sizeof(struct bitc_ht_ent *));
 	if (!ht->tab) {
 		free(ht);
@@ -89,7 +89,7 @@ bool bitc_hashtab_clear(struct bitc_hashtab *ht)
 {
 	bitc_hashtab_free_tab(ht);
 
-	ht->tab_size = BP_HT_INIT_TAB_SZ;
+	ht->tab_size = BITC_HT_INIT_TAB_SZ;
 	ht->tab = calloc(ht->tab_size, sizeof(struct bitc_ht_ent *));
 	if (!ht->tab) {
 		ht->tab_size = 0;
@@ -293,7 +293,7 @@ bool bitc_hashtab_put(struct bitc_hashtab *ht, void *key, void *val)
 		}
 
 		// if chain too long, grow table by one iteration
-		if (count > BP_HT_MAX_BUCKET_SZ)
+		if (count > BITC_HT_MAX_BUCKET_SZ)
 			bitc_hashtab_grow(ht);
 	}
 

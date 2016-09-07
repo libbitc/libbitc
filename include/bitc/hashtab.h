@@ -12,8 +12,8 @@ extern "C" {
 #endif
 
 enum {
-	BP_HT_INIT_TAB_SZ	= 11,
-	BP_HT_MAX_BUCKET_SZ	= 3,
+	BITC_HT_INIT_TAB_SZ	= 11,
+	BITC_HT_MAX_BUCKET_SZ	= 3,
 };
 
 typedef void (*bitc_freefunc)(void *);
