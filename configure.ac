@@ -169,5 +169,7 @@ AC_CONFIG_FILES([
 	test/Makefile
 	external/Makefile
 	libbitc.pc
+	contrib/rpmbuild/SPECS/libbitc.spec
+	contrib/debian/control
 	])
 AC_OUTPUT

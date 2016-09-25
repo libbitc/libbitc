@@ -1,0 +1,52 @@
+Name:           @PACKAGE_NAME@
+Version:        0.0.1
+Release:        alpha
+Summary:        @PACKAGE_NAME@ shared library
+Group:          Applications/System
+
+License:        MIT
+URL:            @PACKAGE_URL@
+Source0:        %{name}-%{version}-%{release}.tar.gz
+BuildRoot:      %{_builddir}/%{name}-%{version}-%{release}
+BuildRequires:  openssl-devel gmp-devel libevent-devel jansson-devel
+BuildRequires:  autoconf automake libtool
+
+%description
+This package contains the @PACKAGE_NAME@ shared library, a C library that allows for bitcoin operations and connection to the bitcoin network.
+
+%define debug_package %{nil}
+
+%prep
+%setup -q -n %{name}-%{version}-%{release}
+
+%build
+%configure
+make %{?_smp_mflags}
+
+%install
+rm -rf $RPM_BUILD_ROOT
+%make_install
+rm -f $RPM_BUILD_ROOT/%{_libdir}/*.la
+
+%files
+/%{_libdir}/lib*.so.*
+/%{_bindir}/*
+%doc
+
+%changelog
+
+%package devel
+Summary:        Development files for @PACKAGE_NAME@.
+Group:          Development/Libraries
+
+Requires:       openssl-devel libevent-devel gmp-devel jansson-devel
+
+%description devel
+This package contains headers for @PACKAGE_NAME@, a C library that allows for bitcoin operations and connection to the bitcoin network.
+
+%files devel
+/%{_includedir}/*
+/%{_libdir}/lib*.a
+/%{_libdir}/lib*.so
+/%{_libdir}/pkgconfig/*
+

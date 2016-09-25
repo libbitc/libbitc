@@ -33,4 +33,4 @@ test-driver
 libbitc*.tar.gz
 libbitc-config.h*
 libbitc*.deb
-
+libbitc*.rpm

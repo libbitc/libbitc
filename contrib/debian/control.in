@@ -1,0 +1,23 @@
+Source: @PACKAGE_NAME@
+Priority: optional
+Maintainer: @PACKAGE_BUGREPORT@
+Build-Depends: debhelper (>= 8.0.0), autotools-dev, libssl-dev, libgmp-dev, libevent-dev, libjansson-dev, libc6-dev
+Standards-Version: 3.9.4
+Section: libs
+Homepage: @PACKAGE_URL@
+#Vcs-Git: git://git.debian.org/collab-maint/libbitc.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/libbitc.git;a=summary
+
+Package: @PACKAGE_NAME@-dev
+Section: libdevel
+Architecture: any
+Depends: @PACKAGE_NAME@ (= ${binary:Version}), ${misc:Depends}
+Description: Development files for @PACKAGE_NAME@.
+ This package contains headers for @PACKAGE_NAME@, a C library that allows for bitcoin operations and connection to the bitcoin network.
+
+Package: @PACKAGE_NAME@
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: @PACKAGE_NAME@ shared library
+ This package contains the @PACKAGE_NAME@ shared library, a C library that allosw for bitcoin operations and connection to the bitcoin network.
