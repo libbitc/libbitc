@@ -1,13 +1,13 @@
 Name:           @PACKAGE_NAME@
-Version:        0.0.1
-Release:        alpha
+Version:        @PACKAGE_VERSION@
+Release:        1%{?dist}
 Summary:        @PACKAGE_NAME@ shared library
 Group:          Applications/System
 
 License:        MIT
 URL:            @PACKAGE_URL@
-Source0:        %{name}-%{version}-%{release}.tar.gz
-BuildRoot:      %{_builddir}/%{name}-%{version}-%{release}
+Source0:        %{name}-%{version}.tar.gz
+BuildRoot:      %{_builddir}/%{name}-%{version}
 BuildRequires:  openssl-devel gmp-devel libevent-devel jansson-devel
 BuildRequires:  autoconf automake libtool
 
@@ -17,7 +17,7 @@ This package contains the @PACKAGE_NAME@ shared library, a C library that allows
 %define debug_package %{nil}
 
 %prep
-%setup -q -n %{name}-%{version}-%{release}
+%setup -q -n %{name}-%{version}
 
 %build
 %configure

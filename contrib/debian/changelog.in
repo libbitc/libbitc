@@ -1,0 +1,5 @@
+@PACKAGE_NAME@ (@PACKAGE_VERSION@-1) unstable; urgency=low
+
+  * Initial release
+
+ -- @PACKAGE_NAME@ <@PACKAGE_BUGREPORT@>  Sat, 23 Jul 2016 12:25:44 +0000

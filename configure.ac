@@ -17,7 +17,7 @@ dnl You should have received a copy of the GNU General Public License
 dnl along with this program; if not, write to the Free Software
 dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-AC_INIT(libbitc, 0.0.1-alpha,
+AC_INIT(libbitc, 0.0.1,
   [libbitc <libbitc@users.noreply.github.com>],,
   [https://github.com/libbitc/libbitc])
 AC_PREREQ(2.60)
@@ -86,7 +86,7 @@ AS_CASE([$host_os],
 		#ifndef O_LARGEFILE
 		# define O_LARGEFILE 0
 		#endif])
-		CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+		CPPFLAGS="$CPPFLAGS -I/usr/local/opt/openssl/include -I/usr/local/include"
 		LDFLAGS="$LDFLAGS -L/usr/local/lib"
 		tag_os="osx"
     ])
@@ -196,7 +196,8 @@ AC_CONFIG_FILES([
 	test/Makefile
 	external/Makefile
 	libbitc.pc
-	contrib/rpmbuild/SPECS/libbitc.spec
 	contrib/debian/control
+	contrib/debian/changelog
+	contrib/rpmbuild/SPECS/libbitc.spec
 	])
 AC_OUTPUT
