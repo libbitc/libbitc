@@ -30,8 +30,7 @@ libbitc_la_HEADERS =	\
 		parr.h		\
 		script.h	\
 		serialize.h	\
-		util.h		\
-		wallet.h
+		util.h
 
 libbitcnet_ladir = $(includedir)/bitc/net/
 
@@ -45,5 +44,6 @@ libbitcnet_la_HEADERS =	\
 libbitcaes_ladir = $(includedir)/bitc/crypto/
 
 libbitcaes_la_HEADERS =	\
-		crypto/aes_util.h   \
-		crypto/ctaes.h
+		crypto/aes_util.h	\
+		crypto/ctaes.h		\
+		wallet/wallet.h

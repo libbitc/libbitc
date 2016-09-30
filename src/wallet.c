@@ -15,7 +15,7 @@
 #include <bitc/hdkeys.h>                // for hd_extended_key_free, etc
 #include <bitc/hexcode.h>               // for encode_hex
 #include <bitc/key.h>                   // for bitc_privkey_get, etc
-#include <bitc/wallet.h>                // for wallet, wallet_free, etc
+#include <bitc/wallet/wallet.h>         // for wallet, wallet_free, etc
 #include <bitc/compat.h>                // for parr_new
 
 #include <jansson.h>                    // for json_object_set_new, etc

@@ -7,10 +7,12 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <bitc/cstr.h>
-#include <bitc/parr.h>
+#include <bitc/cstr.h>                  // for cstring
+#include <bitc/parr.h>                  // for parr_idx, parr
+
+#include <stdbool.h>                    // for bool
+#include <stddef.h>                     // for size_t
+#include <stdint.h>                     // for uint32_t
 
 #ifdef __cplusplus
 extern "C" {

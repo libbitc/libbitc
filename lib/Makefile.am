@@ -47,10 +47,9 @@ libbitc_la_SOURCES = \
 			script_sign.c	\
 			serialize.c	\
 			util.c		\
-			utxo.c		\
-			wallet.c
+			utxo.c
 
-noinst_LTLIBRARIES= libbitcnet.la libbitcaes.la
+noinst_LTLIBRARIES= libbitcnet.la libbitcwallet.la
 
 libbitcnet_la_SOURCES =	\
 			net/dns.c	\
@@ -58,6 +57,7 @@ libbitcnet_la_SOURCES =	\
 			net/netbase.c	\
 			net/peerman.c
 
-libbitcaes_la_SOURCES =	\
+libbitcwallet_la_SOURCES =	\
 			crypto/aes_util.c   \
-			crypto/ctaes.c
+			crypto/ctaes.c		\
+			wallet/wallet.c

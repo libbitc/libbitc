@@ -19,7 +19,7 @@ bitsy_SOURCES =	\
 
 bitsy_LDADD	= $(top_builddir)/lib/libbitc.la \
 		$(top_builddir)/lib/libbitcnet.la \
-		$(top_builddir)/lib/libbitcaes.la \
+		$(top_builddir)/lib/libbitcwallet.la \
 		@CRYPTO_LIBS@ @GMP_LIBS@ @ARGP_LIBS@ \
 		@EVENT_LIBS@ @JANSSON_LIBS@
 

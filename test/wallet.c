@@ -1,14 +1,18 @@
 #include "libbitc-config.h"
 
-#include <assert.h>
-#include <stdio.h>
-#include <openssl/err.h>
-#include <bitc/buffer.h>
-#include <bitc/coredefs.h>
-#include <bitc/cstr.h>
-#include <bitc/hdkeys.h>
-#include <bitc/key.h>
-#include <bitc/wallet.h>
+#include <bitc/wallet/wallet.h>         // for wallet, wallet_valid_name, etc
+
+#include <bitc/buffer.h>                // for const_buffer
+#include <bitc/coredefs.h>              // for chain_info, chain_metadata, etc
+#include <bitc/key.h>                   // for bitc_privkey_get, etc
+
+#include <openssl/err.h>                // for ERR_remove_state
+
+#include <assert.h>                     // for assert
+#include <stdio.h>                      // for NULL
+#include <stdlib.h>                     // for free
+#include <string.h>                     // for memcmp
+
 
 static bool key_eq(const struct bitc_key *key1,
 		   const struct bitc_key *key2)

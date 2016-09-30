@@ -6,19 +6,20 @@
  */
 #include "libbitc-config.h"
 
-#include <bitc/address.h>
-#include <bitc/coredefs.h>
-#include <bitc/key.h>
-#include <bitc/mbr.h>
-#include <bitc/message.h>
-#include <bitc/wallet.h>
-#include <bitc/hdkeys.h>
-#include <bitc/serialize.h>
-#include <bitc/util.h>
+#include <bitc/wallet/wallet.h>         // for wallet, wallet_account, etc
 
-#include <ctype.h>
-#include <assert.h>
-#include <stdio.h>
+#include <bitc/address.h>               // for bitc_pubkey_get_address
+#include <bitc/coredefs.h>              // for chain_info, etc
+#include <bitc/hdkeys.h>                // for hd_extended_key_free, etc
+#include <bitc/key.h>                   // for bitc_key_free, bitc_key, etc
+#include <bitc/mbr.h>                   // for mbr_free, mbuf_reader, etc
+#include <bitc/message.h>               // for p2p_message, etc
+#include <bitc/util.h>                  // for ARRAY_SIZE
+
+#include <assert.h>                     // for assert
+#include <ctype.h>                      // for isalnum
+#include <stdio.h>                      // for NULL, fprintf, stderr
+
 
 static void account_free(struct wallet_account *acct);
 
