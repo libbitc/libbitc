@@ -23,15 +23,12 @@ noinst_LIBRARIES= libtest.a
 
 libtest_a_SOURCES= libtest.h libtest.c
 
-noinst_PROGRAMS	= clist cstr coredefs hex hdkeys hashtab base58 fileio util \
+check_PROGRAMS	= clist cstr coredefs hex hdkeys hashtab base58 fileio util \
 		  crypto keystore keyset bloom mbr misc net \
 		  message parr script-parse tx block blockfile blkdb script \
 		  tx-valid wallet wallet-basics chain-verf hash ctaes aes-util
 
-TESTS		= clist cstr coredefs hex hdkeys hashtab base58 fileio util \
-		  crypto keystore keyset bloom mbr misc net \
-		  message parr script-parse tx block blockfile blkdb script \
-		  tx-valid wallet wallet-basics chain-verf hash ctaes aes-util
+TESTS		= $(check_PROGRAMS)
 
 COMMON_LDADD	= libtest.a $(top_builddir)/lib/libbitc.la \
 		  $(top_builddir)/external/secp256k1/libsecp256k1.la \

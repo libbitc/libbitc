@@ -14,7 +14,7 @@ pkgconfig_DATA  = libbitc.pc
 
 pkg-deb: dist
 	- rm -rf $(distdir)
-	mkdir -p $(distdir)
+	$(MKDIR_P) $(distdir)
 	mv $(distdir).tar.gz $(distdir)/$(PACKAGE)_$(VERSION).orig.tar.gz
 
 	tar --directory $(distdir)/ \
@@ -30,7 +30,7 @@ pkg-deb: dist
 
 pkg-rpm: dist
 	- rm -rf $(distdir)
-	mkdir -p $(distdir)/rpmbuild/{RPMS,SRPMS,BUILD,SOURCES,SPECS}
+	$(MKDIR_P) $(distdir)/rpmbuild/{RPMS,SRPMS,BUILD,SOURCES,SPECS}
 
 	cp -r $(top_srcdir)/contrib/rpmbuild $(distdir)
 	mv $(distdir).tar.gz $(distdir)/rpmbuild/SOURCES/
