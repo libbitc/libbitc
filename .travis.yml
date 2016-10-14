@@ -58,7 +58,7 @@ addons:
       - libtool
       - libltdl-dev
       - dpkg-dev
-      - debhelper 
+      - debhelper
   coverity_scan:
     project:
       name: libbitc/libbitc
@@ -95,14 +95,14 @@ before_script:
 script:
   - OUTDIR=$BASE_OUTDIR/$TRAVIS_PULL_REQUEST/$TRAVIS_JOB_NUMBER-$HOST
   - LIBBITC_CONFIG="--prefix=$TRAVIS_BUILD_DIR/depends/$HOST --bindir=$OUTDIR/bin --libdir=$OUTDIR/lib"
-  - if [ "$MAKETARGET" = "pkg-rpm" ]; then docker run -t -i -v $TRAVIS_BUILD_DIR:/libbitc centos:7 /bin/bash -c "yum -y update; yum -y install autoconf automake libtool make rpm-build openssl-devel libevent-devel gmp-devel jansson-devel; cd /libbitc; ./autogen.sh; ./configure --cache-file=config.cache; make $MAKEJOBS $MAKETARGET"; exit $! ; fi
+  - if [ "$MAKETARGET" = "pkg-rpm" ]; then docker run -t -i -v $TRAVIS_BUILD_DIR:/libbitc centos:7 /bin/bash -c "yum -y update; yum -y install autoconf automake libtool make rpm-build openssl-devel libevent-devel gmp-devel jansson-devel; cd /libbitc; ./autogen.sh; ./configure --cache-file=config.cache; make $MAKEJOBS $MAKETARGET"; exit $? ; fi
   - ./configure --cache-file=config.cache --enable-coverage=$ENABLE_COVERAGE --enable-valgrind=$ENABLE_VALGRIND $LIBBITC_CONFIG || ( cat config.log && false)
   - make -s $MAKEJOBS || ( echo "Build failure. Verbose build follows." && make V=1 ; false )
   - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/lib
   - make $MAKEJOBS $MAKETARGET
 
 after_success:
-  - if [ "$ENABLE_COVERAGE" = "yes" ]; then lcov --compat-libtool --directory . --capture --output-file coverage.info && coveralls-lcov coverage.info; fi
+  - if [ "$ENABLE_COVERAGE" = "yes" ]; then lcov --capture --compat-libtool --directory . --no-external --output-file coverage.info.all && lcov --remove coverage.info.all */test/* */external/* -o coverage.info && coveralls-lcov coverage.info; fi
 
 deploy:
   provider: releases
