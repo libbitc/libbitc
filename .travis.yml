@@ -14,7 +14,6 @@ sudo: false
 env:
   global:
     - secure: bJurUlhy79EDF5N/6al+J6Hq5AY9lS019hWKSp8djCFMatX6RZbfiAbyHGaVBgDTU4sVD5Hpr447pf+6p6M+0BiWEOqpvc1ALrd50xJ5Wa6pUESmTLNWa47bDjIO37cHTjH7JR8Q0/8vZ9I9vDIRUkwEn296ztF5K8e1kLFf4wLDyMa4UWB/g6LakS15AI+H+E4MSrnBlYO8GJEmfPepDdBXs49FF8cFWzR8lZYmKgO46JYeUihYUEnmWDZVRVrd7Iot0JRKSo0gUZPAyA47cWGtMXPoGAo/10TONZzfQu95xYuA53s9XJOgdvtwNVW0XfG5ZivvbrDVkoPX/tJ+5Cqpf5Fx+IFguP0lBb6xusUO6unLd1YM9wlb94/ip+bNS5fsaCmEwWBn0+vEISolYcMKmYKOMkEarll7wfyK3w5NJ0NR9I+3cCB8pNIDXAkjl+n6z8TWxUkV+VrdN37OJyOgIvi8O3EDrZUiv8T04xlU+CnqYWdRCiqjtEul4agjs0WSBpWPsOSI8gMyXqAKOGlKyu1kfcBhMzuNIrxaW33HdqNQItxAMdlfP7YW0AEzN+rYhTYG8PltaDwU3o38hBh2hmW1io+cN3miwvy4IEAi/tWkrnkKaV4FX0W82o2ym/rvwAbCQhGQ23ca0nqqs1YVrtDOMgd/gqBwzR2R3gs=
-    - BASE_OUTDIR=$TRAVIS_BUILD_DIR/out
     - MAKEJOBS=-j3
     - ENABLE_COVERAGE=no
     - ENABLE_VALGRIND=no
@@ -22,24 +21,24 @@ env:
     - MAKETARGET=distcheck
     - MAKETARGET=check MAKEJOBS=-j1 ENABLE_COVERAGE=yes
     - MAKETARGET=check MAKEJOBS=-j1 ENABLE_VALGRIND=yes
-    - MAKETARGET=pkg-bin DEPLOY=yes
     - MAKETARGET=pkg-deb DEPLOY=yes
     - MAKETARGET=pkg-rpm DEPLOY=yes
+    - MAKETARGET=pkg-bin DEPLOY=yes
 
 matrix:
   exclude:
+    - os: osx
+      env: MAKETARGET=pkg-deb DEPLOY=yes
+    - os: osx
+      env: MAKETARGET=pkg-rpm DEPLOY=yes
+    - compiler: clang
+      env: MAKETARGET=pkg-deb DEPLOY=yes
+    - compiler: clang
+      env: MAKETARGET=pkg-rpm DEPLOY=yes
     - compiler: clang
       env: MAKETARGET=pkg-bin DEPLOY=yes
     - compiler: clang
-      env: MAKETARGET=pkg-deb DEPLOY=yes
-    - compiler: clang
-      env: MAKETARGET=pkg-rpm DEPLOY=yes
-    - compiler: clang
       env: MAKETARGET=check MAKEJOBS=-j1 ENABLE_COVERAGE=yes
-    - os: osx
-      env: MAKETARGET=pkg-deb DEPLOY=yes
-    - os: osx
-      env: MAKETARGET=pkg-rpm DEPLOY=yes
 
 cache:
   apt: true
@@ -76,30 +75,19 @@ notifications:
     on_start: never
   slack: libbitc:LzNZosd4L6ZkORMznw0mwrq7
 
-before_install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update && brew outdated libtool || brew upgrade libtool ; fi
-
 install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install jansson; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install libevent; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install argp-standalone; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install openssl; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install openssl libevent jansson argp-standalone; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$ENABLE_COVERAGE" = "yes" ]; then brew install lcov; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$ENABLE_VALGRIND" = "yes" ]; then brew install valgrind; fi
   - if [ "$ENABLE_COVERAGE" = "yes" ]; then gem install coveralls-lcov; fi
 
 before_script:
-  - if [ -n "$USE_SHELL" ]; then export CONFIG_SHELL="$USE_SHELL"; fi
-  - test -n "$USE_SHELL" && eval '"$USE_SHELL" -c "./autogen.sh"' || ./autogen.sh
+  - ./autogen.sh
 
 script:
-  - OUTDIR=$BASE_OUTDIR/$TRAVIS_PULL_REQUEST/$TRAVIS_JOB_NUMBER-$HOST
-  - LIBBITC_CONFIG="--prefix=$TRAVIS_BUILD_DIR/depends/$HOST --bindir=$OUTDIR/bin --libdir=$OUTDIR/lib"
   - if [ "$MAKETARGET" = "pkg-rpm" ]; then docker run -t -i -v $TRAVIS_BUILD_DIR:/libbitc centos:7 /bin/bash -c "yum -y update; yum -y install autoconf automake libtool make rpm-build openssl-devel libevent-devel gmp-devel jansson-devel; cd /libbitc; ./autogen.sh; ./configure --cache-file=config.cache; make $MAKEJOBS $MAKETARGET"; exit $? ; fi
-  - ./configure --cache-file=config.cache --enable-coverage=$ENABLE_COVERAGE --enable-valgrind=$ENABLE_VALGRIND $LIBBITC_CONFIG || ( cat config.log && false)
-  - make -s $MAKEJOBS || ( echo "Build failure. Verbose build follows." && make V=1 ; false )
-  - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/lib
-  - make $MAKEJOBS $MAKETARGET
+  - ./configure --cache-file=config.cache --enable-coverage=$ENABLE_COVERAGE --enable-valgrind=$ENABLE_VALGRIND || ( cat config.log && false)
+  - make -s $MAKEJOBS $MAKETARGET || ( echo "Build failure. Verbose build follows." && make V=1 $MAKETARGET; false )
 
 after_success:
   - if [ "$ENABLE_COVERAGE" = "yes" ]; then lcov --capture --compat-libtool --directory . --no-external --output-file coverage.info.all && lcov --remove coverage.info.all */test/* */external/* -o coverage.info && coveralls-lcov coverage.info; fi
