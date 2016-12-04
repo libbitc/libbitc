@@ -1,40 +1,29 @@
 #ifndef __LIBBITC_CRYPTO_AES_UTIL_H__
 #define __LIBBITC_CRYPTO_AES_UTIL_H__
-/* Copyright 2016 Duncan Tebbs
+/* Copyright 2012 exMULTI, Inc.
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <bitc/cstr.h>
+#include <bitc/cstr.h>                 // for cstring
+
+#include <stdbool.h>                    // for bool
+#include <stddef.h>                     // for size_t
+#include <string.h>                     // for memcpy, memset
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * Wrap low level aes routines to decrypt a buffer with a given
- * password.
- */
-extern cstring *decrypt_aes_buffer(const void *ciphertext,
-				   size_t ct_len,
-				   const void *key,
-				   size_t key_len);
+#define AES256_BLOCK_LENGTH             16
+#define AES256_KEY_LENGTH               32
 
-/**
- * Wrap low level aes routines to encrypt a buffer with a given
- * password.
- */
-extern void *encrypt_aes_buffer(const void *plaintext,
-				size_t pt_len,
-				const void *key,
-				size_t key_len,
-				size_t *ct_len);
+#define MEMSET_BZERO(p,l)     memset((p), 0, (l))
+#define MEMCPY_BCOPY(d,s,l)   memcpy((d), (s), (l))
 
 extern cstring *read_aes_file(const char *filename, void *key, size_t key_len,
 			      size_t max_file_len);
-
 extern bool write_aes_file(const char *filename, void *key, size_t key_len,
 		    const void *plaintext, size_t pt_len);
 
@@ -42,4 +31,4 @@ extern bool write_aes_file(const char *filename, void *key, size_t key_len,
 }
 #endif
 
-#endif // __LIBBITC_CRYPTO_AES_UTIL_H__
+#endif /* __LIBBITC_CRYPTO_AES_UTIL_H__ */
