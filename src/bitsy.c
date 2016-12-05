@@ -10,6 +10,7 @@
 #include <bitc/compat.h>               // for strndup
 #include <bitc/core.h>                 // for bitc_address
 #include <bitc/coredefs.h>             // for chain_find, chain_info
+#include <bitc/crypto/prng.h>         // for prng_get_random_bytes
 #include <bitc/log.h>                  // for log_info, log_debug, etc
 #include <bitc/net/dns.h>              // for bu_dns_seed_addrs
 #include <bitc/net/net.h>              // for net_child_info, nc_conns_gc, etc
@@ -25,7 +26,6 @@
 #include <errno.h>                      // for errno
 #include <event2/event.h>               // for event_free, event_base_new, etc
 #include <fcntl.h>                      // for open
-#include <openssl/rand.h>               // for RAND_bytes
 #include <stdio.h>                      // for fprintf, printf, NULL, etc
 #include <stdlib.h>                     // for free, exit
 #include <string.h>                     // for strcmp, strdup, strlen, etc
@@ -642,7 +642,10 @@ int main (int argc, char *argv[])
 	/* Parsing of commandline parameters */
 	argp_parse(&argp, argc, argv, ARGP_IN_ORDER, NULL, NULL);
 
-	RAND_bytes((unsigned char *)&instance_nonce, sizeof(instance_nonce));
+	if (prng_get_random_bytes((unsigned char *)&instance_nonce, sizeof(instance_nonce)) < 0) {
+		fprintf(stderr, "bitsy: no random data available\n");
+		return 1;
+	}
 
 	init_log();
 	chain_set();

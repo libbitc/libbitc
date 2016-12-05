@@ -10,7 +10,7 @@ brd_SOURCES	=	\
 
 brd_LDADD	= $(top_builddir)/lib/libbitc.la \
 		$(top_builddir)/lib/libbitcnet.la \
-		@CRYPTO_LIBS@ @GMP_LIBS@ @EVENT_LIBS@
+		@GMP_LIBS@ @EVENT_LIBS@
 
 bitsy_SOURCES =	\
 	bitsy.c	\
@@ -20,12 +20,12 @@ bitsy_SOURCES =	\
 bitsy_LDADD	= $(top_builddir)/lib/libbitc.la \
 		$(top_builddir)/lib/libbitcnet.la \
 		$(top_builddir)/lib/libbitcwallet.la \
-		@CRYPTO_LIBS@ @GMP_LIBS@ @ARGP_LIBS@ \
+		@GMP_LIBS@ @ARGP_LIBS@ \
 		@EVENT_LIBS@ @JANSSON_LIBS@
 
 blkscan_LDADD	= $(top_builddir)/lib/libbitc.la \
-		  @CRYPTO_LIBS@ @GMP_LIBS@ @ARGP_LIBS@
+		  @GMP_LIBS@ @ARGP_LIBS@
 blkstats_LDADD	= $(top_builddir)/lib/libbitc.la \
-		  @CRYPTO_LIBS@ @GMP_LIBS@ @ARGP_LIBS@
+		  @GMP_LIBS@ @ARGP_LIBS@
 rawtx_LDADD	= $(top_builddir)/lib/libbitc.la \
-		  @CRYPTO_LIBS@ @GMP_LIBS@ @ARGP_LIBS@ @JANSSON_LIBS@
+		  @GMP_LIBS@ @ARGP_LIBS@ @JANSSON_LIBS@

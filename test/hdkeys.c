@@ -9,7 +9,6 @@
 #include <assert.h>
 #include <bitc/base58.h>
 #include <bitc/util.h>
-#include <openssl/err.h>
 
 #define MAIN_PUBLIC 0x1EB28804
 #define MAIN_PRIVATE 0xE4AD8804
@@ -641,7 +640,6 @@ int main(int argc, char **argv)
 	test_vector_2();
 
 	// Keep valgrind happy
-	ERR_remove_state(0);
 	bitc_key_static_shutdown();
 
 	return 0;

@@ -6,8 +6,6 @@
 #include <bitc/coredefs.h>              // for chain_info, chain_metadata, etc
 #include <bitc/key.h>                   // for bitc_privkey_get, etc
 
-#include <openssl/err.h>                // for ERR_remove_state
-
 #include <assert.h>                     // for assert
 #include <stdio.h>                      // for NULL
 #include <stdlib.h>                     // for free
@@ -153,7 +151,6 @@ int main(int argc, char *argv[])
 	for (i = 0; i < CHAIN_LAST; i++)
 		check_with_chain(&chain_metadata[i]);
 
-	ERR_remove_state(0);
 	bitc_key_static_shutdown();
 	return 0;
 }

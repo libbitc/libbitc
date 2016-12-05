@@ -15,17 +15,14 @@ This contains several pieces of interest:
 * Comprehensive test suite.
 
 libbitc library dependencies:
-	OpenSSL
 	GMP
 
 bitsy client dependencies:
-	OpenSSL
 	GMP
 	libevent 2.x
 	jansson 2.x (2.1 used for development)
 
 block relay daemon (brd) dependencies:
-	OpenSSL
 	GMP
 	libevent 2.x
 
@@ -100,7 +97,7 @@ Display settings map.
 address
 -------
 Generate a new bitcoin address (ECDSA keypair).  Store it in the current
-wallet, 
+wallet,
 
 create
 ------

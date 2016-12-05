@@ -12,6 +12,7 @@
 #include <bitc/buffer.h>                // for const_buffer
 #include <bitc/coredefs.h>              // for chain_info
 #include <bitc/crypto/aes_util.h>       // for read_aes_file, etc
+#include <bitc/crypto/prng.h>          // for prng_get_random_bytes
 #include <bitc/hdkeys.h>                // for hd_extended_key_free, etc
 #include <bitc/hexcode.h>               // for encode_hex
 #include <bitc/key.h>                   // for bitc_privkey_get, etc
@@ -19,7 +20,6 @@
 #include <bitc/compat.h>                // for parr_new
 
 #include <jansson.h>                    // for json_object_set_new, etc
-#include <openssl/rand.h>               // for RAND_bytes
 
 #include <assert.h>                     // for assert
 #include <fcntl.h>                      // for open
@@ -192,7 +192,10 @@ void cur_wallet_create(void)
 	}
 
 	char seed[256];
-	RAND_bytes((unsigned char *) &seed[0], sizeof(seed));
+	if (prng_get_random_bytes((unsigned char *) &seed[0], sizeof(seed)) < 0) {
+		fprintf(stderr, "wallet: no random data available\n");
+		return;
+	}
 
 	char seed_str[(sizeof(seed) * 2) + 1];
 	encode_hex(seed_str, seed, sizeof(seed));

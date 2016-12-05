@@ -11,16 +11,16 @@ Dependencies
 This guide assumes usage of [Homebrew](http://brew.sh) or
 [MacPorts](https://www.macports.org) for installing dependencies.
 
-You will need to install `OpenSSL` and `GMP` in order to build *libbitc*, and
-those plus `libevent` and `jansson` to build *libbitc*.
+You will need to install `GMP` in order to build *libbitc*, plus `libevent`
+and `jansson` to build *bitsy*.
 
 Install these packages. It will take a few minutes.
 
-    brew install autoconf automake libtool argp-standalone jansson libevent openssl gmp
+    brew install autoconf automake libtool argp-standalone jansson libevent gmp
 
 or
 
-    sudo port install autoconf automake libtool argp-standalone jansson libevent pkgconfig openssl gmp
+    sudo port install autoconf automake libtool argp-standalone jansson libevent pkgconfig gmp
 
 
 Building
@@ -29,7 +29,7 @@ Building
 Homebrew
 
     ./autogen.sh
-    ./configure CPPFLAGS="-I`brew --prefix openssl`/include"
+    ./configure
     make
 
 MacPorts

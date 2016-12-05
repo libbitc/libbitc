@@ -50,7 +50,6 @@ services:
 
 addons:
   apt_packages:
-      - libssl-dev
       - libgmp-dev
       - libjansson-dev
       - libevent-dev
@@ -78,7 +77,7 @@ notifications:
   slack: libbitc:LzNZosd4L6ZkORMznw0mwrq7
 
 install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install openssl libevent jansson argp-standalone; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install libevent jansson argp-standalone; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$ENABLE_COVERAGE" = "yes" ]; then brew install lcov; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$ENABLE_VALGRIND" = "yes" ]; then brew install valgrind; fi
   - if [ "$ENABLE_COVERAGE" = "yes" ]; then gem install coveralls-lcov; fi

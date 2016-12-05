@@ -5,12 +5,13 @@
  */
 
 #include "libbitc-config.h"
-#include <bitc/key.h>
+#include <bitc/key.h>                  // for bp_key
+#include <bitc/crypto/prng.h>          // for prng_get_random_bytes
 
-#include <lax_der_privatekey_parsing.c>
 #include <lax_der_parsing.c>
-#include <openssl/rand.h>
-#include <string.h>
+#include <lax_der_privatekey_parsing.c>  // for ec_privkey_export_der, etc
+
+#include <string.h>                     // for NULL, memcpy, memset
 
 static secp256k1_context *s_context = NULL;
 secp256k1_context *get_secp256k1_context()
@@ -24,8 +25,8 @@ secp256k1_context *get_secp256k1_context()
 		}
 
 		uint8_t seed[32];
-		if (!RAND_bytes(seed, sizeof(seed)) ||
-		    !secp256k1_context_randomize(ctx, seed)) {
+		if ((prng_get_random_bytes(seed, sizeof(seed)) < 0) ||
+			!secp256k1_context_randomize(ctx, seed)) {
 			secp256k1_context_destroy(ctx);
 			return NULL;
 		}
@@ -64,7 +65,7 @@ bool bitc_key_generate(struct bitc_key *key)
 	// secret is valid).
 
 	do {
-		if (!RAND_bytes(key->secret, (int )sizeof(key->secret))) {
+		if (prng_get_random_bytes(key->secret, (int )sizeof(key->secret)) < 0) {
 			return false;
 		}
 	} while (!secp256k1_ec_pubkey_create(ctx, &key->pubkey, key->secret));

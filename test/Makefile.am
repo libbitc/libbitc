@@ -21,18 +21,18 @@ EXTRA_DIST	= \
 
 noinst_LIBRARIES= libtest.a
 
-libtest_a_SOURCES= libtest.h libtest.c
+libtest_a_SOURCES= libtest.h libtest.c chisq.c randtest.c
 
 check_PROGRAMS	= clist cstr coredefs hex hdkeys hashtab base58 fileio util \
 		  crypto keystore keyset bloom mbr misc net \
-		  message parr script-parse tx block blockfile blkdb script \
+		  message parr prng script-parse tx block blockfile blkdb script \
 		  tx-valid wallet wallet-basics chain-verf hash ctaes aes-util
 
 TESTS		= $(check_PROGRAMS)
 
 COMMON_LDADD	= libtest.a $(top_builddir)/lib/libbitc.la \
 		  $(top_builddir)/external/secp256k1/libsecp256k1.la \
-		  @CRYPTO_LIBS@ @GMP_LIBS@ @JANSSON_LIBS@ @MATH_LIBS@
+		  @GMP_LIBS@ @JANSSON_LIBS@ @MATH_LIBS@
 
 base58_LDADD		= $(COMMON_LDADD)
 blkdb_LDADD		= $(COMMON_LDADD)
@@ -58,6 +58,7 @@ message_LDADD		= $(COMMON_LDADD)
 misc_LDADD		= $(COMMON_LDADD)
 net_LDADD		= $(COMMON_LDADD) $(top_builddir)/lib/libbitcnet.la
 parr_LDADD		= $(COMMON_LDADD)
+prng_LDADD		    = $(COMMON_LDADD)
 script_LDADD		= $(COMMON_LDADD)
 script_parse_LDADD	= $(COMMON_LDADD)
 tx_LDADD		= $(COMMON_LDADD)
