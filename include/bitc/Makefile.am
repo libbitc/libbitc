@@ -40,14 +40,18 @@ libbitcnet_ladir = $(includedir)/bitc/net/
 
 libbitcnet_la_HEADERS =	\
 		net/dns.h	\
+		net/ev.h	\
+		net/ev_vars.h	\
+		net/ev_wrap.h	\
+		net/event.h	\
 		net/fakepoll.h	\
 		net/net.h	\
 		net/netbase.h	\
 		net/peerman.h
 
-libbitcaes_ladir = $(includedir)/bitc/crypto/
+libbitcwallet_ladir = $(includedir)/bitc/wallet/
 
-libbitcaes_la_HEADERS =	\
+libbitcwallet_la_HEADERS =	\
 		crypto/aes_util.h	\
 		crypto/ctaes.h		\
 		wallet/wallet.h

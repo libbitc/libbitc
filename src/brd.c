@@ -16,6 +16,7 @@
 #include <bitc/log.h>                  // for log_info, logging, etc
 #include <bitc/mbr.h>                  // for fread_message
 #include <bitc/message.h>              // for p2p_message, etc
+#include <bitc/net/event.h>            // for event_base_dispatch, etc
 #include <bitc/net/net.h>              // for net_child_info, nc_conns_gc, etc
 #include <bitc/net/peerman.h>          // for peer_manager, peerman_write, etc
 #include <bitc/parr.h>                 // for parr, parr_idx, parr_free, etc
@@ -27,7 +28,6 @@
 #include <stdbool.h>                    // for bool
 #include <ctype.h>                      // for isspace
 #include <errno.h>                      // for errno
-#include <event2/event.h>               // for event_base_dispatch, etc
 #include <fcntl.h>                      // for open
 #include <signal.h>                     // for signal, SIG_IGN, SIGHUP, etc
 #include <stddef.h>                     // for size_t

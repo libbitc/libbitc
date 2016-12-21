@@ -1,6 +1,7 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
 AM_CPPFLAGS	=   -I$(top_srcdir)/include \
+                -I$(top_srcdir)/include/bitc/net \
                 -I$(top_srcdir)/external/secp256k1/include \
                 -I$(top_srcdir)/external/secp256k1/contrib
 
@@ -57,6 +58,8 @@ noinst_LTLIBRARIES= libbitcnet.la libbitcwallet.la
 
 libbitcnet_la_SOURCES =	\
 			net/dns.c	\
+			net/ev.c	\
+			net/event.c	\
 			net/net.c	\
 			net/netbase.c	\
 			net/peerman.c

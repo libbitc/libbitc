@@ -11,16 +11,16 @@ Dependencies
 This guide assumes usage of [Homebrew](http://brew.sh) or
 [MacPorts](https://www.macports.org) for installing dependencies.
 
-You will need to install `GMP` in order to build *libbitc*, plus `libevent`
-and `jansson` to build *bitsy*.
+You will need to install `GMP` in order to build *libbitc*, plus `jansson`
+to build *bitsy*.
 
 Install these packages. It will take a few minutes.
 
-    brew install autoconf automake libtool argp-standalone jansson libevent gmp
+    brew install autoconf automake libtool argp-standalone jansson gmp
 
 or
 
-    sudo port install autoconf automake libtool argp-standalone jansson libevent pkgconfig gmp
+    sudo port install autoconf automake libtool argp-standalone jansson pkgconfig gmp
 
 
 Building
