@@ -1,14 +1,15 @@
 if ENABLE_VALGRIND
-    TESTS_ENVIRONMENT=$(LIBTOOL) --mode=execute valgrind --leak-check=full \
+    TESTS_ENVIRONMENT = $(LIBTOOL) --mode=execute valgrind --leak-check=full \
                         --leak-resolution=high --num-callers=40 \
                         --error-exitcode=1
 endif
 
-AM_CPPFLAGS	= -DTEST_SRCDIR=\"$(top_srcdir)/test\" \
-		  -I$(top_srcdir)/include \
-		  -I$(top_srcdir)/external/secp256k1/include
+AM_CPPFLAGS = \
+	-DTEST_SRCDIR=\"$(top_srcdir)/test\" \
+	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/external/secp256k1/include
 
-EXTRA_DIST	= \
+EXTRA_DIST = \
 	base58_encode_decode.json	\
 	base58_keys_valid.json		\
 	random.data			\
@@ -19,20 +20,21 @@ EXTRA_DIST	= \
 	tn_blk35133.ser wallet-basics.json \
 	script_tests.json tx_valid.json tx_invalid.json
 
-noinst_LIBRARIES= libtest.a
+noinst_LTLIBRARIES = libtest.la
 
-libtest_a_SOURCES= libtest.h libtest.c chisq.c randtest.c
+libtest_la_SOURCES = libtest.h libtest.c chisq.c randtest.c
 
-check_PROGRAMS	= clist cstr coredefs hex hdkeys hashtab base58 fileio util \
-		  crypto keystore keyset bloom mbr misc net \
-		  message parr prng script-parse tx block blockfile blkdb script \
-		  tx-valid wallet wallet-basics chain-verf hash ctaes aes-util
+check_PROGRAMS = clist cstr coredefs hex hdkeys hashtab base58 fileio util \
+	crypto keystore keyset bloom mbr misc net message parr prng \
+	script-parse tx block blockfile blkdb script tx-valid wallet \
+	wallet-basics chain-verf hash ctaes aes-util
 
-TESTS		= $(check_PROGRAMS)
+TESTS = $(check_PROGRAMS)
 
-COMMON_LDADD	= libtest.a $(top_builddir)/lib/libbitc.la \
-		  $(top_builddir)/external/secp256k1/libsecp256k1.la \
-		  @GMP_LIBS@ @JANSSON_LIBS@ @MATH_LIBS@
+COMMON_LDADD = libtest.la \
+	$(top_builddir)/lib/libbitc.la \
+	$(top_builddir)/external/secp256k1/libsecp256k1.la \
+	@GMP_LIBS@ @JANSSON_LIBS@ @MATH_LIBS@
 
 base58_LDADD		= $(COMMON_LDADD)
 blkdb_LDADD		= $(COMMON_LDADD)
@@ -58,7 +60,7 @@ message_LDADD		= $(COMMON_LDADD)
 misc_LDADD		= $(COMMON_LDADD)
 net_LDADD		= $(COMMON_LDADD) $(top_builddir)/lib/libbitcnet.la
 parr_LDADD		= $(COMMON_LDADD)
-prng_LDADD		    = $(COMMON_LDADD)
+prng_LDADD		= $(COMMON_LDADD)
 script_LDADD		= $(COMMON_LDADD)
 script_parse_LDADD	= $(COMMON_LDADD)
 tx_LDADD		= $(COMMON_LDADD)

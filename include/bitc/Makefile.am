@@ -36,14 +36,18 @@ libbitc_la_HEADERS =	\
 		serialize.h	\
 		util.h
 
+libbitcev_ladir=$(includedir)/bitc/net
+
+libbitcev_la_HEADERS = \
+		net/ev.h	\
+		net/ev_vars.h	\
+		net/ev_wrap.h	\
+		net/event.h
+
 libbitcnet_ladir = $(includedir)/bitc/net/
 
 libbitcnet_la_HEADERS =	\
 		net/dns.h	\
-		net/ev.h	\
-		net/ev_vars.h	\
-		net/ev_wrap.h	\
-		net/event.h	\
 		net/fakepoll.h	\
 		net/net.h	\
 		net/netbase.h	\

@@ -85,8 +85,10 @@ before_script:
   - ./autogen.sh
 
 script:
-  - if [ "$MAKETARGET" = "pkg-rpm" ]; then docker run -t -i -v $TRAVIS_BUILD_DIR:/libbitc centos:7 /bin/bash -c "yum -y update; yum -y install autoconf automake libtool make rpm-build gmp-devel jansson-devel; cd /libbitc; ./autogen.sh; ./configure --cache-file=config.cache; make $MAKEJOBS $MAKETARGET"; exit $? ; fi
-  - ./configure --cache-file=config.cache --enable-coverage=$ENABLE_COVERAGE --enable-valgrind=$ENABLE_VALGRIND || ( cat config.log && false)
+  - LIBBITC_CONFIG="--enable-coverage=$ENABLE_COVERAGE --enable-valgrind=$ENABLE_VALGRIND"
+  - LIBBITC_CONFIG_ALL="--cache-file=config.cache"
+  - if [ "$MAKETARGET" = "pkg-rpm" ]; then docker run -t -i -v $TRAVIS_BUILD_DIR:/libbitc centos:7 /bin/bash -c "yum -y update; yum -y install autoconf automake libtool make rpm-build gmp-devel jansson-devel; cd /libbitc; ./autogen.sh; ./configure $LIBBITC_CONFIG_ALL; make $MAKEJOBS $MAKETARGET"; exit $? ; fi
+  - ./configure $LIBBITC_CONFIG_ALL $LIBBITC_CONFIG || ( cat config.log && false)
   - make -s $MAKEJOBS $MAKETARGET || ( echo "Build failure. Verbose build follows." && make V=1 $MAKETARGET; false )
 
 after_success:

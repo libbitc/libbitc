@@ -8,7 +8,7 @@ License:        MIT
 URL:            @PACKAGE_URL@
 Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_builddir}/%{name}-%{version}
-BuildRequires:  gmp-devel libevent-devel jansson-devel
+BuildRequires:  gmp-devel jansson-devel
 BuildRequires:  autoconf automake libtool
 
 %description
@@ -39,7 +39,7 @@ rm -f $RPM_BUILD_ROOT/%{_libdir}/*.la
 Summary:        Development files for @PACKAGE_NAME@.
 Group:          Development/Libraries
 
-Requires:       libevent-devel gmp-devel jansson-devel
+Requires:       gmp-devel jansson-devel
 
 %description devel
 This package contains headers for @PACKAGE_NAME@, a C library that allows for bitcoin operations and connection to the bitcoin network.

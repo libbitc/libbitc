@@ -54,12 +54,18 @@ libbitc_la_SOURCES = \
 			util.c		\
 			utxo.c
 
-noinst_LTLIBRARIES= libbitcnet.la libbitcwallet.la
+noinst_LTLIBRARIES = libbitcev.la libbitcnet.la libbitcwallet.la
+
+libbitcev_la_CFLAGS = -w
+
+libbitcev_la_SOURCES =	\
+			net/ev.c	\
+			net/event.c
+
+libbitcnet_la_LIBADD = libbitcev.la
 
 libbitcnet_la_SOURCES =	\
 			net/dns.c	\
-			net/ev.c	\
-			net/event.c	\
 			net/net.c	\
 			net/netbase.c	\
 			net/peerman.c
@@ -68,3 +74,11 @@ libbitcwallet_la_SOURCES =	\
 			crypto/aes_util.c   \
 			crypto/ctaes.c		\
 			wallet/wallet.c
+
+EXTRA_DIST =	\
+			net/ev_epoll.c	\
+			net/ev_poll.c	\
+			net/ev_kqueue.c	\
+			net/ev_port.c	\
+			net/ev_select.c
+
