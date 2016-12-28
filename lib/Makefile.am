@@ -25,7 +25,6 @@ libbitc_la_SOURCES = \
 			addr_match.c	\
 			base58.c	\
 			bignum.c	\
-			blkdb.c		\
 			block.c		\
 			blockfile.c	\
 			bloom.c		\
@@ -56,7 +55,10 @@ libbitc_la_SOURCES = \
 			util.c		\
 			utxo.c
 
-noinst_LTLIBRARIES = libbitcnet.la libbitcwallet.la
+noinst_LTLIBRARIES = libbitcdb.la libbitcnet.la libbitcwallet.la
+
+libbitcdb_la_SOURCES=	\
+			db/blkdb.c
 
 libbitcnet_la_LIBADD = $(top_builddir)/external/libev/libev.la
 
@@ -70,5 +72,4 @@ libbitcwallet_la_LIBADD = $(top_builddir)/external/cJSON/libcjson.la
 
 libbitcwallet_la_SOURCES =	\
 			crypto/aes_util.c   \
-			crypto/ctaes.c		\
 			wallet/wallet.c

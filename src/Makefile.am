@@ -11,6 +11,7 @@ brd_SOURCES	=	\
 		brd.h
 
 brd_LDADD	= $(top_builddir)/lib/libbitc.la \
+		$(top_builddir)/lib/libbitcdb.la \
 		$(top_builddir)/lib/libbitcnet.la \
 		@GMP_LIBS@
 
@@ -20,6 +21,7 @@ bitsy_SOURCES =	\
 		wallet.c wallet.h
 
 bitsy_LDADD	= $(top_builddir)/lib/libbitc.la \
+		$(top_builddir)/lib/libbitcdb.la \
 		$(top_builddir)/lib/libbitcnet.la \
 		$(top_builddir)/lib/libbitcwallet.la \
 		@GMP_LIBS@ @ARGP_LIBS@

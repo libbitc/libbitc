@@ -25,18 +25,17 @@ TESTS = $(check_PROGRAMS)
 
 COMMON_LDADD = libtest.la \
 	$(top_builddir)/lib/libbitc.la \
-	$(top_builddir)/lib/libbitcwallet.la \
 	$(top_builddir)/external/secp256k1/libsecp256k1.la \
     $(top_builddir)/external/cJSON/libcjson.la \
 	@GMP_LIBS@ @MATH_LIBS@
 
-aes_util_LDADD		= $(COMMON_LDADD)
+aes_util_LDADD		= $(COMMON_LDADD) $(top_builddir)/lib/libbitcwallet.la
 base58_LDADD		= $(COMMON_LDADD)
-blkdb_LDADD		= $(COMMON_LDADD)
+blkdb_LDADD		= $(top_builddir)/lib/libbitcdb.la $(COMMON_LDADD)
 block_LDADD		= $(COMMON_LDADD)
 blockfile_LDADD		= $(COMMON_LDADD)
 bloom_LDADD		= $(COMMON_LDADD)
-chain_verf_LDADD	= $(COMMON_LDADD)
+chain_verf_LDADD	= $(top_builddir)/lib/libbitcdb.la $(COMMON_LDADD)
 clist_LDADD		= $(COMMON_LDADD)
 coredefs_LDADD		= $(COMMON_LDADD)
 crypto_LDADD		= $(COMMON_LDADD)
@@ -61,5 +60,5 @@ sighash_LDADD		= $(COMMON_LDADD)
 tx_LDADD		= $(COMMON_LDADD)
 tx_valid_LDADD		= $(COMMON_LDADD)
 util_LDADD		= $(COMMON_LDADD) $(top_builddir)/lib/libbitcnet.la
-wallet_LDADD		= $(COMMON_LDADD)
+wallet_LDADD		= $(COMMON_LDADD) $(top_builddir)/lib/libbitcwallet.la
 wallet_basics_LDADD	= $(COMMON_LDADD)

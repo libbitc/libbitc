@@ -4,9 +4,9 @@
  */
 #include "libbitc-config.h"            // for VERSION
 
-#include "bitc/net/net.h"              // for nc_conn, net_child_info, etc
+#include <bitc/net/net.h>              // for nc_conn, net_child_info, etc
 #include <bitc/net/netbase.h>          // for bn_address_str, etc
-#include <bitc/blkdb.h>                // for blkdb, blkdb_locator, etc
+#include <bitc/db/blkdb.h>             // for blkdb, blkdb_locator, etc
 #include <bitc/buffer.h>               // for buffer, const_buffer
 #include <bitc/core.h>                 // for bitc_address, bitc_inv, etc
 #include <bitc/coredefs.h>             // for ::CADDR_TIME_VERSION, etc

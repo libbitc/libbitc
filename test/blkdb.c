@@ -4,18 +4,19 @@
  */
 #include "libbitc-config.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <assert.h>
-#include <unistd.h>
-#include <bitc/blkdb.h>
-#include <bitc/coredefs.h>
-#include <bitc/buint.h>
-#include <bitc/buffer.h>
-#include <bitc/util.h>
-#include <bitc/key.h>
-#include "libtest.h"
+#include <bitc/buffer.h>                // for const_buffer
+#include <bitc/buint.h>                 // for hex_bu256, bu256_copy, etc
+#include <bitc/core.h>                  // for bitc_block_calc_sha256, etc
+#include <bitc/coredefs.h>              // for chain_info, chain_metadata, etc
+#include <bitc/db/blkdb.h>              // for blkinfo, blkdb, blkdb_reorg, etc
+#include <bitc/key.h>                   // for bitc_key_static_shutdown
+#include <bitc/util.h>                  // for file_seq_open
+#include "libtest.h"                    // for test_filename
+
+#include <assert.h>                     // for assert
+#include <stdbool.h>                    // for true, bool
+#include <stdlib.h>                     // for free, NULL
+#include <unistd.h>                     // for close, read
 
 static void add_header(struct blkdb *db, char *raw)
 {

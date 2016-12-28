@@ -5,7 +5,7 @@
 #include "libbitc-config.h"           // for VERSION, _LARGE_FILES, etc
 
 #include "brd.h"
-#include <bitc/blkdb.h>                // for blkinfo, blkdb, etc
+#include <bitc/db/blkdb.h>             // for blkinfo, blkdb, etc
 #include <bitc/buffer.h>               // for const_buffer, buffer_copy, etc
 #include <bitc/clist.h>                // for clist_length
 #include <bitc/core.h>                 // for bitc_block, bitc_utxo, bitc_tx, etc

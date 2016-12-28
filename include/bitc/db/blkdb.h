@@ -5,10 +5,12 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include <stdbool.h>
-#include <bitc/core.h>
-#include <bitc/buint.h>
-#include <bitc/hashtab.h>
+#include <bitc/buint.h>                 // for bu256_t
+#include <bitc/core.h>                  // for bitc_block
+#include <bitc/hashtab.h>               // for bitc_hashtab_get
+
+#include <stdbool.h>                    // for bool
+#include <stdint.h>                     // for int32_t, int64_t
 
 #ifdef __cplusplus
 extern "C" {

@@ -4,20 +4,21 @@
  */
 #include "libbitc-config.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <string.h>
-#include <bitc/blkdb.h>
-#include <bitc/message.h>
-#include <bitc/serialize.h>
-#include <bitc/buint.h>
-#include <bitc/mbr.h>
-#include <bitc/util.h>
-#include <bitc/cstr.h>
-#include <bitc/compat.h>		/* for fdatasync */
+#include <bitc/buint.h>                 // for bu256_equal, bu256_copy, etc
+#include <bitc/compat.h>                // for fdatasync
+#include <bitc/cstr.h>                  // for cstring, cstr_free, etc
+#include <bitc/db/blkdb.h>              // for blkinfo, blkdb, blkdb_reorg, etc
+#include <bitc/mbr.h>                   // for fread_message
+#include <bitc/message.h>               // for p2p_message, message_str, etc
+#include <bitc/serialize.h>             // for deser_u256, ser_u256, etc
+#include <bitc/util.h>                  // for file_seq_open
+
+#include <stdbool.h>                    // for false, bool, true
+#include <stddef.h>                     // for size_t
+#include <stdlib.h>                     // for free, calloc
+#include <string.h>                     // for memset, memcpy, strncmp, etc
+#include <unistd.h>                     // for close, fdatasync, write, etc
+
 
 struct blkinfo *bi_new(void)
 {

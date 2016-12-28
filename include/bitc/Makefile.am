@@ -2,17 +2,16 @@
 libbitc_ladir = $(includedir)/bitc
 
 libbitc_la_HEADERS =	\
-                crypto/ctaes.h   \
-                crypto/fortuna.h   \
-                crypto/hmac.h   \
-                crypto/prng.h   \
-                crypto/ripemd160.h   \
+		crypto/ctaes.h   \
+		crypto/fortuna.h   \
+		crypto/hmac.h   \
+		crypto/prng.h   \
+		crypto/ripemd160.h   \
 		crypto/sha1.h	\
 		crypto/sha2.h	\
 		address.h	\
 		addr_match.h	\
 		base58.h	\
-		blkdb.h		\
 		bloom.h		\
 		buffer.h	\
 		buint.h		\
@@ -35,7 +34,12 @@ libbitc_la_HEADERS =	\
 		serialize.h	\
 		util.h
 
-libbitcnet_ladir = $(includedir)/bitc/net/
+libbitcdb_ladir = $(includedir)/bitc/db
+
+libbitcdb_la_ = \
+		db/blkdb.h
+
+libbitcnet_ladir = $(includedir)/bitc/net
 
 libbitcnet_la_HEADERS =	\
 		net/dns.h	\
@@ -44,7 +48,7 @@ libbitcnet_la_HEADERS =	\
 		net/netbase.h	\
 		net/peerman.h
 
-libbitcwallet_ladir = $(includedir)/bitc/wallet/
+libbitcwallet_ladir = $(includedir)/bitc/wallet
 
 libbitcwallet_la_HEADERS =	\
 		crypto/aes_util.h	\

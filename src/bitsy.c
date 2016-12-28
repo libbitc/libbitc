@@ -5,7 +5,7 @@
 #include "libbitc-config.h"             // for VERSION
 
 #include "bitsy.h"                      // for network_sync, setting
-#include <bitc/blkdb.h>                 // for blkinfo, blkdb, etc
+#include <bitc/db/blkdb.h>              // for blkinfo, blkdb, etc
 #include <bitc/clist.h>                 // for clist, clist_free_ext, etc
 #include <bitc/compat.h>                // for strndup
 #include <bitc/core.h>                  // for bitc_address

@@ -5,7 +5,7 @@
 
 #include "libbitc-config.h"
 
-#include <bitc/blkdb.h>                 // for blkinfo, blkdb_reorg, etc
+#include <bitc/db/blkdb.h>              // for blkinfo, blkdb_reorg, etc
 #include <bitc/buffer.h>                // for const_buffer
 #include <bitc/buint.h>                 // for bu256_hex, BU256_STRSZ, etc
 #include <bitc/core.h>                  // for bitc_block, bitc_tx, etc
