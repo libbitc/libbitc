@@ -12,3 +12,5 @@ bitsy.peers
 bitsy.blkdb
 *.wallet
 
+*.mdb
+*.mdb-lock

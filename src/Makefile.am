@@ -2,7 +2,8 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include \
 		-I$(top_srcdir)/external/secp256k1/include \
 		-I$(top_srcdir)/external/libev \
-		-I$(top_srcdir)/external/cJSON
+		-I$(top_srcdir)/external/cJSON \
+		-I$(top_srcdir)/external/lmdb/libraries/liblmdb
 
 bin_PROGRAMS	= brd bitsy blkscan blkstats rawtx
 

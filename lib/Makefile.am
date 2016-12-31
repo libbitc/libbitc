@@ -5,7 +5,8 @@ AM_CPPFLAGS	=   -I$(top_srcdir)/include \
                 -I$(top_srcdir)/external/libev \
                 -I$(top_srcdir)/external/secp256k1/include \
                 -I$(top_srcdir)/external/secp256k1/contrib \
-                -I$(top_srcdir)/external/cJSON
+                -I$(top_srcdir)/external/cJSON \
+                -I$(top_srcdir)/external/lmdb/libraries/liblmdb
 
 lib_LTLIBRARIES = libbitc.la
 
@@ -57,8 +58,11 @@ libbitc_la_SOURCES = \
 
 noinst_LTLIBRARIES = libbitcdb.la libbitcnet.la libbitcwallet.la
 
+libbitcdb_la_LIBADD = $(top_builddir)/external/lmdb/libraries/liblmdb/liblmdb.la
+
 libbitcdb_la_SOURCES=	\
-			db/blkdb.c
+			db/blkdb.c  \
+			db/db.c
 
 libbitcnet_la_LIBADD = $(top_builddir)/external/libev/libev.la
 

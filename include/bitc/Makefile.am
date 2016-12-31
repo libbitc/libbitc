@@ -36,8 +36,9 @@ libbitc_la_HEADERS =	\
 
 libbitcdb_ladir = $(includedir)/bitc/db
 
-libbitcdb_la_ = \
-		db/blkdb.h
+libbitcdb_la_HEADERS = \
+		db/blkdb.h \
+		db/db.h
 
 libbitcnet_ladir = $(includedir)/bitc/net
 
@@ -52,5 +53,4 @@ libbitcwallet_ladir = $(includedir)/bitc/wallet
 
 libbitcwallet_la_HEADERS =	\
 		crypto/aes_util.h	\
-		crypto/ctaes.h		\
 		wallet/wallet.h
