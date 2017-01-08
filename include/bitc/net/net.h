@@ -64,7 +64,6 @@ struct net_child_info {
 
 	bool (*inv_block_process)(bu256_t *hash);
 	bool (*block_process)(struct bitc_block *block,
-                          struct p2p_message_hdr *hdr,
                           struct const_buffer *buf);
 };
 

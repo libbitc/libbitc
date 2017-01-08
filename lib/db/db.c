@@ -9,7 +9,7 @@
 #include <bitc/log.h>                   // for log_info, log_error, etc
 
 #include <stdint.h>                     // for uint8_t
-#include <stdio.h>                      // for NULL, snprintf
+#include <stdio.h>                      // for snprintf
 #include <string.h>                     // for memcmp, strlen
 #include <unistd.h>                     // for sysconf, _SC_PAGESIZE
 
@@ -87,8 +87,8 @@ bool metadb_init(const unsigned char *netmagic,
 		if ((mdb_rc = mdb_dbi_open(txn, dbinfo.handle[METADB].name, MDB_CREATE, &dbinfo.handle[METADB].dbi)) != MDB_SUCCESS) goto err_abort;
 		dbinfo.handle[METADB].open = true;
 
-		if ((mdb_rc = mdb_put(txn, dbinfo.handle[METADB].dbi, &key_nm, &data_nm, MDB_NOOVERWRITE)) != MDB_SUCCESS) goto err_abort;
-		if ((mdb_rc = mdb_put(txn, dbinfo.handle[METADB].dbi, &key_gen, &data_gen, MDB_NOOVERWRITE)) != MDB_SUCCESS) goto err_abort;
+		if ((mdb_rc = mdb_put(txn, dbinfo.handle[METADB].dbi, &key_nm, &data_nm, MDB_NOOVERWRITE | MDB_APPEND)) != MDB_SUCCESS) goto err_abort;
+		if ((mdb_rc = mdb_put(txn, dbinfo.handle[METADB].dbi, &key_gen, &data_gen, MDB_NOOVERWRITE | MDB_APPEND)) != MDB_SUCCESS) goto err_abort;
 		if ((mdb_rc = mdb_txn_commit(txn)) != MDB_SUCCESS) goto err_close;
 	} else goto err_abort;
 
@@ -125,6 +125,62 @@ err_abort:
 	mdb_txn_abort(txn);
 err_close:
 	db_close();
+err_out:
+	log_error("db: %s", mdb_strerror(mdb_rc));
+	return false;
+}
+
+
+bool blockdb_add(bu256_t *hash, struct const_buffer *buf)
+{
+	int mdb_rc;
+	MDB_txn *txn;
+	MDB_val key_hash, data_block;
+	char hexstr[BU256_STRSZ];
+	bu256_hex(hexstr, hash);
+
+	key_hash.mv_size = sizeof(bu256_t);
+	key_hash.mv_data = hash;
+	data_block.mv_size = buf->len;
+	data_block.mv_data = (void *)buf->p;
+
+	if ((mdb_rc = mdb_txn_begin(dbinfo.env, NULL, 0, &txn)) != MDB_SUCCESS) goto err_out;
+	if (((mdb_rc = mdb_put(txn, dbinfo.handle[BLOCKDB].dbi, &key_hash, &data_block, MDB_NOOVERWRITE | MDB_APPEND)) != MDB_SUCCESS) && (mdb_rc != MDB_KEYEXIST)) goto err_abort;
+	if (mdb_rc == MDB_SUCCESS) { log_info("db: Adding block %s to %s database", hexstr, dbinfo.handle[BLOCKDB].name); }
+	if ((mdb_rc = mdb_txn_commit(txn)) != MDB_SUCCESS) goto err_out;
+
+	return true;
+
+err_abort:
+	mdb_txn_abort(txn);
+err_out:
+	log_error("db: %s", mdb_strerror(mdb_rc));
+	return false;
+}
+
+bool blockdb_getall(bool (*read_block)(void *p, size_t len))
+{
+	int mdb_rc;
+	MDB_txn *txn;
+	MDB_cursor *cursor;
+	MDB_cursor_op op = MDB_FIRST;
+	MDB_val key_hash, data_block;
+
+	if ((mdb_rc = mdb_txn_begin(dbinfo.env, NULL, MDB_RDONLY, &txn)) != MDB_SUCCESS) goto err_out;
+	if ((mdb_rc = mdb_cursor_open(txn, dbinfo.handle[BLOCKDB].dbi, &cursor)) != MDB_SUCCESS) goto err_abort;
+
+	log_info("db: Reading %s database", dbinfo.handle[BLOCKDB].name);
+	while ((mdb_rc = mdb_cursor_get(cursor, &key_hash, &data_block, op)) == MDB_SUCCESS) {
+		read_block(data_block.mv_data, data_block.mv_size);
+		op = MDB_NEXT;
+	}
+
+	mdb_cursor_close(cursor);
+	mdb_txn_abort(txn);
+	return true;
+
+err_abort:
+	mdb_txn_abort(txn);
 err_out:
 	log_error("db: %s", mdb_strerror(mdb_rc));
 	return false;

@@ -424,7 +424,9 @@ static bool nc_msg_block(struct nc_conn *conn)
 		goto out;
 	}
 
-    if (!conn->nci->block_process(&block, &conn->msg.hdr, &buf))
+    struct const_buffer ser_data = { conn->msg.data, conn->msg.hdr.data_len };
+
+    if (!conn->nci->block_process(&block, &ser_data))
     goto out;
 
 	rc = true;

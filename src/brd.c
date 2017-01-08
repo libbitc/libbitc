@@ -26,23 +26,17 @@
 #include <event.h>                     // for event_base_dispatch, etc
 
 #include <assert.h>                     // for assert
-#include <stdbool.h>                    // for bool
+#include <stdbool.h>                    // for false, bool, true
 #include <ctype.h>                      // for isspace
 #include <errno.h>                      // for errno
 #include <fcntl.h>                      // for open
 #include <signal.h>                     // for signal, SIG_IGN, SIGHUP, etc
-#include <stddef.h>                     // for size_t
-#include <stdio.h>                      // for fprintf, NULL, fclose, etc
+#include <stddef.h>                     // for NULL, size_t
+#include <stdio.h>                      // for fclose, fopen, ferror, etc
 #include <stdlib.h>                     // for exit, free, calloc
-#include <string.h>                     // for strerror, strcmp, strlen, etc
+#include <string.h>                     // for strcmp, strlen, strdup, etc
 #include <sys/uio.h>                    // for iovec, writev
-#include <unistd.h>                     // for lseek64, access, lseek, etc
-
-#ifdef __APPLE__
-#  define off64_t off_t
-#  define lseek64 lseek
-#endif
-
+#include <unistd.h>                     // for for access, F_OK
 
 #if defined(__GNUC__)
 /* For add_orphan */
@@ -60,7 +54,6 @@ bool debugging = false;
 static struct blkdb db;
 static struct bitc_hashtab *orphans;
 static struct bitc_utxo_set uset;
-static int blocks_fd = -1;
 static bool script_verf = false;
 static unsigned int net_conn_timeout = 11;
 struct net_child_info global_nci;
@@ -70,11 +63,10 @@ static const char *const_settings[] = {
 	"chain=bitcoin",
 	"peers=brd.peers",
 	/* "blkdb=brd.blkdb", */
-	"blocks=brd.blocks",
 	"log=-", /* "log=brd.log", */
 };
 
-static bool block_process(const struct bitc_block *block, int64_t fpos);
+static bool block_process(const struct bitc_block *block);
 static bool have_orphan(const bu256_t *v);
 static bool add_orphan(const bu256_t *hash_in, struct const_buffer *buf_in);
 
@@ -213,6 +205,8 @@ static void init_log(void)
 
 static void init_blkdb(void)
 {
+	char hexstr[BU256_STRSZ];
+
 	if (!blkdb_init(&db, chain->netmagic, &chain_genesis)) {
 		log_info("%s: blkdb init failed", prog_name);
 		exit(1);
@@ -231,7 +225,7 @@ static void init_blkdb(void)
 	db.fd = open(blkdb_fn,
 		     O_WRONLY | O_APPEND | O_CREAT | O_LARGEFILE, 0666);
 	if (db.fd < 0) {
-		log_info("%s: blkdb file open failed: %s", prog_name, strerror(errno));
+		log_error("%s: blkdb file open failed: %s", prog_name, strerror(errno));
 		exit(1);
 	}
 
@@ -241,9 +235,10 @@ static void init_blkdb(void)
 static void init_db(void)
 {
 	if (!metadb_init(chain->netmagic, &chain_genesis) || !blockdb_init()) {
-		log_info("%s: db init failed", prog_name);
+		log_error("%s: db init failed", prog_name);
 		exit(1);
 	}
+
 }
 static const char *genesis_bitcoin =
 "0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a29ab5f49ffff001d1dac2b7c0101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4d04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73ffffffff0100f2052a01000000434104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac00000000";
@@ -271,47 +266,15 @@ static void init_block0(void)
 	size_t genesis_rawlen = strlen(genesis_hex) / 2;
 	char genesis_raw[genesis_rawlen];
 	if (!decode_hex(genesis_raw, sizeof(genesis_raw), genesis_hex, &olen)) {
-		log_info("%s: chain hex decode fail", prog_name);
+		log_error("%s: chain hex decode fail", prog_name);
 		exit(1);
 	}
 
-	cstring *msg0 = message_str(chain->netmagic, "block",
-				    genesis_raw, genesis_rawlen);
-	ssize_t bwritten = write(blocks_fd, msg0->str, msg0->len);
-	if (bwritten != msg0->len) {
-		log_info("%s: blocks write0 failed: %s", prog_name, strerror(errno));
-		exit(1);
-	}
-	cstr_free(msg0, true);
+	init_db();
 
-	off64_t fpos64 = lseek64(blocks_fd, 0, SEEK_SET);
-	if (fpos64 == (off64_t)-1) {
-		log_info("%s: blocks lseek0 failed: %s", prog_name, strerror(errno));
-		exit(1);
-	}
-	log_info("blocks: genesis block written");
-}
-
-static void init_blocks(void)
-{
-	char *blocks_fn = setting("blocks");
-	if (!blocks_fn)
-		return;
-
-	blocks_fd = open(blocks_fn, O_RDWR | O_CREAT | O_LARGEFILE, 0666);
-	if (blocks_fd < 0) {
-		log_info("%s: blocks file open failed: %s", prog_name, strerror(errno));
-		exit(1);
-	}
-
-	off64_t flen = lseek64(blocks_fd, 0, SEEK_END);
-	if (flen == (off64_t)-1) {
-		log_info("%s: blocks file lseek64 failed: %s", prog_name, strerror(errno));
-		exit(1);
-	}
-
-	if (flen == 0)
-		init_block0();
+	struct const_buffer buf0 = { genesis_raw, genesis_rawlen };
+	if (blockdb_add(&chain_genesis, &buf0))
+		log_info("%s: Genesis block written to block database", prog_name);
 }
 
 static bool spend_tx(struct bitc_utxo_set *uset, const struct bitc_tx *tx,
@@ -395,7 +358,7 @@ static bool spend_block(struct bitc_utxo_set *uset, const struct bitc_block *blo
 		if (!spend_tx(uset, tx, i, height)) {
 			char hexstr[BU256_STRSZ];
 			bu256_hex(hexstr, &tx->sha256);
-			log_info("%s: spent_block tx fail %s", prog_name, hexstr);
+			log_error("%s: spent_block tx fail %s", prog_name, hexstr);
 			return false;
 		}
 	}
@@ -403,20 +366,21 @@ static bool spend_block(struct bitc_utxo_set *uset, const struct bitc_block *blo
 	return true;
 }
 
-static bool block_process(const struct bitc_block *block, int64_t fpos)
+static bool block_process(const struct bitc_block *block)
 {
 	struct blkinfo *bi = bi_new();
 	bu256_copy(&bi->hash, &block->sha256);
 	bitc_block_copy_hdr(&bi->hdr, block);
 	bi->n_file = 0;
-	bi->n_pos = fpos;
+	char hexstr[BU256_STRSZ];
+	bu256_hex(hexstr, &bi->hash);
 
 	struct blkdb_reorg reorg;
 
 	if (!blkdb_add(&db, bi, &reorg)) {
-		log_info("%s: blkdb add fail", prog_name);
+		log_error("%s: Add block %s to blkdb fail", prog_name, hexstr);
 		goto err_out;
-	}
+	} else log_debug("%s: Add block %s to blkdb success", prog_name, hexstr);
 
 	/* FIXME: support reorg */
 	assert(reorg.conn == 1);
@@ -443,21 +407,15 @@ err_out:
 	return false;
 }
 
-static bool read_block_msg(struct p2p_message *msg, int64_t fpos)
+static bool read_block(void *p, size_t len)
 {
-	/* unknown records are invalid */
-	if (strncmp(msg->hdr.command, "block",
-		    sizeof(msg->hdr.command)))
-		return false;
-
 	bool rc = false;
 
 	struct bitc_block block;
 	bitc_block_init(&block);
-
-	struct const_buffer buf = { msg->data, msg->hdr.data_len };
+	struct const_buffer buf = { p, len };
 	if (!deser_bitc_block(&block, &buf)) {
-		log_info("%s: block deser fail", prog_name);
+		log_error("%s: block deser fail", prog_name);
 		goto out;
 	}
 	bitc_block_calc_sha256(&block);
@@ -467,60 +425,14 @@ static bool read_block_msg(struct p2p_message *msg, int64_t fpos)
 		goto out;
 	}
 
-	rc = block_process(&block, fpos);
+	/* used at runtime */
+	bool		sha256_valid;
+	bu256_t		sha256;
+	rc = block_process(&block);
 
 out:
 	bitc_block_free(&block);
 	return rc;
-}
-
-static void read_blocks(void)
-{
-	int fd = blocks_fd;
-
-	struct p2p_message msg = {};
-	bool read_ok = true;
-	int64_t fpos = 0;
-	while (fread_message(fd, &msg, &read_ok)) {
-		if (memcmp(msg.hdr.netmagic, chain->netmagic, 4)) {
-			log_info("blocks file: invalid network magic");
-			exit(1);
-		}
-
-		if (!read_block_msg(&msg, fpos))
-			exit(1);
-
-		fpos += P2P_HDR_SZ;
-		fpos += msg.hdr.data_len;
-	}
-
-	if (!read_ok) {
-		log_info("blocks file: read failed");
-		exit(1);
-	}
-
-	free(msg.data);
-}
-
-static void readprep_blocks_file(void)
-{
-	/* if no blk index, but blocks are present, read and index
-	 * all block data (several gigabytes)
-	 */
-	if (blocks_fd >= 0) {
-		if (db.fd < 0)
-			read_blocks();
-		else {
-			/* TODO: verify that blocks file offsets are
-			 * present in blkdb */
-
-			if (lseek(blocks_fd, 0, SEEK_END) == (off_t)-1) {
-				log_info("blocks file: seek failed: %s",
-					strerror(errno));
-				exit(1);
-			}
-		}
-	}
 }
 
 static void init_orphans(void)
@@ -595,38 +507,17 @@ static bool inv_block_process(bu256_t *hash)
 			    !have_orphan(hash));
 }
 
-static bool add_block(struct bitc_block *block, struct p2p_message_hdr *hdr, struct const_buffer *buf)
+static bool add_block(struct bitc_block *block, struct const_buffer *buf)
 {
     /* check for duplicate block */
     if (blkdb_lookup(&db, &block->sha256) ||
         have_orphan(&block->sha256))
         return true;
 
-    struct iovec iov[2];
-    iov[0].iov_base = &hdr;	// TODO: endian bug?
-    iov[0].iov_len = sizeof(hdr);
-    iov[1].iov_base = (void *) buf->p;	// cast away 'const'
-    iov[1].iov_len = buf->len;
-    size_t total_write = iov[0].iov_len + iov[1].iov_len;
-
-    /* store current file position */
-    off64_t fpos64 = lseek64(blocks_fd, 0, SEEK_CUR);
-    if (fpos64 == (off64_t)-1) {
-		log_info("blocks: lseek64 failed %s", strerror(errno));
-		return false;
-    }
-
-    /* write new block to disk */
-    errno = 0;
-    ssize_t bwritten = writev(blocks_fd, iov, ARRAY_SIZE(iov));
-    if (bwritten != total_write) {
-		log_info("blocks: write failed %s", strerror(errno));
-        return false;
-    }
-
+	blockdb_add(&block->sha256, buf);
     /* process block */
-    if (!block_process(block, fpos64)) {
-        log_info("blocks: process-block failed");
+    if (!block_process(block)) {
+        log_info("%s: process-block failed", prog_name);
         return false;
     }
 
@@ -655,10 +546,10 @@ static void init_daemon(struct net_child_info *nci)
 {
 	init_blkdb();
 	bitc_utxo_set_init(&uset);
-	init_db();
-	init_blocks();
+	init_block0();
 	init_orphans();
-	readprep_blocks_file();
+	if (db.fd < 0)
+		blockdb_getall(read_block);
 	init_nci(nci);
 }
 
@@ -683,7 +574,7 @@ static void shutdown_nci(struct net_child_info *nci)
 static void shutdown_daemon(struct net_child_info *nci)
 {
 	bool rc = peerman_write(nci->peers, setting("peers"), chain);
-	log_info("blocks: %s %u/%zu peers",
+	log_info("%s: %s %u/%zu peers", prog_name,
 		rc ? "wrote" : "failed to write",
 		bitc_hashtab_size(nci->peers->map_addr),
 		clist_length(nci->peers->addrlist));

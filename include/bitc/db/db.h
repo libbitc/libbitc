@@ -9,7 +9,9 @@
 #include <bitc/core.h>                  // for bp_block
 
 #include <lmdb.h>                       // for MDB_dbi, MDB_env
+
 #include <stdbool.h>                    // for bool
+#include <stddef.h>                     // for size_t
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,6 +51,8 @@ struct db_info {
 extern bool metadb_init(const unsigned char *netmagic,
 		       const bu256_t *genesis_block);
 extern bool blockdb_init(void);
+extern bool blockdb_add(bu256_t *hash, struct const_buffer *buf);
+bool blockdb_getall(bool (*read_block)(void *p, size_t len));
 extern void db_close(void);
 
 #ifdef __cplusplus
