@@ -39,3 +39,5 @@ wallet-basics
 *.trs
 *.log
 aes_util.dat
+*.mdb
+*.mdb-lock

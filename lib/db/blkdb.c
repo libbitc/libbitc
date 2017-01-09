@@ -8,6 +8,7 @@
 #include <bitc/compat.h>                // for fdatasync
 #include <bitc/cstr.h>                  // for cstring, cstr_free, etc
 #include <bitc/db/blkdb.h>              // for blkinfo, blkdb, blkdb_reorg, etc
+#include <bitc/log.h>                   // for log_debug, log_info
 #include <bitc/mbr.h>                   // for fread_message
 #include <bitc/message.h>               // for p2p_message, message_str, etc
 #include <bitc/serialize.h>             // for deser_u256, ser_u256, etc
@@ -19,6 +20,8 @@
 #include <string.h>                     // for memset, memcpy, strncmp, etc
 #include <unistd.h>                     // for close, fdatasync, write, etc
 
+
+struct logging *log_state;
 
 struct blkinfo *bi_new(void)
 {
@@ -73,6 +76,7 @@ static bool blkdb_connect(struct blkdb *db, struct blkinfo *bi,
 		return false;
 
 	bool rc = false;
+	char hexstr[BU256_STRSZ];
 	mpz_t cur_work;
 	mpz_init(cur_work);
 
@@ -110,6 +114,7 @@ static bool blkdb_connect(struct blkdb *db, struct blkinfo *bi,
 
 	/* add to block map */
 	bitc_hashtab_put(db->blocks, &bi->hash, bi);
+	blockheightdb_add(bi->height, &bi->hash);
 
 	/* if new best chain found, update pointers */
 	if (best_chain) {
@@ -150,9 +155,13 @@ static bool blkdb_connect(struct blkdb *db, struct blkinfo *bi,
 
 		/* reorg analyzed. update database's best-chain pointer */
 		db->best_chain = bi;
-	}
 
+		bu256_hex(hexstr, &db->best_chain->hdr.sha256);
+		log_info("blkdb: New best = %s Height = %i",hexstr, bi->height);
+	}
 	rc = true;
+	bu256_hex(hexstr, &bi->hdr.sha256);
+	log_debug("blkdb: Adding block %s to blkdb successful", hexstr);
 
 out:
 	mpz_clear(cur_work);

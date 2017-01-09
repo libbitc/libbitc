@@ -28,6 +28,7 @@ enum {
 enum db_list {
 	METADB,
 	BLOCKDB,
+	BLOCKHEIGHTDB,
 	MAX_NUM_DBS,
 };
 
@@ -50,9 +51,14 @@ struct db_info {
 
 extern bool metadb_init(const unsigned char *netmagic,
 		       const bu256_t *genesis_block);
+
 extern bool blockdb_init(void);
 extern bool blockdb_add(bu256_t *hash, struct const_buffer *buf);
-bool blockdb_getall(bool (*read_block)(void *p, size_t len));
+
+extern bool blockheightdb_init(void);
+extern bool blockheightdb_add(int height, bu256_t *hash);
+extern bool blockheightdb_getall(bool (*read_block)(void *p, size_t len));
+
 extern void db_close(void);
 
 #ifdef __cplusplus

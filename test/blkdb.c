@@ -10,6 +10,7 @@
 #include <bitc/coredefs.h>              // for chain_info, chain_metadata, etc
 #include <bitc/db/blkdb.h>              // for blkinfo, blkdb, blkdb_reorg, etc
 #include <bitc/key.h>                   // for bitc_key_static_shutdown
+#include <bitc/log.h>                   // for logging
 #include <bitc/util.h>                  // for file_seq_open
 #include "libtest.h"                    // for test_filename
 
@@ -98,11 +99,25 @@ static void runtest(const char *ser_base_fn, const struct chain_info *chain,
 
 int main (int argc, char *argv[])
 {
+	log_state = calloc(0, sizeof(struct logging));
+
+	log_state->stream = stderr;
+	log_state->logtofile = false;
+	log_state->debug = true;
+
+	assert(metadb_init(chain_metadata[CHAIN_BITCOIN].netmagic, chain_metadata[CHAIN_BITCOIN].genesis_hash));
+	assert(blockdb_init());
+	assert(blockheightdb_init());
 	runtest("data/hdr193000.ser", &chain_metadata[CHAIN_BITCOIN], 193000,
 	    "000000000000059f452a5f7340de6682a977387c17010ff6e6c3bd83ca8b1317");
+
+	assert(metadb_init(chain_metadata[CHAIN_TESTNET3].netmagic, chain_metadata[CHAIN_TESTNET3].genesis_hash));
+	assert(blockdb_init());
+	assert(blockheightdb_init());
 	runtest("data/tn_hdr35141.ser", &chain_metadata[CHAIN_TESTNET3], 35141,
 	    "0000000000dde6ce4b9ad1e2a5be59f1b7ace6ef8d077d846263b0bfbc984f7f");
 
 	bitc_key_static_shutdown();
+	free(log_state);
 	return 0;
 }

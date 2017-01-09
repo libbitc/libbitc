@@ -234,7 +234,10 @@ static void init_blkdb(void)
 
 static void init_db(void)
 {
-	if (!metadb_init(chain->netmagic, &chain_genesis) || !blockdb_init()) {
+	if (!metadb_init(chain->netmagic, &chain_genesis) ||
+		!blockdb_init() ||
+		!blockheightdb_init())
+		{
 		log_error("%s: db init failed", prog_name);
 		exit(1);
 	}
@@ -273,8 +276,10 @@ static void init_block0(void)
 	init_db();
 
 	struct const_buffer buf0 = { genesis_raw, genesis_rawlen };
-	if (blockdb_add(&chain_genesis, &buf0))
+	if (blockdb_add(&chain_genesis, &buf0)) {
 		log_info("%s: Genesis block written to block database", prog_name);
+		blockheightdb_add(0, &chain_genesis);
+	}
 }
 
 static bool spend_tx(struct bitc_utxo_set *uset, const struct bitc_tx *tx,
@@ -378,9 +383,9 @@ static bool block_process(const struct bitc_block *block)
 	struct blkdb_reorg reorg;
 
 	if (!blkdb_add(&db, bi, &reorg)) {
-		log_error("%s: Add block %s to blkdb fail", prog_name, hexstr);
+		log_debug("%s: Adding block %s to blkdb failed", prog_name, hexstr);
 		goto err_out;
-	} else log_debug("%s: Add block %s to blkdb success", prog_name, hexstr);
+	}
 
 	/* FIXME: support reorg */
 	assert(reorg.conn == 1);
@@ -395,7 +400,6 @@ static bool block_process(const struct bitc_block *block)
 				prog_name,
 				bi->height, hexstr);
 			/* FIXME: bad record is now in blkdb */
-
 			goto err_out;
 		}
 	}
@@ -516,10 +520,8 @@ static bool add_block(struct bitc_block *block, struct const_buffer *buf)
 
 	blockdb_add(&block->sha256, buf);
     /* process block */
-    if (!block_process(block)) {
-        log_info("%s: process-block failed", prog_name);
+    if (!block_process(block))
         return false;
-    }
 
     return true;
 
@@ -549,7 +551,7 @@ static void init_daemon(struct net_child_info *nci)
 	init_block0();
 	init_orphans();
 	if (db.fd < 0)
-		blockdb_getall(read_block);
+		blockheightdb_getall(read_block);
 	init_nci(nci);
 }
 

@@ -23,6 +23,8 @@ check_PROGRAMS = aes-util base58 blkdb block blockfile bloom \
 
 TESTS = $(check_PROGRAMS)
 
+CLEANFILES  = *.mdb *.mdb-lock
+
 COMMON_LDADD = libtest.la \
 	$(top_builddir)/lib/libbitc.la \
 	$(top_builddir)/external/secp256k1/libsecp256k1.la \

@@ -15,7 +15,8 @@
 
 struct db_info dbinfo = {NULL,
 	{[METADB] = {"metadb", (MDB_dbi) 0, false},
-	[BLOCKDB] = {"blockdb", (MDB_dbi) 0, false},}
+	[BLOCKDB] = {"blockdb", (MDB_dbi) 0, false},
+	[BLOCKHEIGHTDB] = {"blockheightdb", (MDB_dbi) 0, false},}
 };
 
 long get_pagesize()
@@ -102,7 +103,7 @@ err_abort:
 err_close:
 	db_close();
 err_out:
-	log_error("db: %s", mdb_strerror(mdb_rc));
+	log_error("db: Database %s error '%s'", dbinfo.handle[METADB].name, mdb_strerror(mdb_rc));
 	return false;
 }
 
@@ -126,10 +127,9 @@ err_abort:
 err_close:
 	db_close();
 err_out:
-	log_error("db: %s", mdb_strerror(mdb_rc));
+	log_error("db: Database %s error '%s'", dbinfo.handle[BLOCKDB].name, mdb_strerror(mdb_rc));
 	return false;
 }
-
 
 bool blockdb_add(bu256_t *hash, struct const_buffer *buf)
 {
@@ -137,7 +137,6 @@ bool blockdb_add(bu256_t *hash, struct const_buffer *buf)
 	MDB_txn *txn;
 	MDB_val key_hash, data_block;
 	char hexstr[BU256_STRSZ];
-	bu256_hex(hexstr, hash);
 
 	key_hash.mv_size = sizeof(bu256_t);
 	key_hash.mv_data = hash;
@@ -145,8 +144,14 @@ bool blockdb_add(bu256_t *hash, struct const_buffer *buf)
 	data_block.mv_data = (void *)buf->p;
 
 	if ((mdb_rc = mdb_txn_begin(dbinfo.env, NULL, 0, &txn)) != MDB_SUCCESS) goto err_out;
-	if (((mdb_rc = mdb_put(txn, dbinfo.handle[BLOCKDB].dbi, &key_hash, &data_block, MDB_NOOVERWRITE | MDB_APPEND)) != MDB_SUCCESS) && (mdb_rc != MDB_KEYEXIST)) goto err_abort;
-	if (mdb_rc == MDB_SUCCESS) { log_info("db: Adding block %s to %s database", hexstr, dbinfo.handle[BLOCKDB].name); }
+	if (((mdb_rc = mdb_put(txn, dbinfo.handle[BLOCKDB].dbi, &key_hash, &data_block, MDB_NOOVERWRITE)) != MDB_SUCCESS) && (mdb_rc != MDB_KEYEXIST)) goto err_abort;
+	bu256_hex(hexstr, key_hash.mv_data);
+	if (mdb_rc == MDB_SUCCESS) {
+		log_info("db: Adding block %s to %s database", hexstr, dbinfo.handle[BLOCKDB].name);
+	} else if (mdb_rc == MDB_KEYEXIST) {
+		log_debug("db: Block %s already exists in %s database", hexstr, dbinfo.handle[BLOCKDB].name);
+	}
+
 	if ((mdb_rc = mdb_txn_commit(txn)) != MDB_SUCCESS) goto err_out;
 
 	return true;
@@ -154,35 +159,94 @@ bool blockdb_add(bu256_t *hash, struct const_buffer *buf)
 err_abort:
 	mdb_txn_abort(txn);
 err_out:
-	log_error("db: %s", mdb_strerror(mdb_rc));
+	log_error("db: Database %s error '%s'", dbinfo.handle[BLOCKDB].name, mdb_strerror(mdb_rc));
 	return false;
 }
 
-bool blockdb_getall(bool (*read_block)(void *p, size_t len))
+bool blockheightdb_init(void)
 {
 	int mdb_rc;
 	MDB_txn *txn;
-	MDB_cursor *cursor;
+
+	if ((mdb_rc = mdb_txn_begin(dbinfo.env, NULL, 0, &txn)) != MDB_SUCCESS) goto err_out;
+
+	log_info("db: Opening %s database", dbinfo.handle[BLOCKHEIGHTDB].name);
+	if ((mdb_rc = mdb_dbi_open(txn, dbinfo.handle[BLOCKHEIGHTDB].name, MDB_CREATE | MDB_INTEGERKEY, &dbinfo.handle[BLOCKHEIGHTDB].dbi)) != MDB_SUCCESS) goto err_abort;
+	dbinfo.handle[BLOCKHEIGHTDB].open = true;
+
+	if ((mdb_rc = mdb_txn_commit(txn)) != MDB_SUCCESS) goto err_close;
+
+	return true;
+
+err_abort:
+	mdb_txn_abort(txn);
+err_close:
+	db_close();
+err_out:
+	log_error("db: Database %s error '%s'", dbinfo.handle[BLOCKHEIGHTDB].name, mdb_strerror(mdb_rc));
+	return false;
+}
+
+bool blockheightdb_add(int height, bu256_t *hash)
+{
+	int mdb_rc;
+	MDB_txn *txn;
+	MDB_val key_height, data_hash;
+	char hexstr[BU256_STRSZ];
+	bu256_hex(hexstr, hash);
+
+	key_height.mv_size = sizeof(int);
+	key_height.mv_data = &height;
+	data_hash.mv_size = sizeof(bu256_t);
+	data_hash.mv_data = hash;
+
+	if ((mdb_rc = mdb_txn_begin(dbinfo.env, NULL, 0, &txn)) != MDB_SUCCESS) goto err_out;
+	if (((mdb_rc = mdb_put(txn, dbinfo.handle[BLOCKHEIGHTDB].dbi, &key_height, &data_hash, MDB_APPEND)) != MDB_SUCCESS) && (mdb_rc != MDB_KEYEXIST)) goto err_abort;
+	if (mdb_rc == MDB_SUCCESS) {
+		log_debug("db: Adding %s with height %i to %s database", hexstr, *(int *)key_height.mv_data, dbinfo.handle[BLOCKHEIGHTDB].name);
+	} else if (mdb_rc == MDB_KEYEXIST) {
+		log_debug("db: Updating block height %i with hash %s in %s database", *(int *)key_height.mv_data, hexstr, dbinfo.handle[BLOCKHEIGHTDB].name);
+	}
+	if ((mdb_rc = mdb_txn_commit(txn)) != MDB_SUCCESS) goto err_out;
+
+	return true;
+
+err_abort:
+	mdb_txn_abort(txn);
+err_out:
+	log_error("db: Database %s error '%s'", dbinfo.handle[BLOCKHEIGHTDB].name, mdb_strerror(mdb_rc));
+	return false;
+}
+
+bool blockheightdb_getall(bool (*read_block)(void *p, size_t len))
+{
+	int mdb_rc;
+	MDB_txn *txn;
+	MDB_cursor *cursorheight;
 	MDB_cursor_op op = MDB_FIRST;
-	MDB_val key_hash, data_block;
+	MDB_val key_height, data_hash, data_block;
 
 	if ((mdb_rc = mdb_txn_begin(dbinfo.env, NULL, MDB_RDONLY, &txn)) != MDB_SUCCESS) goto err_out;
-	if ((mdb_rc = mdb_cursor_open(txn, dbinfo.handle[BLOCKDB].dbi, &cursor)) != MDB_SUCCESS) goto err_abort;
+	if ((mdb_rc = mdb_cursor_open(txn, dbinfo.handle[BLOCKHEIGHTDB].dbi, &cursorheight)) != MDB_SUCCESS) goto err_abort;
 
-	log_info("db: Reading %s database", dbinfo.handle[BLOCKDB].name);
-	while ((mdb_rc = mdb_cursor_get(cursor, &key_hash, &data_block, op)) == MDB_SUCCESS) {
+	log_info("db: Reading %s database", dbinfo.handle[BLOCKHEIGHTDB].name);
+	while ((mdb_rc = mdb_cursor_get(cursorheight, &key_height, &data_hash, op)) == MDB_SUCCESS) {
+		if ((mdb_rc = mdb_get(txn, dbinfo.handle[BLOCKDB].dbi, &data_hash, &data_block)) != MDB_SUCCESS)
+		{
+			goto err_abort;
+		}
 		read_block(data_block.mv_data, data_block.mv_size);
-		op = MDB_NEXT;
+		if (op != MDB_NEXT) op = MDB_NEXT;
 	}
 
-	mdb_cursor_close(cursor);
+	mdb_cursor_close(cursorheight);
 	mdb_txn_abort(txn);
 	return true;
 
 err_abort:
 	mdb_txn_abort(txn);
 err_out:
-	log_error("db: %s", mdb_strerror(mdb_rc));
+	log_error("db: Database %s error '%s'", dbinfo.handle[BLOCKHEIGHTDB].name, mdb_strerror(mdb_rc));
 	return false;
 }
 
