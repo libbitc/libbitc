@@ -231,10 +231,7 @@ bool blockheightdb_getall(bool (*read_block)(void *p, size_t len))
 
 	log_info("db: Reading %s database", dbinfo.handle[BLOCKHEIGHTDB].name);
 	while ((mdb_rc = mdb_cursor_get(cursorheight, &key_height, &data_hash, op)) == MDB_SUCCESS) {
-		if ((mdb_rc = mdb_get(txn, dbinfo.handle[BLOCKDB].dbi, &data_hash, &data_block)) != MDB_SUCCESS)
-		{
-			goto err_abort;
-		}
+		if ((mdb_rc = mdb_get(txn, dbinfo.handle[BLOCKDB].dbi, &data_hash, &data_block)) != MDB_SUCCESS) goto err_abort;
 		read_block(data_block.mv_data, data_block.mv_size);
 		if (op != MDB_NEXT) op = MDB_NEXT;
 	}
