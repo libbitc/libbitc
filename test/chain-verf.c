@@ -5,14 +5,16 @@
 
 #include "libbitc-config.h"
 
-#include <bitc/db/blkdb.h>              // for blkinfo, blkdb_reorg, etc
 #include <bitc/buffer.h>                // for const_buffer
 #include <bitc/buint.h>                 // for bu256_hex, BU256_STRSZ, etc
+#include <bitc/db/chaindb.h>            // for blkinfo, chaindb_reorg, etc
+#include <bitc/db/db.h>                 // for blockdb_init, etc
 #include <bitc/core.h>                  // for bitc_block, bitc_tx, etc
 #include <bitc/key.h>                   // for bitc_key_static_shutdown
 #include <bitc/parr.h>                  // for parr, parr_idx
 #include <bitc/checkpoints.h>           // for bitc_ckpt_last
 #include <bitc/coredefs.h>              // for chain_info, etc
+#include <bitc/log.h>                   // for logging
 #include <bitc/mbr.h>                   // for fread_block
 #include <bitc/message.h>               // for p2p_message, etc
 #include <bitc/script.h>                // for bitc_verify_sig, etc
@@ -29,6 +31,7 @@
 
 static bool no_script_verf = false;
 static bool force_script_verf = false;
+struct logging *log_state;
 
 static bool spend_tx(struct bitc_utxo_set *uset, const struct bitc_tx *tx,
 		     unsigned int tx_idx, unsigned int height,
@@ -133,7 +136,7 @@ static bool spend_block(struct bitc_utxo_set *uset, const struct bitc_block *blo
 	return true;
 }
 
-static void read_test_msg(struct blkdb *db, struct bitc_utxo_set *uset,
+static void read_test_msg(struct chaindb *db, struct bitc_utxo_set *uset,
 			  const struct p2p_message *msg, int64_t fpos,
 			  unsigned int ckpt_height)
 {
@@ -152,12 +155,10 @@ static void read_test_msg(struct blkdb *db, struct bitc_utxo_set *uset,
 	struct blkinfo *bi = bi_new();
 	bu256_copy(&bi->hash, &block.sha256);
 	bitc_block_copy_hdr(&bi->hdr, &block);
-	bi->n_file = 0;
-	bi->n_pos = fpos + P2P_HDR_SZ;
 
-	struct blkdb_reorg reorg;
+	struct chaindb_reorg reorg;
 
-	assert(blkdb_add(db, bi, &reorg) == true);
+	assert(chaindb_add(db, bi, &reorg) == true);
 
 	assert(reorg.conn == 1);
 	assert(reorg.disconn == 0);
@@ -184,11 +185,15 @@ static void runtest(bool use_testnet, const char *blocks_fn)
 
 	unsigned int ckpt_height = bitc_ckpt_last(chain_id);
 
-	struct blkdb blkdb;
+	struct chaindb chaindb;
 	bu256_t blk0;
 
 	hex_bu256(&blk0, chain->genesis_hash);
-	assert(blkdb_init(&blkdb, chain->netmagic, &blk0) == true);
+	assert(metadb_init(chain_metadata[chain_id].netmagic, (const bu256_t *)chain_metadata[chain_id].genesis_hash));
+	assert(blockdb_init());
+	assert(blockheightdb_init());
+
+	assert(chaindb_init(&chaindb, chain->netmagic, &blk0) == true);
 
 	struct bitc_utxo_set uset;
 	bitc_utxo_set_init(&uset);
@@ -212,7 +217,7 @@ static void runtest(bool use_testnet, const char *blocks_fn)
 	while (fread_block(fd, &msg, &read_ok)) {
 		assert(memcmp(msg.hdr.netmagic, chain->netmagic, 4) == 0);
 
-		read_test_msg(&blkdb, &uset, &msg, fpos, ckpt_height);
+		read_test_msg(&chaindb, &uset, &msg, fpos, ckpt_height);
 
 		fpos += P2P_HDR_SZ;
 		fpos += msg.hdr.data_len;
@@ -224,7 +229,7 @@ static void runtest(bool use_testnet, const char *blocks_fn)
 	close(fd);
 	free(msg.data);
 
-	blkdb_free(&blkdb);
+	chaindb_free(&chaindb);
 	bitc_utxo_set_free(&uset);
 
 	fprintf(stderr, "chain-verf: %u records validated\n", records);
@@ -234,6 +239,12 @@ int main (int argc, char *argv[])
 {
 	char *fn;
 	unsigned int verfd = 0;
+
+	log_state = calloc(0, sizeof(struct logging));
+
+	log_state->stream = stderr;
+	log_state->logtofile = false;
+	log_state->debug = true;
 
 	if (getenv("NO_SCRIPT_VERF"))
 		no_script_verf = true;

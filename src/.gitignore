@@ -8,7 +8,6 @@ brd.peers
 
 bitsy
 bitsy.peers
-bitsy.blkdb
 *.wallet
 
 *.mdb

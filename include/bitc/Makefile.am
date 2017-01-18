@@ -37,7 +37,7 @@ libbitc_la_HEADERS =	\
 libbitcdb_ladir = $(includedir)/bitc/db
 
 libbitcdb_la_HEADERS = \
-		db/blkdb.h \
+		db/chaindb.h \
 		db/db.h
 
 libbitcnet_ladir = $(includedir)/bitc/net

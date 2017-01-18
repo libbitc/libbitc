@@ -5,7 +5,7 @@
 #include "libbitc-config.h"             // for VERSION
 
 #include "bitsy.h"                      // for network_sync, setting
-#include <bitc/db/blkdb.h>              // for blkinfo, blkdb, etc
+#include <bitc/db/chaindb.h>            // for blkinfo, blkdb, etc
 #include <bitc/clist.h>                 // for clist, clist_free_ext, etc
 #include <bitc/compat.h>                // for strndup
 #include <bitc/core.h>                  // for bitc_address
@@ -26,11 +26,11 @@
 #include <assert.h>                     // for assert
 #include <stdbool.h>                    // for bool
 #include <ctype.h>                      // for isspace
-#include <errno.h>                      // for errno
-#include <fcntl.h>                      // for open
 #include <stdio.h>                      // for fprintf, printf, NULL, etc
+#include <stdint.h>                     // for uint64_t
 #include <stdlib.h>                     // for free, exit
 #include <string.h>                     // for strcmp, strdup, strlen, etc
+#include <unistd.h>                     // for sleep
 
 enum command_type {
 	CMD_CHAIN_SET,
@@ -56,7 +56,7 @@ bool debugging = false;
 static enum command_type opt_command = CMD_WALLET_INFO;
 static const char *opt_arg1 = NULL;
 
-static struct blkdb db;
+static struct chaindb db;
 static unsigned int net_conn_timeout = 60;
 struct wallet *cur_wallet;
 
@@ -67,7 +67,6 @@ static const char *const_settings[] = {
 	"wallet=bitsy.wallet",
 	"chain=bitcoin",
 	"peers=bitsy.peers",
-	"blkdb=bitsy.blkdb",
 };
 
 /* Command line arguments and processing */
@@ -515,31 +514,14 @@ static void init_peers(struct net_child_info *nci)
 	nci->peers = peers;
 }
 
-static void init_blkdb(void)
+static void init_chaindb(void)
 {
-	if (!blkdb_init(&db, chain->netmagic, &chain_genesis)) {
-		log_info("%s: blkdb init failed", prog_name);
+	if (!chaindb_init(&db, chain->netmagic, &chain_genesis)) {
+		log_info("%s: chaindb init failed", prog_name);
 		exit(1);
 	}
 
-	char *blkdb_fn = setting("blkdb");
-	if (!blkdb_fn)
-		return;
-
-	if ((access(blkdb_fn, F_OK) == 0) &&
-	    !blkdb_read(&db, blkdb_fn)) {
-		log_info("%s: blkdb read failed", prog_name);
-		exit(1);
-	}
-
-	db.fd = open(blkdb_fn,
-		     O_WRONLY | O_APPEND | O_CREAT | O_LARGEFILE, 0666);
-	if (db.fd < 0) {
-		log_info("%s: blkdb file open failed: %s", prog_name, strerror(errno));
-		exit(1);
-	}
-
-    log_debug("%s: blkdb opened", prog_name);
+    log_debug("%s: chaindb opened", prog_name);
 }
 
 static void shutdown_nci(struct net_child_info *nci)
@@ -591,7 +573,7 @@ static void network_child(int read_fd, int write_fd)
 		event_base_dispatch(nci.eb);
     }
 
-    init_blkdb();
+    init_chaindb();
     init_peers(&nci);
 
 
@@ -603,7 +585,7 @@ static void network_child(int read_fd, int write_fd)
 
 	/* cleanup: just the minimum for file I/O correctness */
 	peerman_write(nci.peers, setting("peers"), nci.chain);
-	blkdb_free(nci.db);
+	chaindb_free(nci.db);
 	shutdown_nci(&nci);
 	exit(0);
 }

@@ -61,7 +61,7 @@ noinst_LTLIBRARIES = libbitcdb.la libbitcnet.la libbitcwallet.la
 libbitcdb_la_LIBADD = $(top_builddir)/external/lmdb/libraries/liblmdb/liblmdb.la
 
 libbitcdb_la_SOURCES=	\
-			db/blkdb.c  \
+			db/chaindb.c  \
 			db/db.c
 
 libbitcnet_la_LIBADD = $(top_builddir)/external/libev/libev.la

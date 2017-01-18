@@ -3,10 +3,10 @@ libtest.a
 
 aes-util
 base58
-blkdb
 block
 blockfile
 bloom
+chaindb
 chain-verf
 clist
 coredefs

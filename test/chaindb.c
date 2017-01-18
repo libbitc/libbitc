@@ -6,9 +6,10 @@
 
 #include <bitc/buffer.h>                // for const_buffer
 #include <bitc/buint.h>                 // for hex_bu256, bu256_copy, etc
+#include <bitc/db/chaindb.h>            // for blkinfo, blkdb, blkdb_reorg, etc
+#include <bitc/db/db.h>                 // for blockdb_init, etc
 #include <bitc/core.h>                  // for bitc_block_calc_sha256, etc
 #include <bitc/coredefs.h>              // for chain_info, chain_metadata, etc
-#include <bitc/db/blkdb.h>              // for blkinfo, blkdb, blkdb_reorg, etc
 #include <bitc/key.h>                   // for bitc_key_static_shutdown
 #include <bitc/log.h>                   // for logging
 #include <bitc/util.h>                  // for file_seq_open
@@ -19,7 +20,7 @@
 #include <stdlib.h>                     // for free, NULL
 #include <unistd.h>                     // for close, read
 
-static void add_header(struct blkdb *db, char *raw)
+static void add_header(struct chaindb *db, char *raw)
 {
 	struct const_buffer buf = { raw, 80 };
 
@@ -32,15 +33,15 @@ static void add_header(struct blkdb *db, char *raw)
 
 	bu256_copy(&bi->hash, &bi->hdr.sha256);
 
-	struct blkdb_reorg reorg;
+	struct chaindb_reorg reorg;
 
-	assert(blkdb_add(db, bi, &reorg) == true);
+	assert(chaindb_add(db, bi, &reorg) == true);
 
 	assert(reorg.conn == 1);
 	assert(reorg.disconn == 0);
 }
 
-static void read_headers(const char *ser_base_fn, struct blkdb *db)
+static void read_headers(const char *ser_base_fn, struct chaindb *db)
 {
 	char *filename = test_filename(ser_base_fn);
 	int fd = file_seq_open(filename);
@@ -56,7 +57,7 @@ static void read_headers(const char *ser_base_fn, struct blkdb *db)
 	free(filename);
 }
 
-static void test_blkinfo_prev(struct blkdb *db)
+static void test_blkinfo_prev(struct chaindb *db)
 {
 	struct blkinfo *tmp = db->best_chain;
 	int height = db->best_chain->height;
@@ -74,13 +75,13 @@ static void test_blkinfo_prev(struct blkdb *db)
 static void runtest(const char *ser_base_fn, const struct chain_info *chain,
 		    unsigned int check_height, const char *check_hash)
 {
-	struct blkdb db;
+	struct chaindb db;
 
 	bu256_t block0;
 	bool rc = hex_bu256(&block0, chain->genesis_hash);
 	assert(rc);
 
-	rc = blkdb_init(&db, chain->netmagic, &block0);
+	rc = chaindb_init(&db, chain->netmagic, &block0);
 	assert(rc);
 
 	read_headers(ser_base_fn, &db);
@@ -94,7 +95,7 @@ static void runtest(const char *ser_base_fn, const struct chain_info *chain,
 
 	test_blkinfo_prev(&db);
 
-	blkdb_free(&db);
+	chaindb_free(&db);
 }
 
 int main (int argc, char *argv[])
@@ -105,13 +106,13 @@ int main (int argc, char *argv[])
 	log_state->logtofile = false;
 	log_state->debug = true;
 
-	assert(metadb_init(chain_metadata[CHAIN_BITCOIN].netmagic, chain_metadata[CHAIN_BITCOIN].genesis_hash));
+	assert(metadb_init(chain_metadata[CHAIN_BITCOIN].netmagic, (const bu256_t *)chain_metadata[CHAIN_BITCOIN].genesis_hash));
 	assert(blockdb_init());
 	assert(blockheightdb_init());
 	runtest("data/hdr193000.ser", &chain_metadata[CHAIN_BITCOIN], 193000,
 	    "000000000000059f452a5f7340de6682a977387c17010ff6e6c3bd83ca8b1317");
 
-	assert(metadb_init(chain_metadata[CHAIN_TESTNET3].netmagic, chain_metadata[CHAIN_TESTNET3].genesis_hash));
+	assert(metadb_init(chain_metadata[CHAIN_TESTNET3].netmagic, (const bu256_t *)chain_metadata[CHAIN_TESTNET3].genesis_hash));
 	assert(blockdb_init());
 	assert(blockheightdb_init());
 	runtest("data/tn_hdr35141.ser", &chain_metadata[CHAIN_TESTNET3], 35141,

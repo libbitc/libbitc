@@ -6,7 +6,7 @@
 
 #include <bitc/net/net.h>              // for nc_conn, net_child_info, etc
 #include <bitc/net/netbase.h>          // for bn_address_str, etc
-#include <bitc/db/blkdb.h>             // for blkdb, blkdb_locator, etc
+#include <bitc/db/chaindb.h>           // for blkdb, blkdb_locator, etc
 #include <bitc/buffer.h>               // for buffer, const_buffer
 #include <bitc/core.h>                 // for bitc_address, bitc_inv, etc
 #include <bitc/coredefs.h>             // for ::CADDR_TIME_VERSION, etc
@@ -318,7 +318,7 @@ static bool nc_msg_verack(struct nc_conn *conn)
 	if (conn->nci->last_getblocks < cutoff) {
 		struct msg_getblocks gb;
 		msg_getblocks_init(&gb);
-		blkdb_locator(conn->nci->db, NULL, &gb.locator);
+		chaindb_locator(conn->nci->db, NULL, &gb.locator);
 		cstring *s = ser_msg_getblocks(&gb);
 
 		rc = nc_conn_send(conn, "getblocks", s->str, s->len);

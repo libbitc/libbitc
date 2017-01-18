@@ -35,7 +35,6 @@ enum db_list {
 enum metadb_key {
 	NETMAGIC_KEY,
 	GENESIS_KEY,
-	BEST_KEY,
 };
 
 struct db_handle {

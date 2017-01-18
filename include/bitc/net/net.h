@@ -50,7 +50,7 @@ struct net_child_info {
 	int			write_fd;
 
 	struct peer_manager	*peers;
-	struct blkdb		*db;
+	struct chaindb		*db;
 
 	parr			*conns;
 	struct event_base	*eb;

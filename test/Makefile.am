@@ -10,13 +10,14 @@ AM_CPPFLAGS = \
 	-DTEST_SRCDIR=\"$(top_srcdir)/test\" \
 	-I$(top_srcdir)/include \
 	-I$(top_srcdir)/external/secp256k1/include \
-	-I$(top_srcdir)/external/cJSON
+	-I$(top_srcdir)/external/cJSON \
+	-I$(top_srcdir)/external/lmdb/libraries/liblmdb
 
 check_LTLIBRARIES = libtest.la
 
 libtest_la_SOURCES = libtest.h libtest.c randtest.c chisq.c
 
-check_PROGRAMS = aes-util base58 blkdb block blockfile bloom \
+check_PROGRAMS = aes-util base58 block blockfile bloom chaindb \
         chain-verf clist coredefs crypto cstr ctaes fileio hash hashtab \
         hdkeys hex keystore keyset mbr misc net message parr prng script \
         script-parse sighash tx tx-valid wallet wallet-basics util
@@ -33,10 +34,10 @@ COMMON_LDADD = libtest.la \
 
 aes_util_LDADD		= $(COMMON_LDADD) $(top_builddir)/lib/libbitcwallet.la
 base58_LDADD		= $(COMMON_LDADD)
-blkdb_LDADD		= $(top_builddir)/lib/libbitcdb.la $(COMMON_LDADD)
 block_LDADD		= $(COMMON_LDADD)
 blockfile_LDADD		= $(COMMON_LDADD)
 bloom_LDADD		= $(COMMON_LDADD)
+chaindb_LDADD		= $(top_builddir)/lib/libbitcdb.la $(COMMON_LDADD)
 chain_verf_LDADD	= $(top_builddir)/lib/libbitcdb.la $(COMMON_LDADD)
 clist_LDADD		= $(COMMON_LDADD)
 coredefs_LDADD		= $(COMMON_LDADD)

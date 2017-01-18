@@ -60,7 +60,6 @@ You should see output formatted in JSON,
       "chain": "bitcoin",
       "net.connect.timeout": "11",
       "peers": "bitsy.peers",
-      "blkdb": "bitsy.blkdb"
     }
 
 If that works, `bitsy` is ready for use.

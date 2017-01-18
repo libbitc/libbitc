@@ -105,7 +105,7 @@ AC_CHECK_LIB(argp, argp_parse, ARGP_LIBS=-lARGP)
 dnl -------------------------------------
 dnl Checks for optional library functions
 dnl -------------------------------------
-AC_CHECK_FUNCS(fdatasync memmem strndup mkstemp)
+AC_CHECK_FUNCS(memmem strndup mkstemp)
 
 dnl -------------------------------------
 dnl Checks for Doxygen
