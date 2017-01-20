@@ -55,6 +55,7 @@ struct logging *log_state;
 bool debugging = false;
 static enum command_type opt_command = CMD_WALLET_INFO;
 static const char *opt_arg1 = NULL;
+static char *peer_filename = NULL;
 
 static struct chaindb db;
 static unsigned int net_conn_timeout = 60;
@@ -66,7 +67,6 @@ static const char *const_settings[] = {
 	"net.connect.timeout=11",
 	"wallet=bitsy.wallet",
 	"chain=bitcoin",
-	"peers=bitsy.peers",
 };
 
 /* Command line arguments and processing */
@@ -489,12 +489,12 @@ static void init_peers(struct net_child_info *nci)
 	 */
 	struct peer_manager *peers;
 
-	peers = peerman_read(setting("peers"));
+	peers = peerman_read(peer_filename);
 	if (!peers) {
 		log_info("%s: initializing empty peer list", prog_name);
 
 		peers = peerman_seed(setting("no_dns") == NULL ? true : false);
-		if (!peerman_write(peers, setting("peers"), chain)) {
+		if (!peerman_write(peers, peer_filename, chain)) {
 			log_info("%s: failed to write peer list", prog_name);
 			exit(1);
 		}
@@ -584,7 +584,7 @@ static void network_child(int read_fd, int write_fd)
 	} while (nci.running);
 
 	/* cleanup: just the minimum for file I/O correctness */
-	peerman_write(nci.peers, setting("peers"), nci.chain);
+	peerman_write(nci.peers, peer_filename, nci.chain);
 	chaindb_free(nci.db);
 	shutdown_nci(&nci);
 	exit(0);
@@ -632,6 +632,10 @@ int main (int argc, char *argv[])
 
 	init_log();
 	chain_set();
+
+	char peer_filename_tmp[strlen(chain->name) + 6 + 1];
+	snprintf(peer_filename_tmp, sizeof(peer_filename_tmp), "%s.peers", chain->name);
+	peer_filename = peer_filename_tmp;
 
 	switch (opt_command) {
 	case CMD_CHAIN_SET:	chain_set(); break;

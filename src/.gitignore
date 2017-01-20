@@ -1,14 +1,10 @@
-
 blkscan
 blkstats
 rawtx
-
 brd
-brd.peers
-
 bitsy
-bitsy.peers
-*.wallet
 
+*.peers
+*.wallet
 *.mdb
 *.mdb-lock
