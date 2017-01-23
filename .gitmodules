@@ -2,3 +2,7 @@
 	path = external/secp256k1
 	url = https://github.com/bitcoin-core/secp256k1.git
 	ignore = dirty
+[submodule "external/libbitc.github.io"]
+	path = external/libbitc.github.io
+	url = https://github.com/libbitc/libbitc.github.io.git
+	ignore = dirty

@@ -109,6 +109,16 @@ dnl Checks for optional library functions
 dnl -------------------------------------
 AC_CHECK_FUNCS(fdatasync memmem strndup mkstemp)
 
+dnl -------------------------------------
+dnl Checks for Doxygen
+dnl -------------------------------------
+AC_CHECK_PROGS([DOXYGEN], [doxygen])
+AS_IF([test -z "$DOXYGEN"], [
+	AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])
+])
+AM_CONDITIONAL([HAVE_DOXYGEN],[test -n "$DOXYGEN"])
+AM_COND_IF([HAVE_DOXYGEN], [AC_CONFIG_FILES([external/libbitc.github.io/Doxygen/Doxyfile])])
+
 dnl -----------------
 dnl Configure options
 dnl -----------------
@@ -193,6 +203,8 @@ AC_CONFIG_FILES([
 	src/Makefile
 	test/Makefile
 	external/Makefile
+	external/libbitc.github.io/Makefile
+	external/libbitc.github.io/Doxygen/Makefile
 	libbitc.pc
 	contrib/debian/control
 	contrib/debian/changelog
