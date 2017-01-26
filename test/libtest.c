@@ -2,28 +2,29 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "libbitc-config.h"
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-#include <assert.h>
-#include <jansson.h>
-#include <bitc/cstr.h>
-#include <bitc/parr.h>
-#include <bitc/script.h>
-#include <bitc/hexcode.h>
+#include <bitc/cstr.h>                  // for cstr_free, cstring, etc
+#include <bitc/hexcode.h>               // for hex2str, is_hexstr
+#include <bitc/json/cJSON.h>            // for cJSON, cJSON_Parse
+#include <bitc/parr.h>                  // for parr_add, parr_free, parr, etc
+#include <bitc/script.h>                // for GetOpType, bsp_push_data, etc
+#include <bitc/util.h>                  // for bu_read_file
 #include "libtest.h"
 
-json_t *read_json(const char *filename)
-{
-	json_error_t err;
-	json_t *ret;
+#include <assert.h>                     // for assert
+#include <ctype.h>                      // for isdigit
+#include <stdbool.h>                    // for true, false, bool
+#include <stdint.h>                     // for int64_t
+#include <stdio.h>                      // for fprintf, stderr
+#include <stdlib.h>                     // for free, malloc, strtoll
+#include <string.h>                     // for strlen, memset, strcmp
 
-	ret = json_load_file(filename, JSON_REJECT_DUPLICATES, &err);
+cJSON *read_json(const char *json_fn)
+{
+    void *json_file;
+	size_t json_len;
+	assert(bu_read_file(json_fn, &json_file, &json_len, 1 * 1024 * 1024) == true);
+    cJSON * ret = cJSON_Parse(json_file);;
 
 	return ret;
 }

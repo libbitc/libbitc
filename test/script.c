@@ -1,15 +1,19 @@
+/* Copyright 2012 exMULTI, Inc.
+ * Distributed under the MIT/X11 software license, see the accompanying
+ * file COPYING or http://www.opensource.org/licenses/mit-license.php.
+ */
 
-#include "libbitc-config.h"
+#include <bitc/core.h>                  // for bitc_tx_free, bitc_tx_init, etc
+#include <bitc/cstr.h>                  // for cstr_free, cstring
+#include <bitc/json/cJSON.h>            // for cJSON_GetArrayItem, cJSON, etc
+#include <bitc/script.h>                // for bitc_script_verify, etc
+#include "libtest.h"                    // for parse_script_str, etc
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <string.h>
-#include <jansson.h>
-#include <bitc/script.h>
-#include <bitc/core.h>
-#include "libtest.h"
+#include <assert.h>                     // for assert
+#include <stdbool.h>                    // for true, bool, false
+#include <stdio.h>                      // for fprintf, stderr
+#include <stdlib.h>                     // for NULL, free
+#include <string.h>                     // for strcmp, strtok, strlen
 
 static void test_script(bool is_valid,cstring *scriptSig, cstring *scriptPubKey,
 			unsigned int idx, const char *scriptSigEnc,
@@ -36,24 +40,25 @@ static void test_script(bool is_valid,cstring *scriptSig, cstring *scriptPubKey,
 	bitc_tx_free(&tx);
 }
 
-static void runtest(const char *basefn)
+static void runtest(const char *json_base_fn)
 {
-	char *fn = test_filename(basefn);
-	json_t *tests = read_json(fn);
-	assert(json_is_array(tests));
+	char *json_fn = test_filename(json_base_fn);
+	cJSON *tests = read_json(json_fn);
+	assert(tests != NULL);
+	assert((tests->type & 0xFF) == cJSON_Array);
 	static unsigned int verify_flags;
 	bool is_valid;
 
 	unsigned int idx;
-	for (idx = 0; idx < json_array_size(tests); idx++) {
-		json_t *test = json_array_get(tests, idx);
-		assert(json_is_array(test));
+	for (idx = 0; idx < cJSON_GetArraySize(tests); idx++) {
+		cJSON *test = cJSON_GetArrayItem(tests, idx);
+		assert((test->type & 0xFF) == cJSON_Array);
 		unsigned int pos = 0;
-		if ( json_array_size(test) > 1) {
+		if (  cJSON_GetArraySize(test) > 1) {
 			const char *scriptSigEnc =
-				json_string_value(json_array_get(test, pos++));
+				cJSON_GetArrayItem(test, pos++)->valuestring;
 			const char *scriptPubKeyEnc =
-				json_string_value(json_array_get(test, pos++));
+				cJSON_GetArrayItem(test, pos++)->valuestring;
 			assert(scriptSigEnc != NULL);
 			assert(scriptPubKeyEnc != NULL);
 
@@ -65,8 +70,7 @@ static void runtest(const char *basefn)
 
 			verify_flags = SCRIPT_VERIFY_NONE;
 
-			const char *json_flags = json_string_value(json_array_get(test, pos++));
-
+			const char *json_flags = cJSON_GetArrayItem(test, pos++)->valuestring;
 			if (strlen(json_flags) > 0) {
 				const char* json_flag  = strtok((char *)json_flags, ",");
 
@@ -96,7 +100,7 @@ static void runtest(const char *basefn)
 			}
 
 			const char *scriptError =
-				json_string_value(json_array_get(test, 3));
+				cJSON_GetArrayItem(test, 3)->valuestring;
 
 			is_valid = strcmp(scriptError, "OK") == 0 ? true : false;
 			test_script(is_valid, scriptSig, scriptPubKey,
@@ -107,8 +111,8 @@ static void runtest(const char *basefn)
 		}
 	}
 
-	json_decref(tests);
-	free(fn);
+	cJSON_Delete(tests);
+	free(json_fn);
 }
 
 int main (int argc, char *argv[])

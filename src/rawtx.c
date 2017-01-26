@@ -2,20 +2,29 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "libbitc-config.h"
+#include "libbitc-config.h"             // for PACKAGE_VERSION
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <argp.h>
-#include <ctype.h>
-#include <jansson.h>
-#include <bitc/core.h>
-#include <bitc/util.h>
-#include <bitc/hexcode.h>
-#include <bitc/base58.h>
-#include <bitc/script.h>
-#include <assert.h>
+#include <bitc/base58.h>                // for base58_decode_check
+#include <bitc/buffer.h>                // for const_buffer
+#include <bitc/buint.h>                 // for bu256_copy, bu256_hex, etc
+#include <bitc/clist.h>                 // for clist, clist_append
+#include <bitc/core.h>                  // for bitc_tx, bitc_txin, etc
+#include <bitc/cstr.h>                  // for cstring, cstr_free, etc
+#include <bitc/hexcode.h>               // for encode_hex, hex2str, etc
+#include <bitc/json/cJSON.h>            // for cJSON, etc
+#include <bitc/parr.h>                  // for parr, parr_add, parr_new, etc
+#include <bitc/script.h>                // for bsp_make_pubkeyhash, etc
+#include <bitc/util.h>                  // for VALSTR_SZ, btc_decimal
+
+#include <argp.h>                       // for ARGP_ERR_UNKNOWN, error_t, etc
+#include <assert.h>                     // for assert
+#include <ctype.h>                      // for isdigit
+#include <stdbool.h>                    // for true, bool, false
+#include <stddef.h>                     // for size_t
+#include <stdint.h>                     // for uint32_t, uint64_t
+#include <stdio.h>                      // for fprintf, stderr, printf, etc
+#include <stdlib.h>                     // for NULL, exit, atoi, calloc, etc
+#include <string.h>                     // for strchr, strcpy, strlen, etc
 
 const char *argp_program_version = PACKAGE_VERSION;
 
@@ -370,56 +379,46 @@ static void read_data(void)
 	cstr_free(txbuf, true);
 }
 
-static void bitc_json_set_new_int(json_t *obj, const char *key, json_int_t i)
+static void bitc_json_set_new_int(cJSON *obj, const char *key, int i)
 {
-	json_t *val = json_integer(i);
-	assert(val != NULL);
-
-	int rc = json_object_set_new(obj, key, val);
-	assert(rc == 0);
+	cJSON_AddNumberToObject(obj, key, i);
 }
 
-static void bitc_json_set_new_int256(json_t *obj, const char *key, const bu256_t *i)
+static void bitc_json_set_new_int256(cJSON *obj, const char *key, const bu256_t *i)
 {
 	char hexstr[(32 * 2) + 1];
 	bu256_hex(hexstr, i);
 
-	json_t *val = json_string(hexstr);
-	assert(val != NULL);
-
-	int rc = json_object_set_new(obj, key, val);
-	assert(rc == 0);
+	cJSON_AddStringToObject(obj, key, hexstr);
 }
 
-static void bitc_json_set_new_script(json_t *obj_parent, const char *key,
+static void bitc_json_set_new_script(cJSON *obj_parent, const char *key,
 				   cstring *s)
 {
-	json_t *obj = json_object();
+	cJSON *obj = cJSON_CreateObject();
 	assert(obj != NULL);
 
-	int rc = json_object_set_new(obj_parent, key, obj);
-	assert(rc == 0);
+	cJSON_AddItemToObject(obj_parent, key, obj);
 
 	char raw_hexstr[(s->len * 2) + 1];
 	encode_hex(raw_hexstr, s->str, s->len);
 
-	json_t *hexstr = json_string(raw_hexstr);
+	cJSON *hexstr = cJSON_CreateString(raw_hexstr);
 	assert(hexstr != NULL);
 
-	rc = json_object_set_new(obj, "hex", hexstr);
-	assert(rc == 0);
+	cJSON_AddItemToObject(obj, "hex", hexstr);
 }
 
-static void output_json_txid(json_t *obj)
+static void output_json_txid(cJSON *obj)
 {
 	bitc_tx_calc_sha256(&tx);
 
 	bitc_json_set_new_int256(obj, "txid", &tx.sha256);
 }
 
-static void output_json_txin(json_t *arr, const struct bitc_txin *txin)
+static void output_json_txin(cJSON *arr, const struct bitc_txin *txin)
 {
-	json_t *obj = json_object();
+	cJSON *obj = cJSON_CreateObject();
 	assert(obj != NULL);
 
 	bitc_json_set_new_int256(obj, "txid", &txin->prevout.hash);
@@ -427,16 +426,15 @@ static void output_json_txin(json_t *arr, const struct bitc_txin *txin)
 	bitc_json_set_new_script(obj, "scriptSig", txin->scriptSig);
 	bitc_json_set_new_int(obj, "sequence", txin->nSequence);
 
-	json_array_append_new(arr, obj);
+	cJSON_AddItemToArray(arr, obj);;
 }
 
-static void output_json_vin(json_t *obj)
+static void output_json_vin(cJSON *obj)
 {
-	json_t *arr = json_array();
+	cJSON *arr = cJSON_CreateArray();
 	assert(arr != NULL);
 
-	int rc = json_object_set_new(obj, "vin", arr);
-	assert(rc == 0);
+	cJSON_AddItemToObject(obj, "vin", arr);
 
 	if (!tx.vin)
 		return;
@@ -448,35 +446,30 @@ static void output_json_vin(json_t *obj)
 	}
 }
 
-static void output_json_txout(json_t *arr, const struct bitc_txout *txout,
+static void output_json_txout(cJSON *arr, const struct bitc_txout *txout,
 				unsigned int n_idx)
 {
-	json_t *obj = json_object();
+	cJSON *obj = cJSON_CreateObject();
 	assert(obj != NULL);
 
 	char raw_valstr[VALSTR_SZ];
 	btc_decimal(raw_valstr, VALSTR_SZ, txout->nValue);
 
 	double raw_val = strtod(raw_valstr, NULL);
-	json_t *val = json_real(raw_val);
-	assert(val != NULL);
-
-	int rc = json_object_set_new(obj, "value_FIXME", val);
-	assert(rc == 0);
+	cJSON_AddNumberToObject(obj, "value_FIXME", raw_val);
 
 	bitc_json_set_new_int(obj, "n", n_idx);
 	bitc_json_set_new_script(obj, "scriptPubKey", txout->scriptPubKey);
 
-	json_array_append_new(arr, obj);
+	cJSON_AddItemToArray(arr, obj);
 }
 
-static void output_json_vout(json_t *obj)
+static void output_json_vout(cJSON *obj)
 {
-	json_t *arr = json_array();
+	cJSON *arr = cJSON_CreateArray();
 	assert(arr != NULL);
 
-	int rc = json_object_set_new(obj, "vout", arr);
-	assert(rc == 0);
+	cJSON_AddItemToObject(obj, "vout", arr);
 
 	if (!tx.vout)
 		return;
@@ -490,7 +483,7 @@ static void output_json_vout(json_t *obj)
 
 static void output_data_json(void)
 {
-	json_t *obj = json_object();
+	cJSON *obj = cJSON_CreateObject();
 	assert(obj != NULL);
 
 	output_json_txid(obj);
@@ -499,13 +492,10 @@ static void output_data_json(void)
 	output_json_vin(obj);
 	output_json_vout(obj);
 
-	int rc = json_dumpf(obj, stdout, JSON_INDENT(4) | JSON_SORT_KEYS);
-	assert(rc == 0);
-
-	printf("\n");
+	fprintf(stdout, "%s\n", cJSON_Print(obj));
 
 	if (opt_strict_free)
-		json_decref(obj);
+		cJSON_Delete(obj);
 }
 
 static void output_data_hex(void)
@@ -553,5 +543,4 @@ int main (int argc, char *argv[])
 
 	return 0;
 }
-
 

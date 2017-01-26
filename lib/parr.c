@@ -2,10 +2,11 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "libbitc-config.h"
 
-#include <string.h>
-#include <bitc/parr.h>
+#include <bitc/parr.h>                  // for parr
+
+#include <stdlib.h>                     // for free, calloc, realloc
+#include <string.h>                     // for NULL, memmove, memset
 
 static bool parr_grow(parr *pa, size_t min_sz)
 {

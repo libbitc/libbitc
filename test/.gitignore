@@ -3,21 +3,22 @@ libtest.a
 
 aes-util
 base58
+blkdb
 block
 blockfile
 bloom
-blkdb
 chain-verf
 clist
-cstr
-ctaes
 coredefs
 crypto
+cstr
+ctaes
 fileio
 hash
 hashtab
 hdkeys
 hex
+json
 keyset
 keystore
 mbr

@@ -1,37 +1,47 @@
+/* Copyright 2012 exMULTI, Inc.
+ * Distributed under the MIT/X11 software license, see the accompanying
+ * file COPYING or http://www.opensource.org/licenses/mit-license.php.
+ */
 
-#include "libbitc-config.h"
+#include <bitc/addr_match.h>            // for bitc_block_match
+#include <bitc/address.h>               // for bitc_privkey_get_address, etc
+#include <bitc/buffer.h>                // for const_buffer
+#include <bitc/buint.h>                 // for bu256_equal, bu256_hex, etc
+#include <bitc/core.h>                  // for bitc_block, etc
+#include <bitc/cstr.h>                  // for cstring, cstr_free
+#include <bitc/hexcode.h>               // for decode_hex
+#include <bitc/json/cJSON.h>            // for cJSON_GetObjectItem, cJSON, etc
+#include <bitc/key.h>                   // for bitc_key_free, etc
+#include <bitc/parr.h>                  // for parr_free, parr, parr_idx
+#include <bitc/util.h>                  // for bu_read_file
+#include "libtest.h"                    // for test_filename
 
-#include <assert.h>
-#include <jansson.h>
-#include <bitc/core.h>
-#include <bitc/util.h>
-#include <bitc/parr.h>
-#include <bitc/buffer.h>
-#include <bitc/buint.h>
-#include <bitc/hexcode.h>
-#include <bitc/key.h>
-#include <bitc/address.h>
-#include <bitc/addr_match.h>
-#include "libtest.h"
+#include <gmp.h>                        // for mpz_clear, mpz_cmp, etc
 
-static void load_json_key(json_t *wallet, struct bitc_key *key)
+#include <assert.h>                     // for assert
+#include <stdbool.h>                    // for true
+#include <stddef.h>                     // for NULL, size_t
+#include <stdlib.h>                     // for free
+#include <string.h>                     // for memcmp, strlen, strcmp
+
+static void load_json_key(cJSON *wallet, struct bitc_key *key)
 {
-	json_t *keys_a = json_object_get(wallet, "keys");
-	assert(json_is_array(keys_a));
+	cJSON *keys_a = cJSON_GetObjectItem(wallet, "keys");
+	assert((keys_a->type & 0xFF) == cJSON_Array);
 
-	json_t *key_o = json_array_get(keys_a, 0);
-	assert(json_is_object(key_o));
+	cJSON *key_o = cJSON_GetObjectItem(keys_a, 0);
+	assert((key_o->type & 0xFF) == cJSON_Object);
 
-	const char *address_str = json_string_value(json_object_get(key_o, "address"));
+	const char *address_str = cJSON_GetObjectItem(key_o, "address")->valuestring;
 	assert(address_str != NULL);
 
-	const char *privkey_address_str = json_string_value(json_object_get(key_o, "privkey_address"));
+	const char *privkey_address_str = cJSON_GetObjectItem(key_o, "privkey_address")->valuestring;
 	assert(privkey_address_str);
 
-	const char *pubkey_str = json_string_value(json_object_get(key_o, "pubkey"));
+	const char *pubkey_str = cJSON_GetObjectItem(key_o, "pubkey")->valuestring;
 	assert(pubkey_str != NULL);
 
-	const char *privkey_str = json_string_value(json_object_get(key_o, "privkey"));
+	const char *privkey_str = cJSON_GetObjectItem(key_o, "privkey")->valuestring;
 	assert(privkey_str != NULL);
 
 	char rawbuf[strlen(privkey_str)];
@@ -74,8 +84,9 @@ static void runtest(const char *json_base_fn, const char *ser_in_fn,
 {
 	/* read wallet data */
 	char *json_fn = test_filename(json_base_fn);
-	json_t *wallet = read_json(json_fn);
+	cJSON *wallet = read_json(json_fn);
 	assert(wallet != NULL);
+	assert((wallet->type & 0xFF) == cJSON_Object);
 
 	/* read block data containing incoming payment */
 	char *fn = test_filename(ser_in_fn);
@@ -151,7 +162,7 @@ static void runtest(const char *json_base_fn, const char *ser_in_fn,
 	bitc_keyset_free(&ks);
 	bitc_key_free(&key);
 	bitc_block_free(&block_in);
-	json_decref(wallet);
+	cJSON_Delete(wallet);
 	free(data);
 	free(fn);
 	free(json_fn);

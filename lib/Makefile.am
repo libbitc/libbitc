@@ -73,6 +73,7 @@ libbitcnet_la_SOURCES =	\
 libbitcwallet_la_SOURCES =	\
 			crypto/aes_util.c   \
 			crypto/ctaes.c		\
+			json/cJSON.c	\
 			wallet/wallet.c
 
 EXTRA_DIST =	\
@@ -81,4 +82,3 @@ EXTRA_DIST =	\
 			net/ev_kqueue.c	\
 			net/ev_port.c	\
 			net/ev_select.c
-

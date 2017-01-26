@@ -58,4 +58,5 @@ libbitcwallet_ladir = $(includedir)/bitc/wallet/
 libbitcwallet_la_HEADERS =	\
 		crypto/aes_util.h	\
 		crypto/ctaes.h		\
+		json/cJSON.h	\
 		wallet/wallet.h

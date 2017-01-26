@@ -2,22 +2,23 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "libbitc-config.h"            // for VERSION
+#include "libbitc-config.h"             // for VERSION
 
-#include "bitsy.h"                     // for network_sync, setting
-#include <bitc/blkdb.h>                // for blkinfo, blkdb, etc
-#include <bitc/clist.h>                // for clist, clist_free_ext, etc
-#include <bitc/compat.h>               // for strndup
-#include <bitc/core.h>                 // for bitc_address
-#include <bitc/coredefs.h>             // for chain_find, chain_info
-#include <bitc/crypto/prng.h>          // for prng_get_random_bytes
-#include <bitc/log.h>                  // for log_info, log_debug, etc
-#include <bitc/net/dns.h>              // for bu_dns_seed_addrs
-#include <bitc/net/event.h>           // for event_base_dispatch, etc
-#include <bitc/net/net.h>              // for net_child_info, nc_conns_gc, etc
-#include <bitc/net/netbase.h>          // for bn_address_str, etc
-#include <bitc/net/peerman.h>          // for peer_manager, peerman_write, etc
-#include <bitc/util.h>                 // for ARRAY_SIZE, czstr_equal, etc
+#include "bitsy.h"                      // for network_sync, setting
+#include <bitc/blkdb.h>                 // for blkinfo, blkdb, etc
+#include <bitc/clist.h>                 // for clist, clist_free_ext, etc
+#include <bitc/compat.h>                // for strndup
+#include <bitc/core.h>                  // for bitc_address
+#include <bitc/coredefs.h>              // for chain_find, chain_info
+#include <bitc/crypto/prng.h>           // for prng_get_random_bytes
+#include <bitc/json/cJSON.h>            // for cJSON, cJSON_CreateObject, etc
+#include <bitc/log.h>                   // for log_info, log_debug, etc
+#include <bitc/net/dns.h>               // for bu_dns_seed_addrs
+#include <bitc/net/event.h>             // for event_base_dispatch, etc
+#include <bitc/net/net.h>               // for net_child_info, nc_conns_gc, etc
+#include <bitc/net/netbase.h>           // for bn_address_str, etc
+#include <bitc/net/peerman.h>           // for peer_manager, peerman_write, etc
+#include <bitc/util.h>                  // for ARRAY_SIZE, czstr_equal, etc
 #include "wallet.h"                     // for cur_wallet_addresses, etc
 
 #include <argp.h>
@@ -29,7 +30,6 @@
 #include <stdio.h>                      // for fprintf, printf, NULL, etc
 #include <stdlib.h>                     // for free, exit
 #include <string.h>                     // for strcmp, strdup, strlen, etc
-#include <jansson.h>
 
 enum command_type {
 	CMD_CHAIN_SET,
@@ -393,7 +393,7 @@ static bool preload_settings(void)
 
 struct lsi_info {
 	unsigned int	table_len;
-	json_t		*settings_obj;
+	cJSON		*settings_obj;
 	unsigned int	iter_count;
 };
 
@@ -403,18 +403,18 @@ static void list_setting_iter(void *key_, void *value_, void *lsi_)
 	char *value = value_;
 	struct lsi_info *lsi = lsi_;
 
-	json_object_set_new(lsi->settings_obj, key, json_string(value));
+	cJSON_AddStringToObject(lsi->settings_obj, key, value);
 }
 
 static void list_settings(void)
 {
-	json_t *settings_obj = json_object();
+	cJSON *settings_obj = cJSON_CreateObject();
 
 	struct lsi_info lsi = { bitc_hashtab_size(settings), settings_obj };
 	bitc_hashtab_iter(settings, list_setting_iter, &lsi);
 
-	json_dumpf(settings_obj, stdout, JSON_INDENT(2) | JSON_SORT_KEYS);
-	json_decref(settings_obj);
+	fprintf(stdout, "%s", cJSON_Print(settings_obj));
+	cJSON_Delete(settings_obj);
 
 	printf("\n");
 }

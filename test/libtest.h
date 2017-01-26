@@ -5,10 +5,11 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include <jansson.h>
-#include <bitc/cstr.h>
+#include <bitc/cstr.h>                  // for cstring
+#include <bitc/json/cJSON.h>            // for cJSON
+#include <stddef.h>                     // for size_t
 
-extern json_t *read_json(const char *filename);
+extern cJSON *read_json(const char *filename);
 extern char *test_filename(const char *basename);
 extern void dumphex(const char *prefix, const void *p_, size_t len);
 extern cstring *parse_script_str(const char *enc);

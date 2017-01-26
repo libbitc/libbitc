@@ -1,15 +1,29 @@
+/* Copyright 2012 exMULTI, Inc.
+ * Distributed under the MIT/X11 software license, see the accompanying
+ * file COPYING or http://www.opensource.org/licenses/mit-license.php.
+ */
 
 #include "libbitc-config.h"
 
-#include <assert.h>
-#include <jansson.h>
-#include <bitc/core.h>
-#include <bitc/hexcode.h>
-#include <bitc/buint.h>
-#include <bitc/script.h>
-#include <bitc/hashtab.h>
-#include <bitc/compat.h>		/* for parr_new */
-#include "libtest.h"
+#include "bitc/buffer.h"                // for const_buffer
+#include <bitc/buint.h>                 // for bu256_hex, BU256_STRSZ, etc
+#include <bitc/core.h>                  // for bitc_outpt, bitc_tx, etc
+#include "bitc/cstr.h"                  // for cstring, cstr_free
+#include <bitc/hashtab.h>               // for bitc_hashtab_clear, etc
+#include <bitc/hexcode.h>               // for hex2str
+#include <bitc/json/cJSON.h>            // for cJSON_GetArrayItem, cJSON, etc
+#include "bitc/key.h"                   // for bitc_key_static_shutdown
+#include "bitc/parr.h"                  // for parr, parr_free, parr_new, etc
+#include <bitc/script.h>                // for bitc_script_verify, etc
+#include <bitc/compat.h>                // for parr_new
+#include "libtest.h"                    // for parse_script_str, etc
+
+#include <assert.h>                     // for assert
+#include <stdbool.h>                    // for true, bool, false
+#include <stdint.h>                     // for uint32_t
+#include <stdio.h>                      // for NULL, fprintf, stderr
+#include <stdlib.h>                     // for free, malloc
+#include <string.h>                     // for NULL, strtok, strcmp, etc
 
 parr *comments = NULL;
 
@@ -113,11 +127,12 @@ out:
 	bitc_tx_free(&tx);
 }
 
-static void runtest(bool is_valid, const char *basefn)
+static void runtest(bool is_valid, const char *json_base_fn)
 {
-	char *fn = test_filename(basefn);
-	json_t *tests = read_json(fn);
-	assert(json_is_array(tests));
+	char *json_fn = test_filename(json_base_fn);
+	cJSON *tests = read_json(json_fn);
+	assert(tests != NULL);
+	assert((tests->type & 0xFF) == cJSON_Array);
 
 	struct bitc_hashtab *input_map = bitc_hashtab_new_ext(
 		input_hash, input_equal,
@@ -126,42 +141,42 @@ static void runtest(bool is_valid, const char *basefn)
 	comments = parr_new(8, free);
 
 	unsigned int idx;
-	for (idx = 0; idx < json_array_size(tests); idx++) {
-		json_t *test = json_array_get(tests, idx);
+	for (idx = 0; idx < cJSON_GetArraySize(tests); idx++) {
+		cJSON *test = cJSON_GetArrayItem(tests, idx);
 
-		if (!json_is_array(json_array_get(test, 0))) {
+		if ((cJSON_GetArrayItem(test, 0)->type & 0xFF) != cJSON_Array) {
 			const char *cmt =
-				json_string_value(json_array_get(test, 0));
+				cJSON_GetArrayItem(test, 0)->valuestring;
 			if (cmt)
 				parr_add(comments, strdup(cmt));
 			continue;			/* comments */
 		}
 
-		assert(json_is_array(test));
-		assert(json_array_size(test) == 3);
-		assert(json_is_string(json_array_get(test, 1)));
-		assert(json_is_string(json_array_get(test, 2)));
+		assert((test->type & 0xFF) == cJSON_Array);
+		assert(cJSON_GetArraySize(test) == 3);
+		assert((cJSON_GetArrayItem(test, 1)->type & 0xFF) == cJSON_String);
+		assert((cJSON_GetArrayItem(test, 2)->type & 0xFF) == cJSON_String);
 
-		json_t *inputs = json_array_get(test, 0);
-		assert(json_is_array(inputs));
+		cJSON *inputs = cJSON_GetArrayItem(test, 0);
+		assert((inputs->type & 0xFF) == cJSON_Array);
 		static unsigned int verify_flags;
 
 		bitc_hashtab_clear(input_map);
 
 		unsigned int i;
-		for (i = 0; i < json_array_size(inputs); i++) {
-			json_t *input = json_array_get(inputs, i);
-			assert(json_is_array(input));
+		for (i = 0; i < cJSON_GetArraySize(inputs); i++) {
+			cJSON *input = cJSON_GetArrayItem(inputs, i);
+			assert((input->type & 0xFF) == cJSON_Array);
 
 			const char *prev_hashstr =
-				json_string_value(json_array_get(input, 0));
+				cJSON_GetArrayItem(input, 0)->valuestring;
 			int prev_n =
-				json_integer_value(json_array_get(input, 1));
+				cJSON_GetArrayItem(input, 1)->valueint;
 			const char *prev_pubkey_enc =
-				json_string_value(json_array_get(input, 2));
+				cJSON_GetArrayItem(input, 2)->valuestring;
 
 			assert(prev_hashstr != NULL);
-			assert(json_is_integer(json_array_get(input, 1)));
+			assert(cJSON_GetArrayItem(input, 1)->type == cJSON_Number);
 			assert(prev_pubkey_enc != NULL);
 
 			struct bitc_outpt *outpt;
@@ -176,12 +191,12 @@ static void runtest(bool is_valid, const char *basefn)
 		}
 
 		const char *tx_hexser =
-			json_string_value(json_array_get(test, 1));
+			cJSON_GetArrayItem(test, 1)->valuestring;
 		assert(tx_hexser != NULL);
 
 		verify_flags = SCRIPT_VERIFY_NONE;
 
-		const char *json_flags = json_string_value(json_array_get(test, 2));
+		const char *json_flags = cJSON_GetArrayItem(test, 2)->valuestring;
 
 		if (strlen(json_flags) > 0) {
 			const char* json_flag  = strtok((char *)json_flags, ",");
@@ -210,8 +225,8 @@ static void runtest(bool is_valid, const char *basefn)
 	comments = NULL;
 
 	bitc_hashtab_unref(input_map);
-	json_decref(tests);
-	free(fn);
+	cJSON_Delete(tests);
+	free(json_fn);
 }
 
 int main (int argc, char *argv[])

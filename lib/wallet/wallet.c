@@ -14,6 +14,7 @@
 #include <bitc/key.h>                   // for bitc_key_free, bitc_key, etc
 #include <bitc/mbr.h>                   // for mbr_free, mbuf_reader, etc
 #include <bitc/message.h>               // for p2p_message, etc
+#include <bitc/serialize.h>             // for deser_u32, deser_varstr, etc
 #include <bitc/util.h>                  // for ARRAY_SIZE
 
 #include <assert.h>                     // for assert

@@ -3,9 +3,12 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include <assert.h>
-#include <string.h>
-#include <bitc/parr.h>
+#include <bitc/parr.h>                  // for parr, parr_add, parr_free, etc
+
+#include <assert.h>                     // for assert
+#include <stdbool.h>                    // for true, bool, false
+#include <string.h>                     // for strcmp, strdup, NULL
+#include <stdlib.h>                     // for free
 
 static void test_basic(void)
 {

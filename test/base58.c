@@ -2,17 +2,21 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "libbitc-config.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-#include <jansson.h>
-#include "libtest.h"
-#include <bitc/base58.h>
-#include <bitc/hexcode.h>
-#include <bitc/key.h>
-#include <bitc/coredefs.h>
+#include <bitc/base58.h>                // for base58_decode_check, etc
+#include <bitc/coredefs.h>              // for bitc_address_type, etc
+#include <bitc/cstr.h>                  // for cstring, cstr_free, etc
+#include <bitc/hexcode.h>               // for hex2str, decode_hex
+#include <bitc/json/cJSON.h>            // for cJSON, cJSON_GetArrayItem, etc
+#include <bitc/key.h>                   // for bitc_key_static_shutdown
+#include "libtest.h"                    // for dumphex, read_json, etc
+
+#include <assert.h>                     // for assert
+#include <stdbool.h>                    // for bool, true
+#include <stddef.h>                     // for size_t
+#include <stdio.h>                      // for fprintf, NULL, stderr
+#include <stdlib.h>                     // for free, calloc
+#include <string.h>                     // for strcmp, memcmp, strlen
 
 static void test_encode(const char *hexstr, const char *enc)
 {
@@ -70,36 +74,32 @@ static void test_decode(const char *hexstr, const char *base58_str)
 	cstr_free(s, true);
 }
 
-static void runtest_encdec(const char *base_fn)
+static void runtest_encdec(const char *json_base_fn)
 {
-	char *fn = NULL;
+	char *json_fn = test_filename(json_base_fn);
+	cJSON *tests = read_json(json_fn);
+	assert((tests->type & 0xFF) == cJSON_Array);
 
-	fn = test_filename(base_fn);
-	json_t *data = read_json(fn);
-	assert(json_is_array(data));
+	unsigned int idx;
 
-	size_t n_tests = json_array_size(data);
-	unsigned int i;
+	for (idx = 0; idx < cJSON_GetArraySize(tests); idx++) {
 
-	for (i = 0; i < n_tests; i++) {
-		json_t *inner;
+	    cJSON *test = cJSON_GetArrayItem(tests, idx);
+	    assert((test->type & 0xFF) == cJSON_Array);
 
-		inner = json_array_get(data, i);
-		assert(json_is_array(inner));
+		cJSON *j_raw = cJSON_GetArrayItem(test, 0);
+		cJSON *j_enc = cJSON_GetArrayItem(test, 1);
+		assert((j_raw->type & 0xFF) == cJSON_String);
+		assert((j_enc->type & 0xFF) == cJSON_String);
 
-		json_t *j_raw = json_array_get(inner, 0);
-		json_t *j_enc = json_array_get(inner, 1);
-		assert(json_is_string(j_raw));
-		assert(json_is_string(j_enc));
-
-		test_encode(json_string_value(j_raw),
-			    json_string_value(j_enc));
-		test_decode(json_string_value(j_raw),
-			    json_string_value(j_enc));
+		test_encode(j_raw->valuestring,
+			    j_enc->valuestring);
+		test_decode(j_raw->valuestring,
+			    j_enc->valuestring);
 	}
 
-	free(fn);
-	json_decref(data);
+	free(json_fn);
+	cJSON_Delete(tests);
 }
 
 static void test_privkey_valid_enc(const char *base58_str,
@@ -236,68 +236,64 @@ static void test_pubkey_valid_dec(const char *base58_str,
 	cstr_free(payload, true);
 }
 
-static void runtest_keys_valid(const char *base_fn)
+static void runtest_keys_valid(const char *json_base_fn)
 {
-	char *fn = NULL;
+	char *json_fn = test_filename(json_base_fn);
+	cJSON *tests = read_json(json_fn);
+	assert((tests->type & 0xFF) == cJSON_Array);
 
-	fn = test_filename(base_fn);
-	json_t *data = read_json(fn);
-	assert(json_is_array(data));
+	unsigned int idx;
 
-	size_t n_tests = json_array_size(data);
-	unsigned int i;
+	for (idx = 0; idx < cJSON_GetArraySize(tests); idx++) {
 
-	for (i = 0; i < n_tests; i++) {
-		json_t *inner;
+	    cJSON *test = cJSON_GetArrayItem(tests, idx);
+	    assert((test->type & 0xFF) == cJSON_Array);
 
-		inner = json_array_get(data, i);
-		assert(json_is_array(inner));
+		cJSON *j_base58 = cJSON_GetArrayItem(test, 0);
+		cJSON *j_payload = cJSON_GetArrayItem(test, 1);
+		assert((j_base58->type & 0xFF) == cJSON_String);
+		assert((j_payload->type & 0xFF) == cJSON_String);
 
-		json_t *j_base58 = json_array_get(inner, 0);
-		json_t *j_payload = json_array_get(inner, 1);
-		assert(json_is_string(j_base58));
-		assert(json_is_string(j_payload));
+		cJSON *j_meta = cJSON_GetArrayItem(test, 2);
+		assert((j_meta->type & 0xFF) == cJSON_Object);
 
-		json_t *j_meta = json_array_get(inner, 2);
-		assert(json_is_object(j_meta));
+		cJSON *j_addrtype = cJSON_GetObjectItem(j_meta, "addrType");
+		assert(!j_addrtype || ((j_addrtype->type & 0xFF) == cJSON_String));
 
-		json_t *j_addrtype = json_object_get(j_meta, "addrType");
-		assert(!j_addrtype || json_is_string(j_addrtype));
+		cJSON *j_compress = cJSON_GetObjectItem(j_meta, "isCompressed");
+		assert(!j_compress || ((j_compress->type & 0xFF) == cJSON_True) ||
+		       ((j_compress->type & 0xFF) == cJSON_False));
 
-		json_t *j_compress = json_object_get(j_meta, "isCompressed");
-		assert(!j_compress || json_is_true(j_compress) ||
-		       json_is_false(j_compress));
-
-		bool is_privkey = json_is_true(json_object_get(j_meta, "isPrivkey"));
-		bool is_testnet = json_is_true(json_object_get(j_meta, "isTestnet"));
+		bool is_privkey = ((cJSON_GetObjectItem(j_meta, "isPrivkey")->type & 0xFF) == cJSON_True);
+		bool is_testnet = ((cJSON_GetObjectItem(j_meta, "isTestnet")->type & 0xFF) == cJSON_True);
 
 		if (is_privkey) {
 			test_privkey_valid_enc(
-				json_string_value(j_base58),
-				hex2str(json_string_value(j_payload)),
-				json_is_true(j_compress),
+			    j_base58->valuestring,
+				hex2str(j_payload->valuestring),
+				((j_compress->type & 0xFF) == cJSON_True),
 				is_testnet);
 			test_privkey_valid_dec(
-				json_string_value(j_base58),
-				hex2str(json_string_value(j_payload)),
-				json_is_true(j_compress),
+				j_base58->valuestring,
+				hex2str(j_payload->valuestring),
+				((j_compress->type & 0xFF) == cJSON_True),
 				is_testnet);
 		} else {
 			test_pubkey_valid_enc(
-				json_string_value(j_base58),
-				hex2str(json_string_value(j_payload)),
-				json_string_value(j_addrtype),
+				j_base58->valuestring,
+				hex2str(j_payload->valuestring),
+				j_addrtype->valuestring,
 				is_testnet);
 			test_pubkey_valid_dec(
-				json_string_value(j_base58),
-				hex2str(json_string_value(j_payload)),
-				json_string_value(j_addrtype),
+				j_base58->valuestring,
+				hex2str(j_payload->valuestring),
+				j_addrtype->valuestring,
 				is_testnet);
 		}
 	}
 
-	free(fn);
-	json_decref(data);
+	free(json_fn);
+	cJSON_Delete(tests);
 }
 
 int main (int argc, char *argv[])

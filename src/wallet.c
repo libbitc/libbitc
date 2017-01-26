@@ -12,14 +12,13 @@
 #include <bitc/buffer.h>                // for const_buffer
 #include <bitc/coredefs.h>              // for chain_info
 #include <bitc/crypto/aes_util.h>       // for read_aes_file, etc
-#include <bitc/crypto/prng.h>          // for prng_get_random_bytes
+#include <bitc/crypto/prng.h>           // for prng_get_random_bytes
 #include <bitc/hdkeys.h>                // for hd_extended_key_free, etc
 #include <bitc/hexcode.h>               // for encode_hex
+#include <bitc/json/cJSON.h>            // for cJSON_CreateString, cJSON, etc
 #include <bitc/key.h>                   // for bitc_privkey_get, etc
 #include <bitc/wallet/wallet.h>         // for wallet, wallet_free, etc
 #include <bitc/compat.h>                // for parr_new
-
-#include <jansson.h>                    // for json_object_set_new, etc
 
 #include <assert.h>                     // for assert
 #include <fcntl.h>                      // for open
@@ -264,10 +263,10 @@ void cur_wallet_info(void)
 
 	printf("{\n");
 
-	printf("  \"version\": %u,\n", wlt->version);
-	printf("  \"n_privkeys\": %zu,\n", wlt->keys ? wlt->keys->len : 0);
-	printf("  \"n_hd_extkeys\": %zu,\n", wlt->hdmaster ? wlt->hdmaster->len : 0);
-	printf("  \"netmagic\": %02x%02x%02x%02x\n",
+	printf("\t\"version\":\t%u,\n", wlt->version);
+	printf("\t\"n_privkeys\":\t%zu,\n", wlt->keys ? wlt->keys->len : 0);
+	printf("\t\"n_hd_extkeys\":\t%zu,\n", wlt->hdmaster ? wlt->hdmaster->len : 0);
+	printf("\t\"netmagic\":\t%02x%02x%02x%02x\n",
 	       wlt->chain->netmagic[0],
 	       wlt->chain->netmagic[1],
 	       wlt->chain->netmagic[2],
@@ -276,19 +275,20 @@ void cur_wallet_info(void)
 	printf("}\n");
 }
 
-static void wallet_dump_keys(json_t *keys_a, struct wallet *wlt)
+static void wallet_dump_keys(cJSON *keys_a, struct wallet *wlt)
 {
 	struct bitc_key *key;
+	cJSON *o = NULL;
 
 	wallet_for_each_key(wlt, key) {
 
-		json_t *o = json_object();
+		cJSON_AddItemToArray(keys_a, o = cJSON_CreateObject());
 
 		void *privkey = NULL;
 		size_t priv_len = 0;
 		if (bitc_privkey_get(key, &privkey, &priv_len)) {
 			cstring *privkey_str = str2hex(privkey, priv_len);
-			json_object_set_new(o, "privkey", json_string(privkey_str->str));
+			cJSON_AddStringToObject(o, "privkey", privkey_str->str);
 			cstr_free(privkey_str, true);
 			free(privkey);
 			privkey = NULL;
@@ -297,33 +297,32 @@ static void wallet_dump_keys(json_t *keys_a, struct wallet *wlt)
 		void *pubkey = NULL;
 		size_t pub_len = 0;
 		if (!bitc_pubkey_get(key, &pubkey, &pub_len)) {
-			json_decref(o);
+			cJSON_Delete(o);
 			continue;
 		}
 
 		if (pubkey) {
 			cstring *pubkey_str = str2hex(pubkey, pub_len);
-			json_object_set_new(o, "pubkey", json_string(pubkey_str->str));
+			cJSON_AddStringToObject(o, "pubkey", pubkey_str->str);
 			cstr_free(pubkey_str, true);
 
 			cstring *btc_addr = bitc_pubkey_get_address(key, chain->addr_pubkey);
-			json_object_set_new(o, "address", json_string(btc_addr->str));
+			cJSON_AddStringToObject(o, "address", btc_addr->str);
 
 			cstr_free(btc_addr, true);
 
 			free(pubkey);
 		}
-
-		json_array_append_new(keys_a, o);
 	}
 }
 
-static void wallet_dump_hdkeys(json_t *hdkeys_a, struct wallet *wlt)
+static void wallet_dump_hdkeys(cJSON *hdkeys_a, struct wallet *wlt)
 {
 	struct hd_extended_key *hdkey;
+	cJSON *o = NULL;
 
 	wallet_for_each_mkey(wlt, hdkey) {
-		json_t *o = json_object();
+		cJSON_AddItemToArray(hdkeys_a, o = cJSON_CreateObject());
 
 		struct hd_extended_key_serialized hdraw;
 		bool rc = write_ek_ser_prv(&hdraw, hdkey);
@@ -332,29 +331,26 @@ static void wallet_dump_hdkeys(json_t *hdkeys_a, struct wallet *wlt)
 		cstring *hdstr = base58_encode(hdraw.data, sizeof(hdraw.data)-1);
 		assert(hdstr != NULL);
 
-		json_object_set_new(o, "hdpriv", json_string(hdstr->str));
+		cJSON_AddStringToObject(o, "address", hdstr->str);
 
 		cstr_free(hdstr, true);
-
-		json_array_append_new(hdkeys_a, o);
 	}
 }
 
-static void wallet_dump_accounts(json_t *accounts, struct wallet *wlt)
+static void wallet_dump_accounts(cJSON *accounts, struct wallet *wlt)
 {
 	struct wallet_account *acct;
+	cJSON *o = NULL;
 	unsigned int i;
 
 	for (i = 0; i < wlt->accounts->len; i++) {
 		acct = parr_idx(wlt->accounts, i);
 
-		json_t *o = json_object();
+		cJSON_AddItemToArray(accounts, o = cJSON_CreateObject());
 
-		json_object_set_new(o, "name", json_string(acct->name->str));
-		json_object_set_new(o, "acct_idx", json_integer(acct->acct_idx));
-		json_object_set_new(o, "next_key_idx", json_integer(acct->next_key_idx));
-
-		json_array_append_new(accounts, o);
+		cJSON_AddStringToObject(o, "name", acct->name->str);
+		cJSON_AddNumberToObject(o, "acct_idx", acct->acct_idx);
+		cJSON_AddNumberToObject(o, "next_key_idx", acct->next_key_idx);
 	}
 }
 
@@ -363,10 +359,10 @@ void cur_wallet_dump(void)
 	if (!cur_wallet_load())
 		return;
 	struct wallet *wlt = cur_wallet;
-	json_t *o = json_object();
+	cJSON *o = cJSON_CreateObject();
 
-	json_object_set_new(o, "version", json_integer(wlt->version));
-	json_object_set_new(o, "def_acct", json_string(wlt->def_acct->str));
+	cJSON_AddNumberToObject(o, "version", wlt->version);
+	cJSON_AddStringToObject(o, "def_acct", wlt->def_acct->str);
 
 	char nmstr[32];
 	sprintf(nmstr, "%02x%02x%02x%02x",
@@ -375,28 +371,23 @@ void cur_wallet_dump(void)
 	       wlt->chain->netmagic[2],
 	       wlt->chain->netmagic[3]);
 
-	json_object_set_new(o, "netmagic", json_string(nmstr));
+	cJSON_AddStringToObject(o, "netmagic", nmstr);
 
-	json_t *keys_a = json_array();
-
+	cJSON *keys_a = cJSON_CreateArray();
 	wallet_dump_keys(keys_a, wlt);
+	cJSON_AddItemToObject(o, "keys", keys_a);
 
-	json_object_set_new(o, "keys", keys_a);
-
-	json_t *hdkeys_a = json_array();
-
+	cJSON *hdkeys_a = cJSON_CreateArray();
 	wallet_dump_hdkeys(hdkeys_a, wlt);
+	cJSON_AddItemToObject(o, "hdmaster", hdkeys_a);
 
-	json_object_set_new(o, "hdmaster", hdkeys_a);
-
-	json_t *accounts = json_array();
-
+	cJSON *accounts = cJSON_CreateArray();
 	wallet_dump_accounts(accounts, wlt);
+	cJSON_AddItemToObject(o, "accounts", accounts);
 
-	json_object_set_new(o, "accounts", accounts);
+	fprintf(stdout, "%s", cJSON_Print(o));
 
-	json_dumpf(o, stdout, JSON_INDENT(2) | JSON_SORT_KEYS);
-	json_decref(o);
+	cJSON_Delete(o);
 
 	printf("\n");
 }

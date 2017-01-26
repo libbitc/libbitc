@@ -19,7 +19,6 @@ libbitc library dependencies:
 
 bitsy client dependencies:
 	GMP
-	jansson 2.x (2.1 used for development)
 
 block relay daemon (brd) dependencies:
 	GMP

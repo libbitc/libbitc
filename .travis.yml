@@ -51,7 +51,6 @@ services:
 addons:
   apt_packages:
       - libgmp-dev
-      - libjansson-dev
       - lcov
       - valgrind
       - libtool
@@ -76,7 +75,7 @@ notifications:
   slack: libbitc:LzNZosd4L6ZkORMznw0mwrq7
 
 install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install jansson argp-standalone; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install argp-standalone; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$ENABLE_COVERAGE" = "yes" ]; then brew install lcov; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$ENABLE_VALGRIND" = "yes" ]; then brew install valgrind; fi
   - if [ "$ENABLE_COVERAGE" = "yes" ]; then gem install coveralls-lcov; fi
@@ -87,7 +86,7 @@ before_script:
 script:
   - LIBBITC_CONFIG="--enable-coverage=$ENABLE_COVERAGE --enable-valgrind=$ENABLE_VALGRIND"
   - LIBBITC_CONFIG_ALL="--cache-file=config.cache"
-  - if [ "$MAKETARGET" = "pkg-rpm" ]; then docker run -t -i -v $TRAVIS_BUILD_DIR:/libbitc centos:7 /bin/bash -c "yum -y update; yum -y install autoconf automake libtool make rpm-build gmp-devel jansson-devel; cd /libbitc; ./autogen.sh; ./configure $LIBBITC_CONFIG_ALL; make $MAKEJOBS $MAKETARGET"; exit $? ; fi
+  - if [ "$MAKETARGET" = "pkg-rpm" ]; then docker run -t -i -v $TRAVIS_BUILD_DIR:/libbitc centos:7 /bin/bash -c "yum -y update; yum -y install autoconf automake libtool make rpm-build gmp-devel; cd /libbitc; ./autogen.sh; ./configure $LIBBITC_CONFIG_ALL; make $MAKEJOBS $MAKETARGET"; exit $? ; fi
   - ./configure $LIBBITC_CONFIG_ALL $LIBBITC_CONFIG || ( cat config.log && false)
   - make -s $MAKEJOBS $MAKETARGET || ( echo "Build failure. Verbose build follows." && make V=1 $MAKETARGET; false )
 

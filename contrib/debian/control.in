@@ -1,7 +1,7 @@
 Source: @PACKAGE_NAME@
 Priority: optional
 Maintainer: @PACKAGE_BUGREPORT@
-Build-Depends: debhelper (>= 8.0.0), autotools-dev, libgmp-dev, libjansson-dev, libc6-dev
+Build-Depends: debhelper (>= 8.0.0), autotools-dev, libgmp-dev, libc6-dev
 Standards-Version: 3.9.4
 Section: libs
 Homepage: @PACKAGE_URL@

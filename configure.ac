@@ -100,8 +100,6 @@ AC_CHECK_LIB(m, log, MATH_LIBS=-lm,
   [AC_MSG_ERROR([Missing required libm])])
 AC_CHECK_LIB(gmp, __gmpz_init, GMP_LIBS=-lgmp,
   [AC_MSG_ERROR([Missing required libgmp])])
-AC_CHECK_LIB(jansson, json_loads, JANSSON_LIBS=-ljansson,
-  [AC_MSG_ERROR([Missing required libjansson])])
 AC_CHECK_LIB(argp, argp_parse, ARGP_LIBS=-lARGP)
 
 dnl -------------------------------------
@@ -189,7 +187,6 @@ m4_include([m4/libev.m4])
 
 AC_SUBST(MATH_LIBS)
 AC_SUBST(GMP_LIBS)
-AC_SUBST(JANSSON_LIBS)
 AC_SUBST(ARGP_LIBS)
 
 AC_CONFIG_SUBDIRS([external/secp256k1])

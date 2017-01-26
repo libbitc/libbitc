@@ -11,16 +11,15 @@ Dependencies
 This guide assumes usage of [Homebrew](http://brew.sh) or
 [MacPorts](https://www.macports.org) for installing dependencies.
 
-You will need to install `GMP` in order to build *libbitc*, plus `jansson`
-to build *bitsy*.
+You will need to install `GMP` in order to build *libbitc*.
 
 Install these packages. It will take a few minutes.
 
-    brew install autoconf automake libtool argp-standalone jansson gmp
+    brew install autoconf automake libtool argp-standalone gmp
 
 or
 
-    sudo port install autoconf automake libtool argp-standalone jansson pkgconfig gmp
+    sudo port install autoconf automake libtool argp-standalone pkgconfig gmp
 
 
 Building
@@ -42,7 +41,7 @@ MacPorts
 You should also run `make check` in order to run tests. This is a vital step
 early in the development of `libbitc`.
 
-You can install it if you want with `make install`. It will be installed to 
+You can install it if you want with `make install`. It will be installed to
 `/usr/local/libbitc`.
 
 The `bitsy` binary will be in `./src`.
