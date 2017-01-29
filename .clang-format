@@ -15,7 +15,7 @@ BreakBeforeBinaryOperators: false
 BreakBeforeBraces: Linux
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializersBeforeComma: false
-ColumnLimit:     0
+ColumnLimit:     100
 CommentPragmas:  '^ IWYU pragma:'
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ConstructorInitializerIndentWidth: 4
