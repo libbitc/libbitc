@@ -41,7 +41,7 @@ struct bitc_tx BuildCreditingTransaction(struct cstring* scriptPubKey)
     return txCredit;
 }
 
-struct bitc_tx BuildSpendingTransaction(struct cstring* scriptSig, struct bitc_tx txCredit)
+struct bitc_tx BuildSpendingTransaction(struct cstring* scriptSig, struct bitc_tx* txCredit)
 {
     struct bitc_tx txSpend;
     bitc_tx_init(&txSpend);
@@ -52,7 +52,7 @@ struct bitc_tx BuildSpendingTransaction(struct cstring* scriptSig, struct bitc_t
 
     struct bitc_txin* txinSpend = calloc(1, sizeof(struct bitc_txin));
     bitc_txin_init(txinSpend);
-    bu256_copy(&txinSpend->prevout.hash, &txCredit.sha256);
+    bu256_copy(&txinSpend->prevout.hash, &txCredit->sha256);
     txinSpend->prevout.n = 0;
     txinSpend->scriptSig = cstr_new_buf(scriptSig->str, scriptSig->len);
     txinSpend->nSequence = SEQUENCE_FINAL;
@@ -64,20 +64,17 @@ struct bitc_tx BuildSpendingTransaction(struct cstring* scriptSig, struct bitc_t
     txoutSpend->nValue = (uint64_t)0;
     parr_add(txSpend.vout, txoutSpend);
 
-    bitc_tx_free(&txCredit);
+    bitc_tx_free(txCredit);
     return txSpend;
 }
 
-static void test_script(bool is_valid,
-    cstring* scriptSig,
-    cstring* scriptPubKey,
-    unsigned int idx,
-    const char* scriptSigEnc,
-    const char* scriptPubKeyEnc,
-    const unsigned int test_flags)
+static void test_script(bool is_valid, cstring* scriptSig,
+                        cstring* scriptPubKey, unsigned int idx,
+                        const char* scriptSigEnc, const char* scriptPubKeyEnc,
+                        const unsigned int test_flags)
 {
-    struct bitc_tx tx =
-        BuildSpendingTransaction(scriptSig, BuildCreditingTransaction(scriptPubKey));
+    struct bitc_tx tx = BuildCreditingTransaction(scriptPubKey);
+    tx = BuildSpendingTransaction(scriptSig, &tx);
 
     bool rc;
     rc = bitc_script_verify(scriptSig, scriptPubKey, &tx, 0, test_flags, SIGHASH_NONE);
