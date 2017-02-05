@@ -145,7 +145,7 @@ bool bloom_init(struct bloom *bf, unsigned int nElements, double nFPRate)
 	string_resize(bf->vData, filter_size - 1);
 
 	bf->nHashFuncs =
-	MIN((unsigned int)(bf->vData->len * 8 / nElements * LN2), MAX_HASH_FUNCS);
+	MIN((unsigned long)(bf->vData->len * 8 / nElements * LN2), MAX_HASH_FUNCS);
 
 	return true;
 }

@@ -537,8 +537,10 @@ static struct nc_conn *nc_conn_new(const struct peer *peer)
 	return conn;
 }
 
-static void nc_conn_kill(struct nc_conn *conn)
+static void nc_conn_kill(struct nc_conn *_conn)
 {
+	struct nc_conn *conn = _conn;
+
 	assert(conn->dead == false);
 
 	conn->dead = true;

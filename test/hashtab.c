@@ -80,7 +80,6 @@ static void test_basics(void)
 	assert(bitc_hashtab_size(ht) == 0);
 
 	bitc_hashtab_unref(ht);
-	bitc_hashtab_unref(ht);
 }
 
 struct iter_info {

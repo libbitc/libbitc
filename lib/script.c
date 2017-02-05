@@ -350,8 +350,9 @@ cstring *bsp_make_scripthash(cstring *hash)
 	return script_out;
 }
 
-cstring *bsp_make_pubkeyhash(cstring *hash)
+cstring *bsp_make_pubkeyhash(cstring *_hash)
 {
+	cstring *hash = _hash;
 	cstring *script_out = cstr_new_sz(32);
 
 	bsp_push_op(script_out, OP_DUP);

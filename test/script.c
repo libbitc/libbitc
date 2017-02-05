@@ -26,7 +26,6 @@ struct bitc_tx BuildCreditingTransaction(struct cstring* scriptPubKey)
 
     struct bitc_txin* txinCredit = calloc(1, sizeof(struct bitc_txin));
     bitc_txin_init(txinCredit);
-    bitc_outpt_null(&txinCredit->prevout);
     txinCredit->scriptSig = cstr_new(NULL);
     txinCredit->nSequence = SEQUENCE_FINAL;
     parr_add(txCredit.vin, txinCredit);
