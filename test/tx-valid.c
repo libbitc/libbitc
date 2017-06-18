@@ -78,6 +78,7 @@ static void test_tx_valid(bool is_valid, struct bitc_hashtab *input_map,
 
 	bitc_tx_calc_sha256(&tx);
 
+	bool state = true;
 	unsigned int i;
 	for (i = 0; i < tx.vin->len; i++) {
 		struct bitc_txin *txin;
@@ -110,6 +111,9 @@ static void test_tx_valid(bool is_valid, struct bitc_hashtab *input_map,
 		bool rc = bitc_script_verify(txin->scriptSig, scriptPubKey,
 					&tx, i,
 					test_flags, 0);
+
+		state &= rc;
+
 		if (rc != is_valid) {
 			char tx_hexstr[BU256_STRSZ];
 			bu256_hex(tx_hexstr, &tx.sha256);
@@ -118,10 +122,9 @@ static void test_tx_valid(bool is_valid, struct bitc_hashtab *input_map,
 			"tx-valid: TX %s\n"
 			"tx-valid: txin %u script verification failed\n",
 				tx_hexstr, i);
-
-			assert(rc == is_valid);
 		}
 	}
+	assert(state == is_valid);
 
 out:
 	bitc_tx_free(&tx);
@@ -144,82 +147,101 @@ static void runtest(bool is_valid, const char *json_base_fn)
 	for (idx = 0; idx < cJSON_GetArraySize(tests); idx++) {
 		cJSON *test = cJSON_GetArrayItem(tests, idx);
 
+		assert((test->type & 0xFF) == cJSON_Array);
 		if ((cJSON_GetArrayItem(test, 0)->type & 0xFF) != cJSON_Array) {
 			const char *cmt =
 				cJSON_GetArrayItem(test, 0)->valuestring;
 			if (cmt)
-				parr_add(comments, strdup(cmt));
-			continue;			/* comments */
+				parr_add(comments, strdup(cmt)); /* comments */
+		} else {
+		    assert(cJSON_GetArraySize(test) == 3);
+		    assert((cJSON_GetArrayItem(test, 1)->type & 0xFF) == cJSON_String);
+		    assert((cJSON_GetArrayItem(test, 2)->type & 0xFF) == cJSON_String);
+
+		    cJSON *inputs = cJSON_GetArrayItem(test, 0);
+		    assert((inputs->type & 0xFF) == cJSON_Array);
+		    static unsigned int verify_flags;
+
+		    bitc_hashtab_clear(input_map);
+
+		    unsigned int i;
+		    for (i = 0; i < cJSON_GetArraySize(inputs); i++) {
+				cJSON *input = cJSON_GetArrayItem(inputs, i);
+				assert((input->type & 0xFF) == cJSON_Array);
+
+				const char *prev_hashstr =
+					cJSON_GetArrayItem(input, 0)->valuestring;
+				int prev_n =
+					cJSON_GetArrayItem(input, 1)->valueint;
+				const char *prev_pubkey_enc =
+					cJSON_GetArrayItem(input, 2)->valuestring;
+
+				assert(prev_hashstr != NULL);
+				assert(cJSON_GetArrayItem(input, 1)->type == cJSON_Number);
+				assert(prev_pubkey_enc != NULL);
+
+				struct bitc_outpt *outpt;
+				outpt = malloc(sizeof(*outpt));
+				hex_bu256(&outpt->hash, prev_hashstr);
+				outpt->n = prev_n;
+
+				cstring *script = parse_script_str(prev_pubkey_enc);
+				assert(script != NULL);
+
+				bitc_hashtab_put(input_map, outpt, script);
+		    }
+
+		    const char *tx_hexser =
+					cJSON_GetArrayItem(test, 1)->valuestring;
+		    assert(tx_hexser != NULL);
+
+		    verify_flags = SCRIPT_VERIFY_NONE;
+
+		    const char *json_flags = cJSON_GetArrayItem(test, 2)->valuestring;
+
+		    if (strlen(json_flags) > 0) {
+				const char* json_flag  = strtok((char *)json_flags, ",");
+
+				do {
+					if (strcmp(json_flag, "P2SH") == 0)
+					    verify_flags |= SCRIPT_VERIFY_P2SH;
+					else if (strcmp(json_flag, "STRICTENC") == 0)
+					    verify_flags |= SCRIPT_VERIFY_STRICTENC;
+					else if (strcmp(json_flag, "DERSIG") == 0)
+					    verify_flags |= SCRIPT_VERIFY_DERSIG;
+					else if (strcmp(json_flag, "LOW_S") == 0)
+					    verify_flags |= SCRIPT_VERIFY_LOW_S;
+					else if (strcmp(json_flag, "NULLDUMMY") == 0)
+					    verify_flags |= SCRIPT_VERIFY_NULLDUMMY;
+					else if (strcmp(json_flag, "SIGPUSHONLY") == 0)
+					    verify_flags |= SCRIPT_VERIFY_SIGPUSHONLY;
+					else if (strcmp(json_flag, "MINIMALDATA") == 0)
+					    verify_flags |= SCRIPT_VERIFY_MINIMALDATA;
+					else if (strcmp(json_flag, "DISCOURAGE_UPGRADABLE_NOPS") == 0)
+					    verify_flags |= SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS;
+					else if (strcmp(json_flag, "CLEANSTACK") == 0)
+					    verify_flags |= SCRIPT_VERIFY_CLEANSTACK;
+					else if (strcmp(json_flag, "CHECKLOCKTIMEVERIFY") == 0)
+					    verify_flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
+					else if (strcmp(json_flag, "CHECKSEQUENCEVERIFY") == 0)
+					    verify_flags |= SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
+					json_flag = strtok(NULL, ",");
+				} while (json_flag);
+		    }
+
+		    cstring *tx_ser = hex2str(tx_hexser);
+		    assert(tx_ser != NULL);
+
+		    test_tx_valid(is_valid, input_map, tx_ser, verify_flags);
+
+		    cstr_free(tx_ser, true);
+
+		    if (comments->len > 0) {
+				parr_free(comments, true);
+				comments = parr_new(8, free);
+		    }
 		}
-
-		assert((test->type & 0xFF) == cJSON_Array);
-		assert(cJSON_GetArraySize(test) == 3);
-		assert((cJSON_GetArrayItem(test, 1)->type & 0xFF) == cJSON_String);
-		assert((cJSON_GetArrayItem(test, 2)->type & 0xFF) == cJSON_String);
-
-		cJSON *inputs = cJSON_GetArrayItem(test, 0);
-		assert((inputs->type & 0xFF) == cJSON_Array);
-		static unsigned int verify_flags;
-
-		bitc_hashtab_clear(input_map);
-
-		unsigned int i;
-		for (i = 0; i < cJSON_GetArraySize(inputs); i++) {
-			cJSON *input = cJSON_GetArrayItem(inputs, i);
-			assert((input->type & 0xFF) == cJSON_Array);
-
-			const char *prev_hashstr =
-				cJSON_GetArrayItem(input, 0)->valuestring;
-			int prev_n =
-				cJSON_GetArrayItem(input, 1)->valueint;
-			const char *prev_pubkey_enc =
-				cJSON_GetArrayItem(input, 2)->valuestring;
-
-			assert(prev_hashstr != NULL);
-			assert(cJSON_GetArrayItem(input, 1)->type == cJSON_Number);
-			assert(prev_pubkey_enc != NULL);
-
-			struct bitc_outpt *outpt;
-			outpt = malloc(sizeof(*outpt));
-			hex_bu256(&outpt->hash, prev_hashstr);
-			outpt->n = prev_n;
-
-			cstring *script = parse_script_str(prev_pubkey_enc);
-			assert(script != NULL);
-
-			bitc_hashtab_put(input_map, outpt, script);
-		}
-
-		const char *tx_hexser =
-			cJSON_GetArrayItem(test, 1)->valuestring;
-		assert(tx_hexser != NULL);
-
-		verify_flags = SCRIPT_VERIFY_NONE;
-
-		const char *json_flags = cJSON_GetArrayItem(test, 2)->valuestring;
-
-		if (strlen(json_flags) > 0) {
-			const char* json_flag  = strtok((char *)json_flags, ",");
-
-			do {
-				if (strcmp(json_flag, "P2SH") == 0)
-					verify_flags |= SCRIPT_VERIFY_P2SH;
-				json_flag = strtok(NULL, ",");
-			} while (json_flag);
-		}
-
-		cstring *tx_ser = hex2str(tx_hexser);
-		assert(tx_ser != NULL);
-
-		test_tx_valid(is_valid, input_map, tx_ser, verify_flags);
-
-		cstr_free(tx_ser, true);
-
-		if (comments->len > 0) {
-			parr_free(comments, true);
-			comments = parr_new(8, free);
-		}
-	}
+    }
 
 	parr_free(comments, true);
 	comments = NULL;

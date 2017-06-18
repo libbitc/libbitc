@@ -39,30 +39,17 @@ bool bitc_tx_valid(const struct bitc_tx *tx)
 {
 	unsigned int i;
 
+	// Basic checks
 	if (!tx->vin || !tx->vin->len)
 		return false;
 	if (!tx->vout || !tx->vout->len)
 		return false;
 
+	// Size limits
 	if (bitc_tx_ser_size(tx) > MAX_BLOCK_SIZE)
 		return false;
 
-	if (bitc_tx_coinbase(tx)) {
-		struct bitc_txin *txin = parr_idx(tx->vin, 0);
-
-		if (txin->scriptSig->len < 2 ||
-		    txin->scriptSig->len > 100)
-			return false;
-	} else {
-		for (i = 0; i < tx->vin->len; i++) {
-			struct bitc_txin *txin;
-
-			txin = parr_idx(tx->vin, i);
-			if (!bitc_txin_valid(txin))
-				return false;
-		}
-	}
-
+	// Check for negative or overflow output values
 	int64_t value_total = 0;
 	for (i = 0; i < tx->vout->len; i++) {
 		struct bitc_txout *txout;
@@ -77,8 +64,25 @@ bool bitc_tx_valid(const struct bitc_tx *tx)
 	if (!bitc_valid_value(value_total))
 		return false;
 
+	// Check for duplicate inputs
 	if (bitc_has_dup_inputs(tx))
 		return false;
+
+	if (bitc_tx_coinbase(tx)) {
+		struct bitc_txin *txin = parr_idx(tx->vin, 0);
+
+		if (txin->scriptSig->len < 2 ||
+		    txin->scriptSig->len > 100)
+			return false;
+	} else {
+		for (i = 0; i < tx->vin->len; i++) {
+			struct bitc_txin *txin;
+
+			txin = parr_idx(tx->vin, i);
+			if (bitc_outpt_null(&txin->prevout))
+				return false;
+		}
+	}
 
 	return true;
 }
