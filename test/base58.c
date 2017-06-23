@@ -9,6 +9,7 @@
 #include <bitc/hexcode.h>               // for hex2str, decode_hex
 #include <bitc/json/cJSON.h>            // for cJSON, cJSON_GetArrayItem, etc
 #include <bitc/key.h>                   // for bitc_key_static_shutdown
+#include <bitc/crypto/ripemd160.h>      // for RIPEMD160_DIGEST_LENGTH
 #include "libtest.h"                    // for dumphex, read_json, etc
 
 #include <assert.h>                     // for assert
@@ -86,6 +87,7 @@ static void runtest_encdec(const char *json_base_fn)
 
 	    cJSON *test = cJSON_GetArrayItem(tests, idx);
 	    assert((test->type & 0xFF) == cJSON_Array);
+	    assert(cJSON_GetArraySize(test) == 2);
 
 		cJSON *j_raw = cJSON_GetArrayItem(test, 0);
 		cJSON *j_enc = cJSON_GetArrayItem(test, 1);
@@ -248,6 +250,7 @@ static void runtest_keys_valid(const char *json_base_fn)
 
 	    cJSON *test = cJSON_GetArrayItem(tests, idx);
 	    assert((test->type & 0xFF) == cJSON_Array);
+	    assert(cJSON_GetArraySize(test) == 3);
 
 		cJSON *j_base58 = cJSON_GetArrayItem(test, 0);
 		cJSON *j_payload = cJSON_GetArrayItem(test, 1);
@@ -296,10 +299,52 @@ static void runtest_keys_valid(const char *json_base_fn)
 	cJSON_Delete(tests);
 }
 
+static void runtest_keys_invalid(const char *json_base_fn)
+{
+	char *json_fn = test_filename(json_base_fn);
+	cJSON *tests = read_json(json_fn);
+	assert((tests->type & 0xFF) == cJSON_Array);
+
+	unsigned int idx;
+
+	for (idx = 0; idx < cJSON_GetArraySize(tests); idx++) {
+
+	    cJSON *test = cJSON_GetArrayItem(tests, idx);
+	    assert((test->type & 0xFF) == cJSON_Array);
+	    assert(cJSON_GetArraySize(test) == 1);
+
+	    cJSON *j_base58 = cJSON_GetArrayItem(test, 0);
+	    assert((j_base58->type & 0xFF) == cJSON_String);
+
+	    unsigned char addrtype;
+	    cstring *payload = base58_decode_check(&addrtype, j_base58->valuestring);
+	    bool is_valid = (payload != NULL);
+
+	    if (is_valid)
+			if ((addrtype == PUBKEY_ADDRESS_TEST) ||
+				(addrtype == PUBKEY_ADDRESS) ||
+				(addrtype == SCRIPT_ADDRESS_TEST) ||
+				(addrtype == SCRIPT_ADDRESS))
+				    is_valid = (payload->len == RIPEMD160_DIGEST_LENGTH);
+			else if
+				((addrtype == PRIVKEY_ADDRESS_TEST) ||
+				(addrtype == PRIVKEY_ADDRESS))
+				    is_valid = (payload->len == 32 || payload->len == 33 && payload->str[32] == 1);
+			else is_valid = false;
+
+	    cstr_free(payload, true);
+	    assert(!is_valid);
+	}
+
+	free(json_fn);
+	cJSON_Delete(tests);
+}
+
 int main (int argc, char *argv[])
 {
 	runtest_encdec("base58_encode_decode.json");
 	runtest_keys_valid("base58_keys_valid.json");
+	runtest_keys_invalid("base58_keys_invalid.json");
 
 	bitc_key_static_shutdown();
 	return 0;
