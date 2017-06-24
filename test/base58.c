@@ -230,7 +230,7 @@ static void test_pubkey_valid_dec(const char *base58_str,
 	assert(dec != NULL);
 
 	assert(addrtype == addrtype_dec);
-	assert(dec->len == 20);
+	assert(dec->len == RIPEMD160_DIGEST_LENGTH);
 	assert(payload->len == dec->len);
 	assert(memcmp(payload->str, dec->str, dec->len) == 0);
 

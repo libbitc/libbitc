@@ -57,6 +57,7 @@ addons:
       - libltdl-dev
       - dpkg-dev
       - debhelper
+      - fakeroot
   coverity_scan:
     project:
       name: libbitc/libbitc
