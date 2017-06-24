@@ -15,7 +15,7 @@ EXTRA_DIST = \
 	blk0.json blk0.ser blks10.ser \
 	blk120383.json blk120383.ser \
 	hdr193000.ser tn_hdr35141.ser \
-	random.data	script_tests.json \
+	random.data script_tests.json sighash.json \
 	tn_blk35133.ser tx3e0dc3da.json tx3e0dc3da.ser \
 	tx_invalid.json tx_valid.json \
 	wallet-basics.json
@@ -27,7 +27,7 @@ libtest_la_SOURCES = libtest.h libtest.c randtest.c chisq.c
 check_PROGRAMS = aes-util base58 blkdb block blockfile bloom \
     chain-verf clist coredefs crypto cstr ctaes fileio hash hashtab \
     hdkeys hex keystore json keyset mbr misc net message parr prng \
-	script script-parse tx tx-valid wallet wallet-basics util
+	script script-parse sighash tx tx-valid wallet wallet-basics util
 
 TESTS = $(check_PROGRAMS)
 
@@ -65,6 +65,7 @@ parr_LDADD		= $(COMMON_LDADD)
 prng_LDADD		= $(COMMON_LDADD)
 script_LDADD		= $(COMMON_LDADD)
 script_parse_LDADD	= $(COMMON_LDADD)
+sighash_LDADD		= $(COMMON_LDADD)
 tx_LDADD		= $(COMMON_LDADD)
 tx_valid_LDADD		= $(COMMON_LDADD)
 util_LDADD		= $(COMMON_LDADD) $(top_builddir)/lib/libbitcnet.la
