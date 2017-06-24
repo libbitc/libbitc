@@ -199,6 +199,7 @@ AC_CONFIG_FILES([
 	lib/Makefile
 	src/Makefile
 	test/Makefile
+	test/data/Makefile
 	external/Makefile
 	external/libbitc.github.io/Makefile
 	external/libbitc.github.io/Doxygen/Makefile

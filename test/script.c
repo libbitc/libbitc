@@ -166,6 +166,6 @@ static void runtest(const char* json_base_fn)
 
 int main(int argc, char* argv[])
 {
-    runtest("script_tests.json");
+    runtest("data/script_tests.json");
     return 0;
 }

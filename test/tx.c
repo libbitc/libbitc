@@ -91,7 +91,7 @@ static void runtest(const char *json_base_fn, const char *ser_base_fn)
 
 int main (int argc, char *argv[])
 {
-	runtest("tx3e0dc3da.json", "tx3e0dc3da.ser");
+	runtest("data/tx3e0dc3da.json", "data/tx3e0dc3da.ser");
 
 	bitc_key_static_shutdown();
 	return 0;

@@ -253,8 +253,8 @@ static void runtest(bool is_valid, const char *json_base_fn)
 
 int main (int argc, char *argv[])
 {
-	runtest(true, "tx_valid.json");
-	runtest(false, "tx_invalid.json");
+	runtest(true, "data/tx_valid.json");
+	runtest(false, "data/tx_invalid.json");
 
 	bitc_key_static_shutdown();
 	return 0;
