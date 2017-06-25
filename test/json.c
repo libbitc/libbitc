@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2009 Dave Gamble
+  Copyright (c) 2009-2017 Dave Gamble and cJSON contributors
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -53,8 +53,8 @@ static int print_preallocated(cJSON *root)
     out = cJSON_Print(root);
 
     /* create buffer to succeed */
-    /* the extra 64 bytes are in case a floating point value is printed */
-    len = strlen(out) + 64;
+    /* the extra 5 bytes are because of inaccuracies when reserving memory */
+    len = strlen(out) + 5;
     buf = (char*)malloc(len);
     if (buf == NULL)
     {
@@ -63,7 +63,7 @@ static int print_preallocated(cJSON *root)
     }
 
     /* create buffer to fail */
-    len_fail = sizeof(out) - 1;
+    len_fail = strlen(out);
     buf_fail = (char*)malloc(len_fail);
     if (buf_fail == NULL)
     {
@@ -89,7 +89,7 @@ static int print_preallocated(cJSON *root)
     printf("%s\n", buf);
 
     /* force it to fail */
-/*    if (cJSON_PrintPreallocated(root, buf_fail, (int)len_fail, 1)) {
+    if (cJSON_PrintPreallocated(root, buf_fail, (int)len_fail, 1)) {
         printf("cJSON_PrintPreallocated failed to show error with insufficient memory!\n");
         printf("cJSON_Print result:\n%s\n", out);
         printf("cJSON_PrintPreallocated result:\n%s\n", buf_fail);
@@ -98,7 +98,7 @@ static int print_preallocated(cJSON *root)
         free(buf);
         return -1;
     }
-*/
+
     free(out);
     free(buf_fail);
     free(buf);

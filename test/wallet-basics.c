@@ -29,7 +29,7 @@ static void load_json_key(cJSON *wallet, struct bitc_key *key)
 	cJSON *keys_a = cJSON_GetObjectItem(wallet, "keys");
 	assert((keys_a->type & 0xFF) == cJSON_Array);
 
-	cJSON *key_o = cJSON_GetObjectItem(keys_a, 0);
+	cJSON *key_o = cJSON_GetArrayItem(keys_a, 0);
 	assert((key_o->type & 0xFF) == cJSON_Object);
 
 	const char *address_str = cJSON_GetObjectItem(key_o, "address")->valuestring;
