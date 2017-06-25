@@ -178,7 +178,6 @@ static uint8_t *try_unix_std(uint8_t *dst) {
     int x;
 
     struct timeval tv;
-    int res;
 
     /* process id */
     pid = getpid();
