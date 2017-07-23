@@ -339,10 +339,9 @@ static bool spend_tx(struct bitc_utxo_set *uset, const struct bitc_tx *tx,
 			txout = parr_idx(coin->vout, txin->prevout.n);
 			total_in += txout->nValue;
 
-			if (script_verf &&
-			    !bitc_verify_sig(coin, tx, i,
-						/* SCRIPT_VERIFY_P2SH */ 0, 0))
-				return false;
+            if (script_verf &&
+                 !bitc_verify_sig(coin, tx, i, SCRIPT_VERIFY_NONE, SIGHASH_NONE, 0))
+                return false;
 
 			if (!bitc_utxo_spend(uset, &txin->prevout))
 				return false;
@@ -633,14 +632,14 @@ static void init_nci(struct net_child_info *nci)
 	nci->read_fd = -1;
 	nci->write_fd = -1;
 	init_peers(nci);
-    nci->db = &db;
-    nci->conns = parr_new(NC_MAX_CONN, NULL);
+        nci->db = &db;
+        nci->conns = parr_new(NC_MAX_CONN, NULL);
 	nci->eb = event_base_new();
-    nci->inv_block_process = inv_block_process;
+        nci->inv_block_process = inv_block_process;
 	nci->block_process = add_block;
 	nci->net_conn_timeout = net_conn_timeout;
-    nci->chain = chain;
-    nci->instance_nonce = &instance_nonce;
+        nci->chain = chain;
+        nci->instance_nonce = &instance_nonce;
 	nci->running = true;
 }
 

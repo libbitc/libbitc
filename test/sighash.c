@@ -59,7 +59,7 @@ static void runtest(const char* json_base_fn)
 		    int nHashType = cJSON_GetArrayItem(test, 3)->valueint;
 
 		    bu256_t sighash;
-		    bitc_tx_sighash(&sighash, scriptCode, &txTo, nIn, nHashType);
+            bitc_tx_sighash(&sighash, scriptCode, &txTo, nIn, nHashType, 0, 0);
 
             bu256_t sighash_res;
             hex_bu256(&sighash_res, cJSON_GetArrayItem(test, 4)->valuestring);

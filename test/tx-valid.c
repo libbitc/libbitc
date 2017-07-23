@@ -108,11 +108,10 @@ static void test_tx_valid(bool is_valid, struct bitc_hashtab *input_map,
 			assert(scriptPubKey != NULL);
 		}
 
-		bool rc = bitc_script_verify(txin->scriptSig, scriptPubKey,
-					&tx, i,
-					test_flags, 0);
+        bool rc = bitc_script_verify(txin->scriptSig, scriptPubKey,
+                    NULL, &tx, i, test_flags, 0, 0);
 
-		state &= rc;
+        state &= rc;
 
 		if (rc != is_valid) {
 			char tx_hexstr[BU256_STRSZ];

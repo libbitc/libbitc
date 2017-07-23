@@ -1,21 +1,31 @@
+/* Copyright 2017 BitPay, Inc.
+ * Distributed under the MIT/X11 software license, see the accompanying
+ * file COPYING or http://www.opensource.org/licenses/mit-license.php.
+ */
+
 #include "libbitc-config.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <assert.h>
-#include <bitc/coredefs.h>
-#include <bitc/message.h>
-#include <bitc/mbr.h>
-#include <bitc/blkdb.h>
-#include <bitc/script.h>
-#include <bitc/util.h>
-#include <bitc/checkpoints.h>
-#include "libtest.h"
+#include <bitc/blkdb.h>                 // for blkinfo, blkdb_reorg, etc
+#include <bitc/buffer.h>                // for const_buffer
+#include <bitc/buint.h>                 // for bu256_hex, BU256_STRSZ, etc
+#include <bitc/core.h>                  // for bitc_block, bitc_tx, etc
+#include <bitc/key.h>                   // for bitc_key_static_shutdown
+#include <bitc/parr.h>                  // for parr, parr_idx
+#include <bitc/checkpoints.h>           // for bitc_ckpt_last
+#include <bitc/coredefs.h>              // for chain_info, etc
+#include <bitc/mbr.h>                   // for fread_block
+#include <bitc/message.h>               // for p2p_message, etc
+#include <bitc/script.h>                // for bitc_verify_sig, etc
+#include <bitc/util.h>                  // for file_seq_open
+
+#include <assert.h>                     // for assert
+#include <stdbool.h>                    // for true, false, bool
+#include <stdio.h>                      // for fprintf, stderr, perror, etc
+#include <stdlib.h>                     // for getenv, calloc, free
+#include <string.h>                     // for memcmp, strncmp
+#include <sys/types.h>                  // for int64_t
+#include <unistd.h>                     // for close
+
 
 static bool no_script_verf = false;
 static bool force_script_verf = false;
@@ -67,8 +77,7 @@ static bool spend_tx(struct bitc_utxo_set *uset, const struct bitc_tx *tx,
 				check_script = true;
 
 			if (check_script &&
-			    !bitc_verify_sig(coin, tx, i,
-						/* SCRIPT_VERIFY_P2SH */ 0, 0))
+			    !bitc_verify_sig(coin, tx, i, SCRIPT_VERIFY_NONE, SIGHASH_NONE, 0))
 				return false;
 
 			if (!bitc_utxo_spend(uset, &txin->prevout))

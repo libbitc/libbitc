@@ -7,7 +7,7 @@ AM_CPPFLAGS	=   -I$(top_srcdir)/include \
 
 lib_LTLIBRARIES = libbitc.la
 
-libbitc_la_LIBADD = -lm \
+libbitc_la_LIBADD = @MATH_LIBS@ \
                     $(top_builddir)/external/secp256k1/libsecp256k1.la
 
 libbitc_la_SOURCES = \

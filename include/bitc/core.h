@@ -5,15 +5,16 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include <bitc/buffer.h>
-#include <bitc/buint.h>
-#include <bitc/coredefs.h>
-#include <bitc/hashtab.h>
-#include <bitc/cstr.h>
-#include <bitc/parr.h>
+#include <bitc/buffer.h>                // for const_buffer
+#include <bitc/buint.h>                 // for bu256_t, bu256_equal, etc
+#include <bitc/coredefs.h>              // for ::COIN
+#include <bitc/cstr.h>                  // for cstring
+#include <bitc/hashtab.h>               // for bitc_hashtab_get, etc
+#include <bitc/parr.h>                  // for parr, parr_idx
+
+#include <stdbool.h>                    // for bool, false, true
+#include <stdint.h>                     // for uint32_t, int64_t, uint16_t, etc
+#include <string.h>                     // for memcpy, memset, NULL
 
 #ifdef __cplusplus
 extern "C" {
@@ -74,7 +75,7 @@ extern void bitc_inv_freep(void *bitc_inv_p);
 
 struct bitc_locator {
 	uint32_t	nVersion;
-	parr	*vHave;		/* of bu256_t */
+	parr        *vHave;        /* of bu256_t */
 };
 
 static inline void bitc_locator_init(struct bitc_locator *locator)
@@ -115,9 +116,10 @@ static inline void bitc_outpt_copy(struct bitc_outpt *dest,
 }
 
 struct bitc_txin {
-	struct bitc_outpt	prevout;
-	cstring		*scriptSig;
-	uint32_t	nSequence;
+        struct bitc_outpt	prevout;
+        parr*       scriptWitness;
+        cstring     *scriptSig;
+        uint32_t    nSequence;
 };
 
 extern void bitc_txin_init(struct bitc_txin *txin);

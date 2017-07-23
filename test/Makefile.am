@@ -11,14 +11,14 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/include \
 	-I$(top_srcdir)/external/secp256k1/include
 
-noinst_LTLIBRARIES = libtest.la
+check_LTLIBRARIES = libtest.la
 
 libtest_la_SOURCES = libtest.h libtest.c randtest.c chisq.c
 
 check_PROGRAMS = aes-util base58 blkdb block blockfile bloom \
-    chain-verf clist coredefs crypto cstr ctaes fileio hash hashtab \
-    hdkeys hex keystore json keyset mbr misc net message parr prng \
-	script script-parse sighash tx tx-valid wallet wallet-basics util
+        chain-verf clist coredefs crypto cstr ctaes fileio hash hashtab \
+        hdkeys hex keystore json keyset mbr misc net message parr prng \
+        script script-parse sighash tx tx-valid wallet wallet-basics util
 
 TESTS = $(check_PROGRAMS)
 

@@ -89,15 +89,15 @@ static void runtest_encdec(const char *json_base_fn)
 	    assert((test->type & 0xFF) == cJSON_Array);
 	    assert(cJSON_GetArraySize(test) == 2);
 
-		cJSON *j_raw = cJSON_GetArrayItem(test, 0);
-		cJSON *j_enc = cJSON_GetArrayItem(test, 1);
-		assert((j_raw->type & 0xFF) == cJSON_String);
-		assert((j_enc->type & 0xFF) == cJSON_String);
+            cJSON *j_raw = cJSON_GetArrayItem(test, 0);
+            cJSON *j_enc = cJSON_GetArrayItem(test, 1);
+            assert((j_raw->type & 0xFF) == cJSON_String);
+            assert((j_enc->type & 0xFF) == cJSON_String);
 
-		test_encode(j_raw->valuestring,
-			    j_enc->valuestring);
-		test_decode(j_raw->valuestring,
-			    j_enc->valuestring);
+            test_encode(j_raw->valuestring,
+                        j_enc->valuestring);
+            test_decode(j_raw->valuestring,
+                        j_enc->valuestring);
 	}
 
 	free(json_fn);
@@ -329,8 +329,9 @@ static void runtest_keys_invalid(const char *json_base_fn)
 			else if
 				((addrtype == PRIVKEY_ADDRESS_TEST) ||
 				(addrtype == PRIVKEY_ADDRESS))
-				    is_valid = (payload->len == 32 || payload->len == 33 && payload->str[32] == 1);
-			else is_valid = false;
+                is_valid = (payload->len == 32 ||
+                            (payload->len == 33 && payload->str[32] == 1));
+            else is_valid = false;
 
 	    cstr_free(payload, true);
 	    assert(!is_valid);
