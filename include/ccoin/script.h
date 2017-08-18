@@ -369,7 +369,7 @@ static inline void bsp_start(struct bscript_parser *bp,
 extern void bp_tx_sighash(bu256_t* hash, const cstring* scriptCode, const struct bp_tx* txTo,
     unsigned int nIn, int nHashType, int64_t amount, enum SigVersion sigversion);
 extern bool bp_script_verify(const cstring* scriptSig, const cstring* scriptPubKey,
-    parr* witness, const struct bp_tx* txTo, unsigned int nIn,
+    parr** witness, const struct bp_tx* txTo, unsigned int nIn,
     unsigned int flags, int nHashType, int64_t amount);
 extern bool bp_verify_sig(const struct bp_utxo* txFrom,const struct bp_tx* txTo,
     unsigned int nIn, unsigned int flags, int nHashType, int64_t amount);

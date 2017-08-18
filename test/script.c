@@ -87,7 +87,7 @@ static void test_script(bool is_valid, cstring* scriptSig, cstring* scriptPubKey
 
     bool rc;
     rc = bp_script_verify(
-        scriptSig, scriptPubKey, scriptWitness, &tx, 0, test_flags, SIGHASH_NONE, nValue);
+        scriptSig, scriptPubKey, &scriptWitness, &tx, 0, test_flags, SIGHASH_NONE, nValue);
 
     if (rc != is_valid) {
         fprintf(stderr, "script: %sis_valid test %u failed\n"
@@ -135,6 +135,7 @@ static void runtest(const char *json_base_fn)
             if (json_array_size(test) != 1) {
                 fprintf(stderr, "script: Bad test %u\n", idx);
             }
+            parr_free(scriptWitness, true);
             continue;
         }
 
@@ -199,7 +200,6 @@ static void runtest(const char *json_base_fn)
 
         cstr_free(scriptSig, true);
         cstr_free(scriptPubKey, true);
-        parr_free(scriptWitness, true);
     }
 
     json_decref(tests);
