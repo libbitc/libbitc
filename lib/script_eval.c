@@ -142,9 +142,9 @@ void bitc_tx_sighash(bu256_t* hash, const cstring* scriptCode, const struct bitc
     cstring* s = cstr_new_sz(512);
 
     if (sigversion == SIGVERSION_WITNESS_V0) {
-        bu256_t hashPrevouts;
-        bu256_t hashSequence;
-        bu256_t hashOutputs;
+        bu256_t* hashPrevouts = bu256_new(NULL);
+        bu256_t* hashSequence = bu256_new(NULL);
+        bu256_t* hashOutputs = bu256_new(NULL);
 
         if (!(nHashType & SIGHASH_ANYONECANPAY)) {
             cstring* s_prevout = cstr_new_sz(512);
@@ -155,7 +155,7 @@ void bitc_tx_sighash(bu256_t* hash, const cstring* scriptCode, const struct bitc
                 // Serialize the prevout
                 ser_bitc_outpt(s_prevout, &txin->prevout);
             }
-            bu_Hash((unsigned char*)&hashPrevouts, s_prevout->str, s_prevout->len);
+            bu_Hash((unsigned char*)hashPrevouts, s_prevout->str, s_prevout->len);
             cstr_free(s_prevout, true);
         }
 
@@ -169,7 +169,7 @@ void bitc_tx_sighash(bu256_t* hash, const cstring* scriptCode, const struct bitc
                 // Serialize the nSequence
                 ser_u32(s_seq, txin->nSequence);
             }
-            bu_Hash((unsigned char*)&hashSequence, s_seq->str, s_seq->len);
+            bu_Hash((unsigned char*)hashSequence, s_seq->str, s_seq->len);
             cstr_free(s_seq, true);
         }
 
@@ -181,21 +181,21 @@ void bitc_tx_sighash(bu256_t* hash, const cstring* scriptCode, const struct bitc
                 txout = parr_idx(txTo->vout, i);
                 ser_bitc_txout(s_out, txout);
             }
-            bu_Hash((unsigned char*)&hashOutputs, s_out->str, s_out->len);
+            bu_Hash((unsigned char*)hashOutputs, s_out->str, s_out->len);
             cstr_free(s_out, true);
         } else if ((nHashType & 0x1f) == SIGHASH_SINGLE && nIn < txTo->vout->len) {
             cstring* s_out = cstr_new_sz(512);
             struct bitc_txout* txout = parr_idx(txTo->vout, nIn);
             ser_bitc_txout(s_out, txout);
-            bu_Hash((unsigned char*)&hashOutputs, s_out->str, s_out->len);
+            bu_Hash((unsigned char*)hashOutputs, s_out->str, s_out->len);
             cstr_free(s_out, true);
         }
 
         // Version
         ser_u32(s, txTo->nVersion);
         // Input prevouts/nSequence (none/all, depending on flags)
-        ser_u256(s, &hashPrevouts);
-        ser_u256(s, &hashSequence);
+        ser_u256(s, hashPrevouts);
+        ser_u256(s, hashSequence);
         // The input being signed (replacing the scriptSig with scriptCode + amount)
         // The prevout may already be contained in hashPrevout, and the nSequence
         // may already be contain in hashSequence.
@@ -205,9 +205,13 @@ void bitc_tx_sighash(bu256_t* hash, const cstring* scriptCode, const struct bitc
         ser_s64(s, amount);
         ser_u32(s, txin->nSequence);
         // Outputs (none/one/all, depending on flags)
-        ser_u256(s, &hashOutputs);
+        ser_u256(s, hashOutputs);
         // Locktime
         ser_u32(s, txTo->nLockTime);
+
+        bu256_freep(hashPrevouts);
+        bu256_freep(hashSequence);
+        bu256_freep(hashOutputs);
     } else {
         if (nIn >= txTo->vin->len) {
             //  nIn out of range
@@ -229,6 +233,7 @@ void bitc_tx_sighash(bu256_t* hash, const cstring* scriptCode, const struct bitc
 
     // Sighash type
     ser_s32(s, nHashType);
+
     bu_Hash((unsigned char*)hash, s->str, s->len);
 
 out:
@@ -394,29 +399,29 @@ static bool bitc_checksig(const struct buffer* vchSigIn, const struct buffer* vc
         const cstring* scriptCode, const struct bitc_tx* txTo, unsigned int nIn,
         int64_t amount, enum SigVersion sigversion)
 {
-	if (!vchSigIn || !vchPubKey || !scriptCode || !txTo ||
-	    !vchSigIn->len || !vchPubKey->len || !scriptCode->len)
-		return false;
+    if (!vchSigIn || !vchPubKey || !scriptCode || !txTo || !vchSigIn->len || !vchPubKey->len ||
+        !scriptCode->len)
+        return false;
 
-	// Hash type is one byte tacked on to the end of the signature
-	unsigned char *vch_back = vchSigIn->p + (vchSigIn->len - 1);
-	int nHashType = *vch_back;
-	struct buffer vchSig = { vchSigIn->p, vchSigIn->len - 1 };
+    // Hash type is one byte tacked on to the end of the signature
+    unsigned char* vch_back = vchSigIn->p + (vchSigIn->len - 1);
+    int nHashType = *vch_back;
+    struct buffer vchSig = {vchSigIn->p, vchSigIn->len - 1};
 
-	/* calculate signature hash of transaction */
-	bu256_t sighash;
-        bitc_tx_sighash(&sighash, scriptCode, txTo, nIn, nHashType, amount, sigversion);
+    /* calculate signature hash of transaction */
+    bu256_t sighash;
+    bitc_tx_sighash(&sighash, scriptCode, txTo, nIn, nHashType, amount, sigversion);
 
-        /* verify signature hash */
-        struct bitc_key pubkey;
-	bitc_key_init(&pubkey);
-	bool rc = false;
-	if (!bitc_pubkey_set(&pubkey, vchPubKey->p, vchPubKey->len))
-		goto out;
-	if (!bitc_verify(&pubkey, &sighash, sizeof(sighash), vchSig.p, vchSig.len))
-		goto out;
+    /* verify signature hash */
+    struct bitc_key pubkey;
+    bitc_key_init(&pubkey);
+    bool rc = false;
+    if (!bitc_pubkey_set(&pubkey, vchPubKey->p, vchPubKey->len))
+        goto out;
+    if (!bitc_verify(&pubkey, &sighash, sizeof(sighash), vchSig.p, vchSig.len))
+        goto out;
 
-	rc = true;
+    rc = true;
 
 out:
 	bitc_key_free(&pubkey);
@@ -1524,9 +1529,9 @@ static bool bitc_script_eval(parr* stack, const cstring* script, const struct bi
 		// Size limits
                 if (stack->len + altstack->len > MAX_STACK_SIZE)
                     goto out;
-	}
+        }
 
-	rc = (vfExec->len == 0 && bp.error == false);
+        rc = (vfExec->len == 0 && bp.error == false);
 
 out:
 	mpz_clears(bn, bn_Zero, bn_One, NULL);
@@ -1536,10 +1541,10 @@ out:
 }
 
 static bool bitc_witnessprogram_verify(parr* witness, int witversion, cstring* program,
-        const struct bitc_tx* txTo, unsigned int flags, int64_t amount)
+        const struct bitc_tx* txTo, unsigned int nIn, unsigned int flags, int64_t amount)
 {
     parr* stack = parr_new(0, buffer_freep);
-    cstring* scriptPubKey;
+    cstring* scriptPubKey = NULL;
     bool rc = false;
 
     if (witversion == 0) {
@@ -1587,7 +1592,8 @@ static bool bitc_witnessprogram_verify(parr* witness, int witversion, cstring* p
             goto out;
     }
 
-    if (!bitc_script_eval(stack, scriptPubKey, txTo, 0, flags, 0, amount, SIGVERSION_WITNESS_V0)) {
+    if (!bitc_script_eval(
+            stack, scriptPubKey, txTo, nIn, flags, nIn, amount, SIGVERSION_WITNESS_V0)) {
         goto out;
     }
 
@@ -1602,17 +1608,19 @@ static bool bitc_witnessprogram_verify(parr* witness, int witversion, cstring* p
 
 out:
     parr_free(stack, true);
+    cstr_free(scriptPubKey, true);
     return rc;
 }
 
 bool bitc_script_verify(const cstring* scriptSig, const cstring* scriptPubKey,
-        parr* witness, const struct bitc_tx* txTo, unsigned int nIn,
+        parr** witness, const struct bitc_tx* txTo, unsigned int nIn,
         unsigned int flags, int nHashType, int64_t amount)
 {
     cstring* witnessprogram = NULL;
-    if (witness == NULL) {
-        witness = parr_new(0, buffer_freep);
+    if (*witness == NULL) {
+        *witness = parr_new(0, buffer_freep);
     }
+
     bool hadWitness = false;
 
     cstring* pubkey2 = NULL;
@@ -1636,7 +1644,7 @@ bool bitc_script_verify(const cstring* scriptSig, const cstring* scriptPubKey,
         goto out;
     if (stack->len == 0)
         goto out;
-    ;
+
     if (CastToBool(stacktop(stack, -1)) == false)
         goto out;
 
@@ -1652,7 +1660,7 @@ bool bitc_script_verify(const cstring* scriptSig, const cstring* scriptPubKey,
                 goto out;
             }
             if (!bitc_witnessprogram_verify(
-                    witness, witnessversion, witnessprogram, txTo, flags, amount)) {
+                    *witness, witnessversion, witnessprogram, txTo, nIn, flags, amount)) {
                 goto out;
             }
             // Bypass the cleanstack check at the end. The actual stack is obviously not clean
@@ -1698,7 +1706,7 @@ bool bitc_script_verify(const cstring* scriptSig, const cstring* scriptPubKey,
                     goto out;
                 }
                 if (!bitc_witnessprogram_verify(
-                        witness, witnessversion, witnessprogram, txTo, flags, amount)) {
+                        *witness, witnessversion, witnessprogram, txTo, nIn, flags, amount)) {
                     goto out;
                 }
                 // Bypass the cleanstack check at the end. The actual stack is obviously not
@@ -1729,7 +1737,7 @@ bool bitc_script_verify(const cstring* scriptSig, const cstring* scriptPubKey,
         // possible, which is not a softfork.
         if ((flags & SCRIPT_VERIFY_P2SH) == 0)
             goto out;
-        if (!hadWitness && (witness->len != 0))
+        if (!hadWitness && ((*witness)->len != 0))
             goto out;
     }
     rc = true;
@@ -1764,6 +1772,6 @@ bool bitc_verify_sig(const struct bitc_utxo* txFrom, const struct bitc_tx* txTo,
 	if (!txout)
 		return false;
 
-        return bitc_script_verify(txin->scriptSig, txout->scriptPubKey, NULL,
+        return bitc_script_verify(txin->scriptSig, txout->scriptPubKey, &txin->scriptWitness,
             txTo, nIn, flags, nHashType, amount);
 }

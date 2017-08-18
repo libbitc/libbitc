@@ -24,9 +24,10 @@ cJSON *read_json(const char *json_fn)
     void *json_file;
 	size_t json_len;
 	assert(bu_read_file(json_fn, &json_file, &json_len, 1 * 1024 * 1024) == true);
-    cJSON * ret = cJSON_Parse(json_file);;
+    cJSON* ret = cJSON_Parse(json_file);
+    free(json_file);
 
-	return ret;
+    return ret;
 }
 
 char *test_filename(const char *basename)

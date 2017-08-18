@@ -53,8 +53,11 @@ static void dump_comments(void)
 	}
 }
 
-static void test_tx_valid(bool is_valid, struct bitc_hashtab *input_map,
-			  cstring *tx_ser, const unsigned int test_flags)
+static void test_tx_valid(bool is_valid,
+    struct bitc_hashtab* mapprevOutScriptPubKeys,
+    struct bitc_hashtab* mapprevOutValues,
+    cstring* tx_ser,
+    const unsigned int test_flags)
 {
 	struct bitc_tx tx;
 
@@ -86,14 +89,15 @@ static void test_tx_valid(bool is_valid, struct bitc_hashtab *input_map,
 		txin = parr_idx(tx.vin, i);
 		assert(txin != NULL);
 
-		cstring *scriptPubKey = bitc_hashtab_get(input_map,
-						       &txin->prevout);
+		cstring* scriptPubKey = bitc_hashtab_get(mapprevOutScriptPubKeys, &txin->prevout);
+		int64_t* amount = bitc_hashtab_get(mapprevOutValues, &txin->prevout);
+
 		if (scriptPubKey == NULL) {
-			if (!is_valid) {
-				/* if testing tx_invalid.json, missing input
-				 * is invalid, and therefore correct
-				 */
-				continue;
+		    if (!is_valid) {
+    		    /* if testing tx_invalid.json, missing input
+    		     * is invalid, and therefore correct
+    		     */
+		        continue;
 			}
 
 			char tx_hexstr[BU256_STRSZ], hexstr[BU256_STRSZ];
@@ -108,12 +112,12 @@ static void test_tx_valid(bool is_valid, struct bitc_hashtab *input_map,
 			assert(scriptPubKey != NULL);
 		}
 
-        bool rc = bitc_script_verify(txin->scriptSig, scriptPubKey,
-                    NULL, &tx, i, test_flags, 0, 0);
+        bool rc = bitc_script_verify(txin->scriptSig, scriptPubKey, &txin->scriptWitness,
+                    &tx, i, test_flags, SIGHASH_NONE, *amount);
 
         state &= rc;
 
-		if (rc != is_valid) {
+        if (rc != is_valid) {
 			char tx_hexstr[BU256_STRSZ];
 			bu256_hex(tx_hexstr, &tx.sha256);
 			dump_comments();
@@ -136,11 +140,12 @@ static void runtest(bool is_valid, const char *json_base_fn)
 	assert(tests != NULL);
 	assert((tests->type & 0xFF) == cJSON_Array);
 
-	struct bitc_hashtab *input_map = bitc_hashtab_new_ext(
-		input_hash, input_equal,
-		free, input_value_free);
+	struct bitc_hashtab* mapprevOutScriptPubKeys =
+            bitc_hashtab_new_ext(input_hash, input_equal, free, input_value_free);
+    struct bitc_hashtab* mapprevOutValues =
+            bitc_hashtab_new_ext(input_hash, input_equal, free, free);
 
-	comments = parr_new(8, free);
+    comments = parr_new(8, free);
 
 	unsigned int idx;
 	for (idx = 0; idx < cJSON_GetArraySize(tests); idx++) {
@@ -161,34 +166,46 @@ static void runtest(bool is_valid, const char *json_base_fn)
 		    assert((inputs->type & 0xFF) == cJSON_Array);
 		    static unsigned int verify_flags;
 
-		    bitc_hashtab_clear(input_map);
+            bitc_hashtab_clear(mapprevOutScriptPubKeys);
+                    bitc_hashtab_clear(mapprevOutValues);
 
-		    unsigned int i;
-		    for (i = 0; i < cJSON_GetArraySize(inputs); i++) {
-				cJSON *input = cJSON_GetArrayItem(inputs, i);
-				assert((input->type & 0xFF) == cJSON_Array);
+            unsigned int inpIdx;
+            for (inpIdx = 0; inpIdx < cJSON_GetArraySize(inputs); inpIdx++) {
+                cJSON* input = cJSON_GetArrayItem(inputs, inpIdx);
+                assert((input->type & 0xFF) == cJSON_Array);
 
-				const char *prev_hashstr =
-					cJSON_GetArrayItem(input, 0)->valuestring;
-				int prev_n =
-					cJSON_GetArrayItem(input, 1)->valueint;
-				const char *prev_pubkey_enc =
-					cJSON_GetArrayItem(input, 2)->valuestring;
+                const char* prev_hashstr = cJSON_GetArrayItem(input, 0)->valuestring;
+                int prev_n = cJSON_GetArrayItem(input, 1)->valuedouble;
+                const char* prev_pubkey_enc = cJSON_GetArrayItem(input, 2)->valuestring;
 
-				assert(prev_hashstr != NULL);
-				assert(cJSON_GetArrayItem(input, 1)->type == cJSON_Number);
-				assert(prev_pubkey_enc != NULL);
+                assert(prev_hashstr != NULL);
+                assert(cJSON_GetArrayItem(input, 1)->type == cJSON_Number);
+                assert(prev_pubkey_enc != NULL);
 
-				struct bitc_outpt *outpt;
-				outpt = malloc(sizeof(*outpt));
-				hex_bu256(&outpt->hash, prev_hashstr);
-				outpt->n = prev_n;
+                struct bitc_outpt* outpt;
+                outpt = malloc(sizeof(*outpt));
+                hex_bu256(&outpt->hash, prev_hashstr);
+                outpt->n = prev_n;
 
-				cstring *script = parse_script_str(prev_pubkey_enc);
-				assert(script != NULL);
+                cstring* script = parse_script_str(prev_pubkey_enc);
+                assert(script != NULL);
 
-				bitc_hashtab_put(input_map, outpt, script);
-		    }
+                bitc_hashtab_put(mapprevOutScriptPubKeys, outpt, script);
+
+                struct bitc_outpt* outpt_amt;
+                outpt_amt = malloc(sizeof(*outpt_amt));
+                hex_bu256(&outpt_amt->hash, prev_hashstr);
+                outpt_amt->n = prev_n;
+
+                int64_t* amount;
+                amount = malloc(sizeof(*amount));
+                *amount = 0;
+                if (cJSON_GetArraySize(input) >= 4) {
+                    assert(cJSON_GetArrayItem(input, 3)->type == cJSON_Number);
+                    *amount = cJSON_GetArrayItem(input, 3)->valuedouble;
+                }
+                bitc_hashtab_put(mapprevOutValues, outpt_amt, amount);
+            }
 
 		    const char *tx_hexser =
 					cJSON_GetArrayItem(test, 1)->valuestring;
@@ -224,16 +241,21 @@ static void runtest(bool is_valid, const char *json_base_fn)
 					    verify_flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
 					else if (strcmp(json_flag, "CHECKSEQUENCEVERIFY") == 0)
 					    verify_flags |= SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
-					json_flag = strtok(NULL, ",");
+                    else if (strcmp(json_flag, "WITNESS") == 0)
+                        verify_flags |= SCRIPT_VERIFY_WITNESS;
+                    else if (strcmp(json_flag, "DISCOURAGE_UPGRADABLE_WITNESS_PROGRAM") == 0)
+                        verify_flags |= SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_WITNESS_PROGRAM;
+                    json_flag = strtok(NULL, ",");
 				} while (json_flag);
 		    }
 
 		    cstring *tx_ser = hex2str(tx_hexser);
 		    assert(tx_ser != NULL);
 
-		    test_tx_valid(is_valid, input_map, tx_ser, verify_flags);
+            test_tx_valid(is_valid, mapprevOutScriptPubKeys,
+                mapprevOutValues, tx_ser, verify_flags);
 
-		    cstr_free(tx_ser, true);
+            cstr_free(tx_ser, true);
 
 		    if (comments->len > 0) {
 				parr_free(comments, true);
@@ -244,9 +266,9 @@ static void runtest(bool is_valid, const char *json_base_fn)
 
 	parr_free(comments, true);
 	comments = NULL;
-
-	bitc_hashtab_unref(input_map);
-	cJSON_Delete(tests);
+    bitc_hashtab_unref(mapprevOutScriptPubKeys);
+    bitc_hashtab_unref(mapprevOutValues);
+    cJSON_Delete(tests);
 	free(json_fn);
 }
 
@@ -255,6 +277,6 @@ int main (int argc, char *argv[])
 	runtest(true, "data/tx_valid.json");
 	runtest(false, "data/tx_invalid.json");
 
-	bitc_key_static_shutdown();
+    bitc_key_static_shutdown();
 	return 0;
 }

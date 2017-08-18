@@ -370,7 +370,7 @@ extern void bitc_tx_sighash(bu256_t* hash, const cstring* scriptCode,
         const struct bitc_tx* txTo, unsigned int nIn, int nHashType,
         int64_t amount, enum SigVersion sigversion);
 extern bool bitc_script_verify(const cstring* scriptSig,
-        const cstring* scriptPubKey, parr* witness,
+        const cstring* scriptPubKey, parr** witness,
         const struct bitc_tx* txTo, unsigned int nIn,
         unsigned int flags, int nHashType, int64_t amount);
 extern bool bitc_verify_sig(const struct bitc_utxo* txFrom,

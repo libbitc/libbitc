@@ -4,13 +4,20 @@
  */
 #include "libbitc-config.h"
 
-#include <string.h>
-#include <time.h>
-#include <bitc/core.h>
-#include <bitc/util.h>
-#include <bitc/parr.h>
-#include <bitc/coredefs.h>
-#include <bitc/serialize.h>
+#include <bitc/buint.h>                 // for bu256_t, bu256_new, etc
+#include <bitc/core.h>                  // for bitc_block, bitc_tx, etc
+#include <bitc/coredefs.h>              // for ::MAX_BLOCK_WEIGHT, etc
+#include <bitc/cstr.h>                  // for cstring
+#include <bitc/parr.h>                  // for parr, parr_idx, parr_add, etc
+#include <bitc/serialize.h>             // for u256_from_compact
+#include <bitc/util.h>                  // for bu_Hash_, MIN
+
+#include <gmp.h>                        // for mpz_clear, mpz_init, mpz_t, etc
+
+#include <stdbool.h>                    // for false, bool, true
+#include <stdint.h>                     // for int64_t
+#include <string.h>                     // for NULL, memset
+#include <time.h>                       // for time, time_t
 
 static bool bitc_has_dup_inputs(const struct bitc_tx *tx)
 {
@@ -46,7 +53,7 @@ bool bitc_tx_valid(const struct bitc_tx *tx)
 		return false;
 
 	// Size limits
-	if (bitc_tx_ser_size(tx) > MAX_BLOCK_SIZE)
+	if (bitc_tx_ser_size(tx) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
 		return false;
 
 	// Check for negative or overflow output values
@@ -215,7 +222,10 @@ bool bitc_block_valid(struct bitc_block *block)
 	if (!block->vtx || !block->vtx->len)
 		return false;
 
-	if (bitc_block_ser_size(block) > MAX_BLOCK_SIZE)
+	if (block->vtx->len * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
+		return false;
+
+	if (bitc_block_ser_size(block) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
 		return false;
 
 	if (!bitc_block_valid_target(block)) return false;

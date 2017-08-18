@@ -249,10 +249,10 @@ bool deser_msg_version(struct msg_version *mv, struct const_buffer *buf)
 		mv->nVersion = 300;
 	if (!deser_u64(&mv->nServices, buf)) return false;
 	if (!deser_s64(&mv->nTime, buf)) return false;
-	if (!deser_bitc_addr(MIN_PROTO_VERSION, &mv->addrTo, buf)) return false;
+	if (!deser_bitc_addr(INIT_PROTO_VERSION, &mv->addrTo, buf)) return false;
 
 	if (mv->nVersion >= 106) {
-		if (!deser_bitc_addr(MIN_PROTO_VERSION, &mv->addrFrom, buf)) return false;
+		if (!deser_bitc_addr(INIT_PROTO_VERSION, &mv->addrFrom, buf)) return false;
 		if (!deser_u64(&mv->nonce, buf)) return false;
 		if (!deser_str(mv->strSubVer, buf, sizeof(mv->strSubVer)))
 			return false;
@@ -276,8 +276,8 @@ cstring *ser_msg_version(const struct msg_version *mv)
 	ser_u64(s, mv->nServices);
 	ser_s64(s, mv->nTime);
 
-	ser_bitc_addr(s, MIN_PROTO_VERSION, &mv->addrTo);
-	ser_bitc_addr(s, MIN_PROTO_VERSION, &mv->addrFrom);
+	ser_bitc_addr(s, INIT_PROTO_VERSION, &mv->addrTo);
+	ser_bitc_addr(s, INIT_PROTO_VERSION, &mv->addrFrom);
 
 	ser_u64(s, mv->nonce);
 	ser_str(s, mv->strSubVer, sizeof(mv->strSubVer));
