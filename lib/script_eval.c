@@ -49,29 +49,29 @@ void bitc_tx_sigserializer(cstring *s, const cstring *scriptCode,
 			const struct bitc_tx *txTo, unsigned int nIn,
 			int nHashType)
 {
-        const bool fAnyoneCanPay = (!!(nHashType & SIGHASH_ANYONECANPAY));
-        const bool fHashSingle = ((nHashType & 0x1f) == SIGHASH_SINGLE);
-        const bool fHashNone = ((nHashType & 0x1f) == SIGHASH_NONE);
+    const bool fAnyoneCanPay = (!!(nHashType & SIGHASH_ANYONECANPAY));
+    const bool fHashSingle = ((nHashType & 0x1f) == SIGHASH_SINGLE);
+    const bool fHashNone = ((nHashType & 0x1f) == SIGHASH_NONE);
 
-        /** Serialize txTo */
-        // Serialize nVersion
-        ser_u32(s, txTo->nVersion);
+    /** Serialize txTo */
+    // Serialize nVersion
+    ser_u32(s, txTo->nVersion);
 
-        // Serialize vin
-        unsigned int nInputs = fAnyoneCanPay ? 1 : txTo->vin->len;
-        ser_varlen(s, nInputs);
+    // Serialize vin
+    unsigned int nInputs = fAnyoneCanPay ? 1 : txTo->vin->len;
+    ser_varlen(s, nInputs);
 
 	unsigned int nInput;
 	for (nInput = 0; nInput < nInputs; nInput++) {
-                /** Serialize an input of txTo */
-                // In case of SIGHASH_ANYONECANPAY, only the input being signed is serialized
+        /** Serialize an input of txTo */
+		// In case of SIGHASH_ANYONECANPAY, only the input being signed is serialized
 		if (fAnyoneCanPay)
 			nInput = nIn;
 
-                struct bitc_txin *txin = parr_idx(txTo->vin, nInput);
+		struct bitc_txin *txin = parr_idx(txTo->vin, nInput);
 
-                // Serialize the prevout
-                ser_bitc_outpt(s, &txin->prevout);
+		// Serialize the prevout
+		ser_bitc_outpt(s, &txin->prevout);
 
 		// Serialize the script
 		if (nInput != nIn)
