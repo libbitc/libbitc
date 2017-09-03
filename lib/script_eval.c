@@ -709,7 +709,7 @@ bool CheckSequence(const unsigned int nSequence, const struct bitc_tx *txTo, uns
 }
 
 static bool bitc_script_eval(parr* stack, const cstring* script, const struct bitc_tx* txTo,
-        unsigned int nIn, unsigned int flags, int nHashType, int64_t amount, enum SigVersion sigversion)
+        unsigned int nIn, unsigned int flags, int64_t amount, enum SigVersion sigversion)
 {
 	struct const_buffer pc = { script->str, script->len };
 	struct const_buffer pend = { script->str + script->len, 0 };
@@ -1593,7 +1593,7 @@ static bool bitc_witnessprogram_verify(parr* witness, int witversion, cstring* p
     }
 
     if (!bitc_script_eval(
-            stack, scriptPubKey, txTo, nIn, flags, nIn, amount, SIGVERSION_WITNESS_V0)) {
+            stack, scriptPubKey, txTo, nIn, flags, amount, SIGVERSION_WITNESS_V0)) {
         goto out;
     }
 
@@ -1614,7 +1614,7 @@ out:
 
 bool bitc_script_verify(const cstring* scriptSig, const cstring* scriptPubKey,
         parr** witness, const struct bitc_tx* txTo, unsigned int nIn,
-        unsigned int flags, int nHashType, int64_t amount)
+        unsigned int flags, int64_t amount)
 {
     cstring* witnessprogram = NULL;
     if (*witness == NULL) {
@@ -1634,13 +1634,13 @@ bool bitc_script_verify(const cstring* scriptSig, const cstring* scriptPubKey,
     if ((flags & SCRIPT_VERIFY_SIGPUSHONLY) != 0 && !is_bsp_pushonly(&sigbuf))
         goto out;
 
-    if (!bitc_script_eval(stack, scriptSig, txTo, nIn, flags, nHashType, amount, SIGVERSION_BASE))
+    if (!bitc_script_eval(stack, scriptSig, txTo, nIn, flags, amount, SIGVERSION_BASE))
         goto out;
     if (flags & SCRIPT_VERIFY_P2SH) {
         stackCopy = parr_new(stack->len, buffer_freep);
         stack_copy(stackCopy, stack);
     }
-    if (!bitc_script_eval(stack, scriptPubKey, txTo, nIn, flags, nHashType, amount, SIGVERSION_BASE))
+    if (!bitc_script_eval(stack, scriptPubKey, txTo, nIn, flags, amount, SIGVERSION_BASE))
         goto out;
     if (stack->len == 0)
         goto out;
@@ -1686,7 +1686,7 @@ bool bitc_script_verify(const cstring* scriptSig, const cstring* scriptPubKey,
         popstack(stackCopy);
 
         if (!bitc_script_eval(
-                stackCopy, pubkey2, txTo, nIn, flags, nHashType, amount, SIGVERSION_BASE))
+                stackCopy, pubkey2, txTo, nIn, flags, amount, SIGVERSION_BASE))
             goto out;
         if (stackCopy->len == 0)
             goto out;
@@ -1756,7 +1756,7 @@ out:
 }
 
 bool bitc_verify_sig(const struct bitc_utxo* txFrom, const struct bitc_tx* txTo,
-        unsigned int nIn, unsigned int flags, int nHashType, int64_t amount)
+        unsigned int nIn, unsigned int flags, int64_t amount)
 {
 	if (!txFrom || !txFrom->vout || !txFrom->vout->len ||
 	    !txTo || !txTo->vin || !txTo->vin->len ||
@@ -1773,5 +1773,5 @@ bool bitc_verify_sig(const struct bitc_utxo* txFrom, const struct bitc_tx* txTo,
 		return false;
 
         return bitc_script_verify(txin->scriptSig, txout->scriptPubKey, &txin->scriptWitness,
-            txTo, nIn, flags, nHashType, amount);
+            txTo, nIn, flags, amount);
 }

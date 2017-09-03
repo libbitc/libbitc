@@ -77,7 +77,7 @@ static bool spend_tx(struct bitc_utxo_set *uset, const struct bitc_tx *tx,
 				check_script = true;
 
 			if (check_script &&
-			    !bitc_verify_sig(coin, tx, i, SCRIPT_VERIFY_NONE, SIGHASH_NONE, 0))
+			    !bitc_verify_sig(coin, tx, i, SCRIPT_VERIFY_NONE, 0))
 				return false;
 
 			if (!bitc_utxo_spend(uset, &txin->prevout))

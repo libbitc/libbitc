@@ -372,10 +372,10 @@ extern void bitc_tx_sighash(bu256_t* hash, const cstring* scriptCode,
 extern bool bitc_script_verify(const cstring* scriptSig,
         const cstring* scriptPubKey, parr** witness,
         const struct bitc_tx* txTo, unsigned int nIn,
-        unsigned int flags, int nHashType, int64_t amount);
+        unsigned int flags, int64_t amount);
 extern bool bitc_verify_sig(const struct bitc_utxo* txFrom,
         const struct bitc_tx* txTo, unsigned int nIn,
-        unsigned int flags, int nHashType, int64_t amount);
+        unsigned int flags, int64_t amount);
 
 extern bool bitc_script_sign(struct bitc_keystore *ks, const cstring *fromPubKey,
         const struct bitc_tx *txTo, unsigned int nIn, int nHashType);

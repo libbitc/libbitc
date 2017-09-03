@@ -113,7 +113,7 @@ static void test_tx_valid(bool is_valid,
 		}
 
         bool rc = bitc_script_verify(txin->scriptSig, scriptPubKey, &txin->scriptWitness,
-                    &tx, i, test_flags, SIGHASH_NONE, *amount);
+                    &tx, i, test_flags, *amount);
 
         state &= rc;
 

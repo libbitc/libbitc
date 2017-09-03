@@ -85,7 +85,7 @@ static void test_script(bool is_valid, cstring* scriptSig, cstring* scriptPubKey
 
     bool rc;
     rc = bitc_script_verify(
-        scriptSig, scriptPubKey, &scriptWitness, &tx, 0, test_flags, SIGHASH_NONE, nValue);
+        scriptSig, scriptPubKey, &scriptWitness, &tx, 0, test_flags, nValue);
 
     if (rc != is_valid) {
         fprintf(stderr, "script: %sis_valid test %u failed\n"
