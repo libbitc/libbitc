@@ -3,7 +3,8 @@ AUTOMAKE_OPTIONS = subdir-objects
 AM_CPPFLAGS	=   -I$(top_srcdir)/include \
                 -I$(top_srcdir)/include/bitc/net \
                 -I$(top_srcdir)/external/secp256k1/include \
-                -I$(top_srcdir)/external/secp256k1/contrib
+                -I$(top_srcdir)/external/secp256k1/contrib \
+                -I$(top_srcdir)/external/cJSON
 
 lib_LTLIBRARIES = libbitc.la
 
@@ -70,10 +71,11 @@ libbitcnet_la_SOURCES =	\
 			net/netbase.c	\
 			net/peerman.c
 
+libbitcwallet_la_LIBADD = $(top_builddir)/external/cJSON/libcjson.la
+
 libbitcwallet_la_SOURCES =	\
 			crypto/aes_util.c   \
 			crypto/ctaes.c		\
-			json/cJSON.c	\
 			wallet/wallet.c
 
 EXTRA_DIST =	\

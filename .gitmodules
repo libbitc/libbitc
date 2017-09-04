@@ -6,3 +6,7 @@
 	path = external/libbitc.github.io
 	url = https://github.com/libbitc/libbitc.github.io.git
 	ignore = dirty
+[submodule "external/cJSON"]
+	path = external/cJSON
+	url = https://github.com/DaveGamble/cJSON.git
+        ignore = dirty

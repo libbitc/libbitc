@@ -9,8 +9,9 @@
 #include <bitc/core.h>                  // for bitc_tx_free, bitc_tx_init, etc
 #include <bitc/cstr.h>                  // for cstr_free, cstring
 #include <bitc/hexcode.h>               // for hex2str
-#include <bitc/json/cJSON.h>            // for cJSON_GetArrayItem, cJSON, etc
 #include <bitc/script.h>                // for bitc_tx_sighash
+
+#include <cJSON.h>                      // for cJSON_GetArrayItem, cJSON, etc
 
 #include <assert.h>                     // for assert
 #include <stdbool.h>                    // for true

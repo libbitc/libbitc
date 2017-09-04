@@ -7,11 +7,12 @@
 #include <bitc/buint.h>                 // for bu256_equal, bu256_hex, etc
 #include <bitc/core.h>                  // for bitc_tx, etc
 #include <bitc/cstr.h>                  // for cstring, cstr_free, etc
-#include <bitc/json/cJSON.h>            // for cJSON, cJSON_GetObjectItem, etc
 #include <bitc/key.h>                   // for bitc_key_static_shutdown
 #include <bitc/parr.h>                  // for parr
 #include <bitc/util.h>                  // for bu_read_file
 #include "libtest.h"                    // for test_filename
+
+#include <cJSON.h>                      // for cJSON, cJSON_GetObjectItem, etc
 
 #include <assert.h>                     // for assert
 #include <stdbool.h>                    // for true, bool

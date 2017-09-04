@@ -10,12 +10,12 @@
 #include <bitc/core.h>                  // for bitc_block, etc
 #include <bitc/cstr.h>                  // for cstring, cstr_free
 #include <bitc/hexcode.h>               // for decode_hex
-#include <bitc/json/cJSON.h>            // for cJSON_GetObjectItem, cJSON, etc
 #include <bitc/key.h>                   // for bitc_key_free, etc
 #include <bitc/parr.h>                  // for parr_free, parr, parr_idx
 #include <bitc/util.h>                  // for bu_read_file
 #include "libtest.h"                    // for test_filename
 
+#include <cJSON.h>                      // for cJSON_GetObjectItem, cJSON, etc
 #include <gmp.h>                        // for mpz_clear, mpz_cmp, etc
 
 #include <assert.h>                     // for assert

@@ -11,7 +11,6 @@
 #include <bitc/core.h>                  // for bitc_address
 #include <bitc/coredefs.h>              // for chain_find, chain_info
 #include <bitc/crypto/prng.h>           // for prng_get_random_bytes
-#include <bitc/json/cJSON.h>            // for cJSON, cJSON_CreateObject, etc
 #include <bitc/log.h>                   // for log_info, log_debug, etc
 #include <bitc/net/dns.h>               // for bu_dns_seed_addrs
 #include <bitc/net/event.h>             // for event_base_dispatch, etc
@@ -20,6 +19,8 @@
 #include <bitc/net/peerman.h>           // for peer_manager, peerman_write, etc
 #include <bitc/util.h>                  // for ARRAY_SIZE, czstr_equal, etc
 #include "wallet.h"                     // for cur_wallet_addresses, etc
+
+#include <cJSON.h>                      // for cJSON, cJSON_CreateObject, etc
 
 #include <argp.h>
 #include <assert.h>                     // for assert

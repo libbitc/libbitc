@@ -11,10 +11,11 @@
 #include <bitc/core.h>                  // for bitc_tx, bitc_txin, etc
 #include <bitc/cstr.h>                  // for cstring, cstr_free, etc
 #include <bitc/hexcode.h>               // for encode_hex, hex2str, etc
-#include <bitc/json/cJSON.h>            // for cJSON, etc
 #include <bitc/parr.h>                  // for parr, parr_add, parr_new, etc
 #include <bitc/script.h>                // for bsp_make_pubkeyhash, etc
 #include <bitc/util.h>                  // for VALSTR_SZ, btc_decimal
+
+#include <cJSON.h>                      // for cJSON, etc
 
 #include <argp.h>                       // for ARGP_ERR_UNKNOWN, error_t, etc
 #include <assert.h>                     // for assert

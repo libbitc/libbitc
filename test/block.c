@@ -7,12 +7,13 @@
 #include <bitc/buint.h>                 // for bu256_hex, BU256_STRSZ
 #include <bitc/core.h>                  // for bitc_block, etc
 #include <bitc/cstr.h>                  // for cstring, cstr_free, etc
-#include <bitc/json/cJSON.h>            // for cJSON, cJSON_GetObjectItem, etc
 #include <bitc/key.h>                   // for bitc_key_static_shutdown
 #include <bitc/mbr.h>                   // for fread_message
 #include <bitc/message.h>               // for p2p_message, etc
 #include <bitc/util.h>                  // for file_seq_open
 #include "libtest.h"                    // for test_filename, read_json
+
+#include <cJSON.h>                      // for cJSON, cJSON_GetObjectItem, etc
 
 #include <assert.h>                     // for assert
 #include <stdbool.h>                    // for bool, false, true

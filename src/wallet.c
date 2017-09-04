@@ -15,10 +15,11 @@
 #include <bitc/crypto/prng.h>           // for prng_get_random_bytes
 #include <bitc/hdkeys.h>                // for hd_extended_key_free, etc
 #include <bitc/hexcode.h>               // for encode_hex
-#include <bitc/json/cJSON.h>            // for cJSON_CreateString, cJSON, etc
 #include <bitc/key.h>                   // for bitc_privkey_get, etc
 #include <bitc/wallet/wallet.h>         // for wallet, wallet_free, etc
 #include <bitc/compat.h>                // for parr_new
+
+#include <cJSON.h>                      // for cJSON_CreateString, cJSON, etc
 
 #include <assert.h>                     // for assert
 #include <fcntl.h>                      // for open

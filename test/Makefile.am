@@ -9,7 +9,8 @@ SUBDIRS		= data
 AM_CPPFLAGS = \
 	-DTEST_SRCDIR=\"$(top_srcdir)/test\" \
 	-I$(top_srcdir)/include \
-	-I$(top_srcdir)/external/secp256k1/include
+	-I$(top_srcdir)/external/secp256k1/include \
+	-I$(top_srcdir)/external/cJSON
 
 check_LTLIBRARIES = libtest.la
 
@@ -17,8 +18,8 @@ libtest_la_SOURCES = libtest.h libtest.c randtest.c chisq.c
 
 check_PROGRAMS = aes-util base58 blkdb block blockfile bloom \
         chain-verf clist coredefs crypto cstr ctaes fileio hash hashtab \
-        hdkeys hex keystore json keyset mbr misc net message parr prng \
-        script script-parse sighash tx tx-valid wallet wallet-basics util
+        hdkeys hex keystore keyset mbr misc net message parr prng script \
+        script-parse sighash tx tx-valid wallet wallet-basics util
 
 TESTS = $(check_PROGRAMS)
 
@@ -26,6 +27,7 @@ COMMON_LDADD = libtest.la \
 	$(top_builddir)/lib/libbitc.la \
 	$(top_builddir)/lib/libbitcwallet.la \
 	$(top_builddir)/external/secp256k1/libsecp256k1.la \
+    $(top_builddir)/external/cJSON/libcjson.la \
 	@GMP_LIBS@ @MATH_LIBS@
 
 aes_util_LDADD		= $(COMMON_LDADD)
@@ -45,7 +47,6 @@ hash_LDADD		= $(COMMON_LDADD)
 hashtab_LDADD		= $(COMMON_LDADD)
 hdkeys_LDADD		= $(COMMON_LDADD)
 hex_LDADD		= $(COMMON_LDADD)
-json_LDADD		= $(COMMON_LDADD)
 keyset_LDADD		= $(COMMON_LDADD)
 keystore_LDADD		= $(COMMON_LDADD)
 message_LDADD		= $(COMMON_LDADD)

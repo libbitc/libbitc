@@ -6,8 +6,9 @@
  */
 
 #include <bitc/cstr.h>                  // for cstring
-#include <bitc/json/cJSON.h>            // for cJSON
 #include <stddef.h>                     // for size_t
+
+#include <cJSON.h>                      // for cJSON
 
 extern cJSON *read_json(const char *filename);
 extern char *test_filename(const char *basename);

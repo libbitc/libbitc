@@ -5,11 +5,12 @@
 
 #include <bitc/cstr.h>                  // for cstr_free, cstring, etc
 #include <bitc/hexcode.h>               // for hex2str, is_hexstr
-#include <bitc/json/cJSON.h>            // for cJSON, cJSON_Parse
 #include <bitc/parr.h>                  // for parr_add, parr_free, parr, etc
 #include <bitc/script.h>                // for GetOpType, bsp_push_data, etc
 #include <bitc/util.h>                  // for bu_read_file
 #include "libtest.h"
+
+#include <cJSON.h>                      // for cJSON, cJSON_Parse
 
 #include <assert.h>                     // for assert
 #include <ctype.h>                      // for isdigit

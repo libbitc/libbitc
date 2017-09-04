@@ -11,12 +11,13 @@
 #include "bitc/cstr.h"                  // for cstring, cstr_free
 #include <bitc/hashtab.h>               // for bitc_hashtab_clear, etc
 #include <bitc/hexcode.h>               // for hex2str
-#include <bitc/json/cJSON.h>            // for cJSON_GetArrayItem, cJSON, etc
 #include "bitc/key.h"                   // for bitc_key_static_shutdown
 #include "bitc/parr.h"                  // for parr, parr_free, parr_new, etc
 #include <bitc/script.h>                // for bitc_script_verify, etc
 #include <bitc/compat.h>                // for parr_new
 #include "libtest.h"                    // for parse_script_str, etc
+
+#include <cJSON.h>                      // for cJSON_GetArrayItem, cJSON, etc
 
 #include <assert.h>                     // for assert
 #include <stdbool.h>                    // for true, bool, false

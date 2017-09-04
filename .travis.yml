@@ -92,7 +92,7 @@ script:
   - make -s $MAKEJOBS $MAKETARGET || ( echo "Build failure. Verbose build follows." && make V=1 $MAKETARGET; false )
 
 after_success:
-      - if [ "$ENABLE_COVERAGE" = "yes" ]; then lcov --capture --compat-libtool --directory . --no-external --output-file coverage.info.all && lcov --remove coverage.info.all */test/* */external/* */json/cJSON\.* -o coverage.info && coveralls-lcov coverage.info; fi
+      - if [ "$ENABLE_COVERAGE" = "yes" ]; then lcov --capture --compat-libtool --directory . --no-external --output-file coverage.info.all && lcov --remove coverage.info.all */test/* */external/* -o coverage.info && coveralls-lcov coverage.info; fi
 
 deploy:
   provider: releases

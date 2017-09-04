@@ -7,10 +7,11 @@
 #include <bitc/coredefs.h>              // for bitc_address_type, etc
 #include <bitc/cstr.h>                  // for cstring, cstr_free, etc
 #include <bitc/hexcode.h>               // for hex2str, decode_hex
-#include <bitc/json/cJSON.h>            // for cJSON, cJSON_GetArrayItem, etc
 #include <bitc/key.h>                   // for bitc_key_static_shutdown
 #include <bitc/crypto/ripemd160.h>      // for RIPEMD160_DIGEST_LENGTH
 #include "libtest.h"                    // for dumphex, read_json, etc
+
+#include <cJSON.h>                      // for cJSON, cJSON_GetArrayItem, etc
 
 #include <assert.h>                     // for assert
 #include <stdbool.h>                    // for bool, true
