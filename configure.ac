@@ -179,11 +179,13 @@ AS_IF([test "$enable_efence" = "yes"], [
 ])
 
 dnl --------------------------
+dnl libev
+dnl --------------------------
+m4_include([external/libev/libev.m4])
+
+dnl --------------------------
 dnl autoconf output generation
 dnl --------------------------
-
-dnl libev
-m4_include([m4/libev.m4])
 
 AC_SUBST(MATH_LIBS)
 AC_SUBST(GMP_LIBS)

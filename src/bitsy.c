@@ -13,13 +13,13 @@
 #include <bitc/crypto/prng.h>           // for prng_get_random_bytes
 #include <bitc/log.h>                   // for log_info, log_debug, etc
 #include <bitc/net/dns.h>               // for bu_dns_seed_addrs
-#include <bitc/net/event.h>             // for event_base_dispatch, etc
 #include <bitc/net/net.h>               // for net_child_info, nc_conns_gc, etc
 #include <bitc/net/netbase.h>           // for bn_address_str, etc
 #include <bitc/net/peerman.h>           // for peer_manager, peerman_write, etc
 #include <bitc/util.h>                  // for ARRAY_SIZE, czstr_equal, etc
 #include "wallet.h"                     // for cur_wallet_addresses, etc
 
+#include <event.h>                      // for event_base_dispatch, etc
 #include <cJSON.h>                      // for cJSON, cJSON_CreateObject, etc
 
 #include <argp.h>

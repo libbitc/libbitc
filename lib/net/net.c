@@ -5,7 +5,6 @@
 #include "libbitc-config.h"            // for VERSION
 
 #include "bitc/net/net.h"              // for nc_conn, net_child_info, etc
-#include <bitc/net/event.h>            // for event_del, event_add, etc
 #include <bitc/net/netbase.h>          // for bn_address_str, etc
 #include <bitc/blkdb.h>                // for blkdb, blkdb_locator, etc
 #include <bitc/buffer.h>               // for buffer, const_buffer
@@ -16,6 +15,8 @@
 #include <bitc/log.h>                  // for log_info, log_debug, etc
 #include <bitc/parr.h>                 // for parr, parr_idx, parr_add, etc
 #include <bitc/util.h>                 // for MIN
+
+#include <event.h>                     // for event_del, event_add, etc
 
 #include <assert.h>                     // for assert
 #include <errno.h>                      // for errno, EAGAIN, EWOULDBLOCK, etc

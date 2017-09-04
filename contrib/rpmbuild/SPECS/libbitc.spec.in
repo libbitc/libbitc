@@ -15,6 +15,7 @@ BuildRequires:  autoconf automake libtool
 This package contains the @PACKAGE_NAME@ shared library, a C library that allows for bitcoin operations and connection to the bitcoin network.
 
 %define debug_package %{nil}
+%define _unpackaged_files_terminate_build 0
 
 %prep
 %setup -q -n %{name}-%{version}
@@ -49,4 +50,3 @@ This package contains headers for @PACKAGE_NAME@, a C library that allows for bi
 /%{_libdir}/lib*.a
 /%{_libdir}/lib*.so
 /%{_libdir}/pkgconfig/*
-

@@ -2,6 +2,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 AM_CPPFLAGS	=   -I$(top_srcdir)/include \
                 -I$(top_srcdir)/include/bitc/net \
+                -I$(top_srcdir)/external/libev \
                 -I$(top_srcdir)/external/secp256k1/include \
                 -I$(top_srcdir)/external/secp256k1/contrib \
                 -I$(top_srcdir)/external/cJSON
@@ -55,15 +56,9 @@ libbitc_la_SOURCES = \
 			util.c		\
 			utxo.c
 
-noinst_LTLIBRARIES = libbitcev.la libbitcnet.la libbitcwallet.la
+noinst_LTLIBRARIES = libbitcnet.la libbitcwallet.la
 
-libbitcev_la_CFLAGS = -w
-
-libbitcev_la_SOURCES =	\
-			net/ev.c	\
-			net/event.c
-
-libbitcnet_la_LIBADD = libbitcev.la
+libbitcnet_la_LIBADD = $(top_builddir)/external/libev/libev.la
 
 libbitcnet_la_SOURCES =	\
 			net/dns.c	\
@@ -77,10 +72,3 @@ libbitcwallet_la_SOURCES =	\
 			crypto/aes_util.c   \
 			crypto/ctaes.c		\
 			wallet/wallet.c
-
-EXTRA_DIST =	\
-			net/ev_epoll.c	\
-			net/ev_poll.c	\
-			net/ev_kqueue.c	\
-			net/ev_port.c	\
-			net/ev_select.c

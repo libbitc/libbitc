@@ -16,13 +16,13 @@
 #include <bitc/log.h>                  // for log_info, logging, etc
 #include <bitc/mbr.h>                  // for fread_message
 #include <bitc/message.h>              // for p2p_message, etc
-#include <bitc/net/event.h>            // for event_base_dispatch, etc
 #include <bitc/net/net.h>              // for net_child_info, nc_conns_gc, etc
 #include <bitc/net/peerman.h>          // for peer_manager, peerman_write, etc
 #include <bitc/parr.h>                 // for parr, parr_idx, parr_free, etc
 #include <bitc/script.h>               // for bitc_verify_sig
 #include <bitc/util.h>                 // for ARRAY_SIZE, czstr_equal, etc
 
+#include <event.h>                     // for event_base_dispatch, etc
 
 #include <assert.h>                     // for assert
 #include <stdbool.h>                    // for bool

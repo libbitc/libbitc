@@ -10,3 +10,8 @@
 	path = external/cJSON
 	url = https://github.com/DaveGamble/cJSON.git
         ignore = dirty
+[submodule "external/libev"]
+	path = external/libev
+	url = https://git.lighttpd.net/libev.git
+        ignore = dirty
+
