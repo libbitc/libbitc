@@ -4,7 +4,6 @@
  */
 
 #include <bitc/crypto/hmac.h>           // for hmac_sha256, hmac_sha512
-#include <bitc/crypto/rijndael.h>       // for aes_cbc_encrypt, etc
 #include <bitc/crypto/ripemd160.h>      // for RIPEMD160_DIGEST_LENGTH, etc
 #include <bitc/crypto/sha1.h>           // for SHA1_DIGEST_LENGTH, etc
 #include <bitc/crypto/sha2.h>           // for SHA256_DIGEST_LENGTH, etc
@@ -132,38 +131,6 @@ static void test_hmac(void)
 	cstr_free(s512, true);
 }
 
-static void test_rijndael(void)
-{
-	rijndael_ctx ctx;
-	static const char *key = "blockchain blockchain blockchain";
-	static uint8_t iv[] = { 222U, 173U, 190U, 239U, 222U, 173U, 190U, 239U,
-							222U, 173U, 190U, 239U, 222U, 173U, 190U, 239U };
-	static const char *res256ebc = "b1171a6e12500d4c07b56a43968cba1938c822358db242115a3c5eb5cf5ebc8d";
-	static const char *res256cbc = "403a8e3c31ebd2808ff83391fab1514ebf01928daa93039afeeed628db9d4903";
-	unsigned char md256[SHA256_DIGEST_LENGTH];
-
-	memset(md256, 0, sizeof(md256));
-	memcpy(md256, test_data, strlen(test_data));
-
-	aes_set_key(&ctx, (const uint8_t *)key, strlen(key) * 8, 1);
-	aes_ecb_encrypt(&ctx, md256, 32);
-
-	cstring *s256 = str2hex(md256, sizeof(md256));
-	assert(strcmp(res256ebc, s256->str) == 0);
-
-	cstr_free(s256, true);
-
-	memset(md256, 0, sizeof(md256));
-	memcpy(md256, test_data, strlen(test_data));
-
-	aes_cbc_encrypt(&ctx, iv, md256, 32);
-
-	s256 = str2hex(md256, sizeof(md256));
-	assert(strcmp(res256cbc, s256->str) == 0);
-
-	cstr_free(s256, true);
-}
-
 int main (int argc, char *argv[])
 {
 	test_sha1();
@@ -171,6 +138,5 @@ int main (int argc, char *argv[])
 	test_sha512();
 	test_ripemd160();
 	test_hmac();
-	test_rijndael();
 	return 0;
 }

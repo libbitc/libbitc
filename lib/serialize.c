@@ -325,7 +325,7 @@ bool deser_varlen_array(parr** ao, struct const_buffer* buf)
     for (i = 0; i < vlen; i++) {
         uint32_t ivlen;
         if (!deser_varlen(&ivlen, buf))
-            return false;
+            goto err_out;
 
         parr_add(arr, buffer_copy(buf->p, ivlen));
         buf->p += ivlen;

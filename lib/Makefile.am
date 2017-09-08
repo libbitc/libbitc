@@ -13,11 +13,11 @@ libbitc_la_LIBADD = @MATH_LIBS@ \
                     $(top_builddir)/external/secp256k1/libsecp256k1.la
 
 libbitc_la_SOURCES = \
+			crypto/ctaes.c		\
 			crypto/fortuna.c    \
 			crypto/hmac.c	\
 			crypto/prng.c   \
 			crypto/random.c     \
-			crypto/rijndael.c   \
 			crypto/ripemd160.c	\
 			crypto/sha1.c	\
 			crypto/sha2.c	\

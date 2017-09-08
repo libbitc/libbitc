@@ -2,12 +2,11 @@
 libbitc_ladir = $(includedir)/bitc
 
 libbitc_la_HEADERS =	\
-        crypto/fortuna.h    \
-        crypto/hmac.h	    \
-        crypto/prng.h       \
-        crypto/rijndael.h   \
-        crypto/rijndael.tbl \
-		crypto/ripemd160.h	\
+                crypto/ctaes.h   \
+                crypto/fortuna.h   \
+                crypto/hmac.h   \
+                crypto/prng.h   \
+                crypto/ripemd160.h   \
 		crypto/sha1.h	\
 		crypto/sha2.h	\
 		address.h	\

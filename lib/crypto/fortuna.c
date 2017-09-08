@@ -30,7 +30,7 @@
  */
 
 #include <bitc/crypto/fortuna.h>
-#include <bitc/crypto/rijndael.h> // for rijndael_ctx, etc
+#include <bitc/crypto/ctaes.h>    // for AES256_ctx, etc
 #include <bitc/crypto/sha2.h>     // for SHA256_CTX, sha256_Final, etc
 
 #include <stdint.h>   // for uint8_t, uint32_t
@@ -112,7 +112,7 @@
 
 /* for internal wrappers */
 #define MD_CTX SHA256_CTX
-#define CIPH_CTX rijndael_ctx
+#define CIPH_CTX AES256_ctx
 
 struct fortuna_state {
     uint8_t counter[CIPH_BLOCK];
@@ -136,12 +136,12 @@ typedef struct fortuna_state FState;
  * - No memory allocations.
  */
 
-static void ciph_init(CIPH_CTX *ctx, const uint8_t *key, int klen) {
-    rijndael_set_key(ctx, (const uint32_t *)key, klen, 1);
+static void ciph_init(CIPH_CTX *ctx, const uint8_t* key) {
+    AES256_init(ctx, (const unsigned char*)key);
 }
 
 static void ciph_encrypt(CIPH_CTX *ctx, const uint8_t *in, uint8_t *out) {
-    rijndael_encrypt(ctx, (const uint32_t *)in, (uint32_t *)out);
+    AES256_encrypt(ctx, 1, (unsigned char*)out, (unsigned char*)in);
 }
 
 static void md_init(MD_CTX *ctx) { sha256_Init(ctx); }
@@ -260,7 +260,7 @@ static void reseed(FState *st) {
     md_result(&key_md, st->key);
 
     /* use new key */
-    ciph_init(&st->ciph, st->key, BLOCK);
+    ciph_init(&st->ciph, st->key);
 
     MEMSET_BZERO(&key_md, sizeof(key_md));
     MEMSET_BZERO(buf, BLOCK);
@@ -319,7 +319,7 @@ static void add_entropy(FState *st, const uint8_t *data, unsigned len) {
 static void rekey(FState *st) {
     encrypt_counter(st, st->key);
     encrypt_counter(st, st->key + CIPH_BLOCK);
-    ciph_init(&st->ciph, st->key, BLOCK);
+    ciph_init(&st->ciph, st->key);
 }
 
 /*
