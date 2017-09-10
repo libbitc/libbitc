@@ -14,4 +14,8 @@
 	path = external/libev
 	url = https://git.lighttpd.net/libev.git
         ignore = dirty
+[submodule "external/lmdb"]
+	path = external/lmdb
+	url = https://github.com/LMDB/lmdb.git
+        ignore = dirty
 
