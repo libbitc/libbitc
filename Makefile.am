@@ -34,7 +34,7 @@ pkg-rpm: dist
 
 	cp -r $(top_srcdir)/contrib/rpmbuild $(distdir)
 	mv $(distdir).tar.gz $(distdir)/rpmbuild/SOURCES/
-	rpmbuild --define="_topdir $(abs_srcdir)/$(distdir)/rpmbuild" -ba $(distdir)/rpmbuild/SPECS/libbitc.spec
+	rpmbuild --nodeps --define="_topdir $(abs_srcdir)/$(distdir)/rpmbuild" -ba $(distdir)/rpmbuild/SPECS/libbitc.spec
 	mv $(abs_srcdir)/$(distdir)/rpmbuild/RPMS/*/*.rpm $(abs_srcdir)
 
 	$(am__post_remove_distdir)
