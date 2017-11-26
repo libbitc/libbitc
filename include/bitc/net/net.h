@@ -28,10 +28,6 @@ extern "C" {
 #endif
 
 enum {
-	PROTO_VERSION	= 60002,
-};
-
-enum {
 	NC_MAX_CONN	= 8,
 };
 

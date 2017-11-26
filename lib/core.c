@@ -4,13 +4,17 @@
  */
 #include "libbitc-config.h"
 
-#include <string.h>
-#include <time.h>
-#include <bitc/core.h>
-#include <bitc/util.h>
-#include <bitc/coredefs.h>
-#include <bitc/serialize.h>
-#include <bitc/compat.h>		/* for parr_new */
+#include <bitc/core.h>                  // for bitc_tx, bitc_txin, etc
+#include <bitc/net/version.h>           // for CADDR_TIME_VERSION
+#include <bitc/serialize.h>             // for deser_u32, ser_u32, etc
+#include <bitc/util.h>                  // for bu_Hash
+#include <bitc/compat.h>                // for parr_new
+
+#include <stdbool.h>                    // for false, true, bool
+#include <stdint.h>                     // for uint32_t
+#include <stdlib.h>                     // for free, calloc, malloc
+#include <string.h>                     // for memset, NULL
+
 
 bool deser_bitc_addr(unsigned int protover,
 		struct bitc_address *addr, struct const_buffer *buf)

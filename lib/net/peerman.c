@@ -14,6 +14,7 @@
 #include <bitc/net/dns.h>              // for bu_dns_lookup, etc
 #include <bitc/net/netbase.h>          // for bn_group
 #include <bitc/serialize.h>            // for deser_s64, deser_u32, etc
+#include <bitc/net/version.h>          // for CADDR_TIME_VERSION, etc
 #include <bitc/util.h>                 // for clist_shuffle, djb2_hash, etc
 
 #include <errno.h>                      // for errno

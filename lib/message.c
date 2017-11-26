@@ -4,13 +4,18 @@
  */
 #include "libbitc-config.h"
 
-#include <stdint.h>
-#include <string.h>
-#include <bitc/message.h>
-#include <bitc/serialize.h>
-#include <bitc/util.h>
-#include <bitc/compat.h>		/* for parr_new */
-#include <bitc/endian.h>
+#include <bitc/message.h>               // for msg_version, msg_vinv, etc
+#include <bitc/net/version.h>           // for INIT_PROTO_VERSION, etc
+#include <bitc/serialize.h>             // for ser_varlen, deser_u64, etc
+#include <bitc/util.h>                  // for bu_Hash4
+#include <bitc/endian.h>                // for htole32, le32toh
+#include <bitc/compat.h>                // for parr_new
+
+#include <stdbool.h>                    // for false, true, bool
+#include <stdint.h>                     // for uint32_t
+#include <stdlib.h>                     // for calloc, free, malloc
+#include <string.h>                     // for NULL, memcmp, memcpy, etc
+
 
 void parse_message_hdr(struct p2p_message_hdr *hdr, const unsigned char *data)
 {
@@ -256,7 +261,7 @@ bool deser_msg_version(struct msg_version *mv, struct const_buffer *buf)
 		if (!deser_u64(&mv->nonce, buf)) return false;
 		if (!deser_str(mv->strSubVer, buf, sizeof(mv->strSubVer)))
 			return false;
-		if (mv->nVersion >= 209)
+		if (mv->nVersion >= INIT_PROTO_VERSION)
 			if (!deser_u32(&mv->nStartingHeight, buf)) return false;
 	}
 	if (mv->nVersion >= 70001) {

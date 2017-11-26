@@ -6,6 +6,7 @@
 
 #include <bitc/net/net.h>              // for nc_conn, net_child_info, etc
 #include <bitc/net/netbase.h>          // for bn_address_str, etc
+#include <bitc/net/version.h>          // for PROTOCOL_VERSION, etc
 #include <bitc/db/chaindb.h>           // for blkdb, blkdb_locator, etc
 #include <bitc/buffer.h>               // for buffer, const_buffer
 #include <bitc/core.h>                 // for bitc_address, bitc_inv, etc
@@ -231,7 +232,7 @@ static bool nc_msg_version(struct nc_conn *conn)
 	if (mv.nonce == *conn->nci->instance_nonce)		/* connected to ourselves? */
 		goto out;
 
-	conn->protover = MIN(mv.nVersion, PROTO_VERSION);
+	conn->protover = MIN(mv.nVersion, PROTOCOL_VERSION);
 
 	/* acknowledge version receipt */
 	if (!nc_conn_send(conn, "verack", NULL, 0))
@@ -739,7 +740,7 @@ static cstring *nc_version_build(struct nc_conn *conn)
 
 	msg_version_init(&mv);
 
-	mv.nVersion = PROTO_VERSION;
+	mv.nVersion = PROTOCOL_VERSION;
 	mv.nTime = (int64_t) time(NULL);
 	mv.nonce = *conn->nci->instance_nonce;
 	sprintf(mv.strSubVer, "/libbitc:%s/", VERSION);

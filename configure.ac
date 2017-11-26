@@ -17,7 +17,7 @@ dnl You should have received a copy of the GNU General Public License
 dnl along with this program; if not, write to the Free Software
 dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-AC_INIT(libbitc, 0.2.0,
+AC_INIT(libbitc, 0.2.1,
   [libbitc <libbitc@users.noreply.github.com>],,
   [https://github.com/libbitc/libbitc])
 AC_PREREQ(2.60)

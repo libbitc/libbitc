@@ -10,16 +10,6 @@ extern "C" {
 #endif
 
 enum {
-    //! BIP 0031, pong message, is enabled for all versions AFTER this one
-	BIP0031_VERSION		= 60000,
-
-    //! nTime field added to CAddress, starting with this version;
-    //! if possible, avoid requesting addresses nodes older than this
-    CADDR_TIME_VERSION	= 31402,
-
-    //! initial proto version, to be increased after version/verack negotiation
-	INIT_PROTO_VERSION 	= 209,
-
     /** The maximum allowed weight for a block, see BIP 141 (network rule) */
     MAX_BLOCK_WEIGHT	= 4000000,
 

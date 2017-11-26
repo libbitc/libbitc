@@ -4,10 +4,13 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include <stdio.h>
-#include <assert.h>
-#include <bitc/message.h>
+
+#include <bitc/message.h>               // for msg_version, etc
 #include <bitc/net/net.h>
+#include <bitc/net/version.h>           // for PROTOCOL_VERSION
+
+#include <assert.h>                     // for assert
+#include <stdio.h>                      // for fprintf, NULL, stderr, etc
 
 static void check_buffer(const cstring *buffer,
                          const void *expected_data,
@@ -330,7 +333,7 @@ static void test_addr(void)
 	bool rc = parr_add(ma.addrs, addr);
 	assert(rc == true);
 
-	cstring *addr_ser = ser_msg_addr(PROTO_VERSION, &ma);
+	cstring *addr_ser = ser_msg_addr(PROTOCOL_VERSION, &ma);
 	assert(addr_ser != NULL);
 	assert(addr_ser->len > 0);
 
@@ -338,7 +341,7 @@ static void test_addr(void)
 
 	// note: overwrites 'ma' objects, freeing them
 
-	rc = deser_msg_addr(PROTO_VERSION, &ma, &buf);
+	rc = deser_msg_addr(PROTOCOL_VERSION, &ma, &buf);
 	assert(rc == true);
 	assert(ma.addrs != NULL);
 	assert(ma.addrs->len == 1);

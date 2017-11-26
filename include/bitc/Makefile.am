@@ -47,7 +47,8 @@ libbitcnet_la_HEADERS =	\
 		net/fakepoll.h	\
 		net/net.h	\
 		net/netbase.h	\
-		net/peerman.h
+		net/peerman.h	\
+		net/version.h
 
 libbitcwallet_ladir = $(includedir)/bitc/wallet
 
