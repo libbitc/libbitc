@@ -4,19 +4,25 @@
  */
 #include "libbitc-config.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <string.h>
-#include <assert.h>
-#include <unistd.h>
-#include <bitc/util.h>
-#include <bitc/script.h>
-#include <bitc/core.h>
-#include <bitc/mbr.h>
-#include <bitc/message.h>
-#include <bitc/compat.h>
-#include "libtest.h"
+#include <bitc/buffer.h>                // for const_buffer
+#include <bitc/clist.h>                 // for clist, clist_append, etc
+#include <bitc/core.h>                  // for bitc_block, bitc_txout, etc
+#include <bitc/cstr.h>                  // for cstring, cstr_equal, etc
+#include <bitc/key.h>                   // for bitc_key_static_shutdown
+#include <bitc/mbr.h>                   // for fread_message
+#include <bitc/message.h>               // for p2p_message, etc
+#include <bitc/script.h>                // for bscript_op, GetOpName, etc
+#include <bitc/util.h>                  // for file_seq_open, memdup
+#include <bitc/compat.h>                // for parr_new
+#include "libtest.h"                    // for test_filename
+
+#include <assert.h>                     // for assert
+#include <stdbool.h>                    // for bool, false, true
+#include <stdio.h>                      // for perror
+#include <stdlib.h>                     // for free, exit
+#include <string.h>                     // for strcmp, strncmp, NULL
+#include <unistd.h>                     // for close
+
 
 static void test_txout(const struct bitc_txout *txout)
 {
@@ -118,7 +124,7 @@ int main (int argc, char *argv[])
 	assert(!strcmp(opn, "OP_PUBKEY"));
 
 	opn = GetOpName(OP_INVALIDOPCODE);
-	assert(!strcmp(opn, "<unknown>"));
+	assert(!strcmp(opn, "OP_UNKNOWN"));
 
 	runtest("data/blk120383.ser");
 
