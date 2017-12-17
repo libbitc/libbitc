@@ -2,26 +2,29 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "libbitc-config.h"
+#include "libbitc-config.h"             // for PACKAGE_VERSION
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <argp.h>
-#include <bitc/crypto/ripemd160.h>
+#include <bitc/addr_match.h>            // for bitc_tx_match
+#include <bitc/base58.h>                // for base58_decode_check, etc
+#include <bitc/buffer.h>                // for const_buffer, buffer_copy, etc
 #include <bitc/coredefs.h>
-#include <bitc/base58.h>
-#include <bitc/buffer.h>
-#include <bitc/key.h>
-#include <bitc/core.h>
-#include <bitc/util.h>
-#include <bitc/mbr.h>
-#include <bitc/script.h>
-#include <bitc/addr_match.h>
-#include <bitc/message.h>
-#include <bitc/hashtab.h>
+#include <bitc/crypto/ripemd160.h>      // for RIPEMD160_DIGEST_LENGTH
+#include <bitc/hashtab.h>               // for bitc_hashtab_put, etc
+#include <bitc/key.h>                   // for bitc_keyset, etc
+#include <bitc/mbr.h>                   // for fread_block
+#include <bitc/message.h>               // for p2p_message, etc
+#include <bitc/script/script.h>         // for bscript_addr, etc
+#include <bitc/util.h>                  // for VALSTR_SZ, btc_decimal, etc
+
+#include <argp.h>                       // for error_t, argp_parse, etc
+#include <ctype.h>                      // for isspace
+#include <stdbool.h>                    // for bool, false, true
+#include <stdint.h>                     // for uint64_t
+#include <stdio.h>                      // for fprintf, printf, perror, etc
+#include <stdlib.h>                     // for exit, free, malloc
+#include <string.h>                     // for strlen, strerror
+#include <unistd.h>                     // for lseek, off_t, close
+
 
 const char *argp_program_version = PACKAGE_VERSION;
 

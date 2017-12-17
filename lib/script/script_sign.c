@@ -1,12 +1,12 @@
 
 #include "libbitc-config.h"
 
-#include <bitc/script.h>
-#include <bitc/key.h>
-#include <bitc/core.h>
-#include <bitc/buint.h>
-#include <bitc/key.h>
-#include <bitc/util.h>
+#include <bitc/buint.h>                 // for bu256_t, bu160_t
+#include <bitc/key.h>                   // for bitc_key_free, etc
+#include <bitc/script/script.h>         // for bscript_addr, etc
+#include <bitc/util.h>                  // for bu_Hash160
+#include <bitc/primitives/transaction.h>  // for bitc_tx, bitc_txin, etc
+
 
 static bool sign1(const bu160_t *key_id, struct bitc_keystore *ks,
 		  const bu256_t *hash, int nHashType,

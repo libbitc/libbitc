@@ -1,6 +1,6 @@
 # libbitc
 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/libbitc/libbitc/master/COPYING) <a href="https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Segwit.svg" alt="Segregated Witness" width="2%" height="2%"/></a>
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/libbitc/libbitc/master/COPYING) <a href="https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Segwit.svg" alt="Segregated Witness" width="8%" height="8%"/></a>
 
 [![Build Status](https://travis-ci.org/libbitc/libbitc.svg?branch=master)](https://travis-ci.org/libbitc/libbitc) [![Coverage Status](https://coveralls.io/repos/github/libbitc/libbitc/badge.svg?branch=master)](https://coveralls.io/github/libbitc/libbitc?branch=master) [![Coverity Scan Build Status](https://scan.coverity.com/projects/8959/badge.svg)](https://scan.coverity.com/projects/libbitc-libbitc)
 

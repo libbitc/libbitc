@@ -13,7 +13,7 @@
 #include <bitc/hexcode.h>               // for hex2str
 #include "bitc/key.h"                   // for bitc_key_static_shutdown
 #include "bitc/parr.h"                  // for parr, parr_free, parr_new, etc
-#include <bitc/script.h>                // for bitc_script_verify, etc
+#include <bitc/script/interpreter.h>    // for bitc_script_verify, etc
 #include <bitc/compat.h>                // for parr_new
 #include "libtest.h"                    // for parse_script_str, etc
 

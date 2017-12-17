@@ -6,7 +6,7 @@
 
 #include <bitc/buffer.h>                // for const_buffer, buffer_copy, etc
 #include <bitc/endian.h>                // for htole16, htole32
-#include <bitc/script.h>                // for bscript_op, bscript_parser, etc
+#include <bitc/script/script.h>         // for bscript_op, bscript_parser, etc
 #include <bitc/serialize.h>             // for deser_bytes, deser_skip, etc
 #include <bitc/util.h>                  // for bn_getvch, memdup
 

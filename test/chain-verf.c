@@ -17,7 +17,7 @@
 #include <bitc/log.h>                   // for logging
 #include <bitc/mbr.h>                   // for fread_block
 #include <bitc/message.h>               // for p2p_message, etc
-#include <bitc/script.h>                // for bitc_verify_sig, etc
+#include <bitc/script/interpreter.h>    // for bitc_verify_sig, etc
 #include <bitc/util.h>                  // for file_seq_open
 
 #include <assert.h>                     // for assert

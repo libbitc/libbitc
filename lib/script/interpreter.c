@@ -12,13 +12,15 @@
 #include <bitc/crypto/sha1.h>           // for sha1_Raw, etc
 #include <bitc/crypto/sha2.h>           // for SHA256_DIGEST_LENGTH, etc
 #include <bitc/key.h>                   // for bitc_key_free, etc
-#include <bitc/script.h>                // for bscript_op, etc
+#include <bitc/script/interpreter.h>    // for ::SIGHASH_SINGLE, etc
+#include <bitc/script/script.h>         // for bscript_op, bsp_getop, etc
 #include <bitc/serialize.h>             // for ser_u32, ser_varlen, etc
 #include <bitc/util.h>                  // for bn_getvch, bu_Hash, etc
 
 #include <assert.h>                     // for assert
 #include <stdint.h>                     // for int64_t, uint8_t, uint32_t, etc
 #include <string.h>                     // for NULL, memmove, memcpy, etc
+
 
 static const size_t nDefaultMaxNumSize = 4;
 

@@ -4,12 +4,19 @@
  */
 #include "libbitc-config.h"
 
-#include <bitc/core.h>
-#include <bitc/script.h>
-#include <bitc/key.h>
-#include <bitc/clist.h>
-#include <bitc/addr_match.h>
-#include <bitc/compat.h>		/* for parr_new */
+#include <bitc/addr_match.h>            // for bitc_block_match
+#include <bitc/clist.h>                 // for clist, clist_free_ext
+#include <bitc/key.h>                   // for bitc_keyset_lookup
+#include <bitc/script/script.h>         // for bscript_addr, etc
+#include <bitc/compat.h>                // for parr_new
+
+#include <gmp.h>                        // for mpz_clear, mpz_init, mpz_t, etc
+#include <stdbool.h>                    // for false, true, bool
+#include <stdlib.h>                     // for NULL, free, malloc
+#include <string.h>                     // for memset
+#include "bitc/buffer.h"                // for const_buffer, buffer_freep
+#include "bitc/cstr.h"                  // for cstring
+
 
 bool bitc_txout_match(const struct bitc_txout *txout,
 		    const struct bitc_keyset *ks)

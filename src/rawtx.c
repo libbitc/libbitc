@@ -12,7 +12,7 @@
 #include <bitc/cstr.h>                  // for cstring, cstr_free, etc
 #include <bitc/hexcode.h>               // for encode_hex, hex2str, etc
 #include <bitc/parr.h>                  // for parr, parr_add, parr_new, etc
-#include <bitc/script.h>                // for bsp_make_pubkeyhash, etc
+#include <bitc/script/script.h>         // for bsp_make_pubkeyhash, etc
 #include <bitc/util.h>                  // for VALSTR_SZ, btc_decimal
 
 #include <cJSON.h>                      // for cJSON, etc

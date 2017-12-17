@@ -24,6 +24,10 @@ libbitc_la_SOURCES = \
 			crypto/sha2.c	\
 			primitives/block.c	\
 			primitives/transaction.c	\
+			script/script.c    \
+			script/interpreter.c	\
+			script/script_names.c	\
+			script/script_sign.c	\
 			address.c	\
 			addr_match.c	\
 			base58.c	\
@@ -49,10 +53,6 @@ libbitc_la_SOURCES = \
 			memmem.c	\
 			message.c	\
 			parr.c		\
-			script.c	\
-			script_eval.c	\
-			script_names.c	\
-			script_sign.c	\
 			serialize.c	\
 			util.c
 

@@ -4,7 +4,7 @@
  */
 #include "libbitc-config.h"
 
-#include <bitc/script.h>                // for opcodetype, etc
+#include <bitc/script/script.h>         // for opcodetype, etc
 #include <bitc/util.h>                  // for ARRAY_SIZE
 
 #include <string.h>                     // for strcmp, strcat, strcpy

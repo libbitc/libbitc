@@ -11,6 +11,8 @@ libbitc_la_HEADERS =	\
 		crypto/sha2.h	\
 		primitives/block.h	\
 		primitives/transaction.h	\
+		script/interpreter.h	\
+		script/script.h	\
 		address.h	\
 		addr_match.h	\
 		base58.h	\
@@ -32,7 +34,6 @@ libbitc_la_HEADERS =	\
 		mbr.h		\
 		message.h	\
 		parr.h		\
-		script.h	\
 		serialize.h	\
 		util.h
 

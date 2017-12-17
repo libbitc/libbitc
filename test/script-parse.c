@@ -11,7 +11,7 @@
 #include <bitc/mbr.h>                   // for fread_message
 #include <bitc/message.h>               // for p2p_message, etc
 #include <bitc/primitives/block.h>      // for bitc_block
-#include <bitc/script.h>                // for bscript_op, GetOpName, etc
+#include <bitc/script/script.h>         // for bscript_op, GetOpName, etc
 #include <bitc/util.h>                  // for file_seq_open, memdup
 #include <bitc/compat.h>                // for parr_new
 #include "libtest.h"                    // for test_filename

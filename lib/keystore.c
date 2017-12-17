@@ -3,11 +3,13 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
+
 #include "libbitc-config.h"
 
-#include <bitc/key.h>
-#include <bitc/util.h>
-#include <bitc/script.h>
+#include <bitc/key.h>                   // for bitc_keystore, etc
+#include <bitc/script/script.h>         // for bsp_push_data
+#include <bitc/util.h>                  // for bu_Hash160
+
 
 static void bitc_key_free__(void *data)
 {

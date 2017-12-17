@@ -11,7 +11,7 @@
 #include <bitc/parr.h>                  // for parr, parr_idx, parr_free
 #include <bitc/primitives/block.h>      // for bitc_block, bitc_block_free, etc
 #include <bitc/primitives/transaction.h>  // for bitc_tx, bitc_txout
-#include <bitc/script.h>                // for bsp_classify, bsp_parse_all, etc
+#include <bitc/script/script.h>         // for bsp_classify, bsp_parse_all, etc
 #include <bitc/util.h>                  // for file_seq_open, ARRAY_SIZE
 
 #include <argp.h>                       // for error_t, argp_parse, etc

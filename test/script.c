@@ -7,7 +7,7 @@
 #include <bitc/core.h>                  // for bitc_tx, bitc_txin, etc
 #include <bitc/cstr.h>                  // for cstr_free, cstring
 #include <bitc/hexcode.h>               // for hex2str
-#include <bitc/script.h>                // for bitc_script_verify, etc
+#include <bitc/script/interpreter.h>    // for bitc_script_verify, etc
 
 #include <cJSON.h>                      // for cJSON_GetArrayItem, cJSON, etc
 
