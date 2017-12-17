@@ -9,6 +9,7 @@
 #include <bitc/clist.h>                // for clist
 #include <bitc/message.h>              // for P2P_HDR_SZ, p2p_message
 #include <bitc/parr.h>                 // for parr
+#include <bitc/primitives/block.h>     // for bitc_block
 #include <bitc/net/peerman.h>          // for peer
 
 #include <stdbool.h>                    // for bool

@@ -8,10 +8,10 @@
 #include <bitc/buffer.h>                // for const_buffer
 #include <bitc/buint.h>                 // for bu256_t
 #include <bitc/clist.h>                 // for clist
-#include <bitc/core.h>                  // for bitc_tx
 #include <bitc/cstr.h>                  // for cstring, cstr_append_buf
 #include <bitc/key.h>                   // for bitc_keystore
 #include <bitc/parr.h>                  // for parr
+#include <bitc/primitives/transaction.h>  // for bitc_tx
 
 #include <stdbool.h>                    // for bool, false
 #include <stddef.h>                     // for size_t

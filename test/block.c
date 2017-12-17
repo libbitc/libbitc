@@ -5,7 +5,7 @@
 
 #include <bitc/buffer.h>                // for const_buffer
 #include <bitc/buint.h>                 // for bu256_hex, BU256_STRSZ
-#include <bitc/core.h>                  // for bitc_block, etc
+#include <bitc/primitives/block.h>      // for bitc_block
 #include <bitc/cstr.h>                  // for cstring, cstr_free, etc
 #include <bitc/key.h>                   // for bitc_key_static_shutdown
 #include <bitc/mbr.h>                   // for fread_message

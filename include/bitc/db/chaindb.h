@@ -7,6 +7,8 @@
 
 #include <bitc/buint.h>                 // for bu256_t
 #include <bitc/core.h>                  // for bitc_block
+#include <bitc/primitives/block.h>      // for bitc_block
+
 #include <bitc/hashtab.h>               // for bitc_hashtab_get
 
 #include <stdbool.h>                    // for bool

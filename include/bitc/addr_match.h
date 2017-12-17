@@ -5,9 +5,14 @@
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#include <stdbool.h>
-#include <gmp.h>
-#include <bitc/parr.h>
+#include <bitc/parr.h>                    // for parr
+#include <bitc/primitives/block.h>        // for bitc_block
+#include <bitc/primitives/transaction.h>  // for bitc_tx, bitc_txout, etc
+
+#include <gmp.h>                          // for mpz_t
+
+#include <stdbool.h>                      // for bool
+
 
 #ifdef __cplusplus
 extern "C" {

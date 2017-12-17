@@ -22,11 +22,12 @@ libbitc_la_SOURCES = \
 			crypto/ripemd160.c	\
 			crypto/sha1.c	\
 			crypto/sha2.c	\
+			primitives/block.c	\
+			primitives/transaction.c	\
 			address.c	\
 			addr_match.c	\
 			base58.c	\
 			bignum.c	\
-			block.c		\
 			blockfile.c	\
 			bloom.c		\
 			buffer.c	\
@@ -53,8 +54,7 @@ libbitc_la_SOURCES = \
 			script_names.c	\
 			script_sign.c	\
 			serialize.c	\
-			util.c		\
-			utxo.c
+			util.c
 
 noinst_LTLIBRARIES = libbitcdb.la libbitcnet.la libbitcwallet.la
 

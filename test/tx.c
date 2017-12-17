@@ -5,10 +5,10 @@
 
 #include <bitc/buffer.h>                // for const_buffer
 #include <bitc/buint.h>                 // for bu256_equal, bu256_hex, etc
-#include <bitc/core.h>                  // for bitc_tx, etc
 #include <bitc/cstr.h>                  // for cstring, cstr_free, etc
 #include <bitc/key.h>                   // for bitc_key_static_shutdown
 #include <bitc/parr.h>                  // for parr
+#include <bitc/primitives/transaction.h>  // for bitc_tx, bitc_txout, etc
 #include <bitc/util.h>                  // for bu_read_file
 #include "libtest.h"                    // for test_filename
 

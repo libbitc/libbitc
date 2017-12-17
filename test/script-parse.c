@@ -6,11 +6,11 @@
 
 #include <bitc/buffer.h>                // for const_buffer
 #include <bitc/clist.h>                 // for clist, clist_append, etc
-#include <bitc/core.h>                  // for bitc_block, bitc_txout, etc
 #include <bitc/cstr.h>                  // for cstring, cstr_equal, etc
 #include <bitc/key.h>                   // for bitc_key_static_shutdown
 #include <bitc/mbr.h>                   // for fread_message
 #include <bitc/message.h>               // for p2p_message, etc
+#include <bitc/primitives/block.h>      // for bitc_block
 #include <bitc/script.h>                // for bscript_op, GetOpName, etc
 #include <bitc/util.h>                  // for file_seq_open, memdup
 #include <bitc/compat.h>                // for parr_new

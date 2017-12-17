@@ -4,17 +4,19 @@
  */
 #include "libbitc-config.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <assert.h>
-#include <bitc/message.h>
-#include <bitc/mbr.h>
-#include <bitc/buffer.h>
-#include <bitc/util.h>
-#include <bitc/key.h>
-#include "libtest.h"
+#include <bitc/buffer.h>                // for const_buffer
+#include <bitc/key.h>                   // for bitc_key_static_shutdown
+#include <bitc/mbr.h>                   // for fread_block
+#include <bitc/message.h>               // for p2p_message, etc
+#include <bitc/primitives/block.h>      // for bitc_block_free, etc
+#include <bitc/util.h>                  // for file_seq_open
+
+#include <assert.h>                     // for assert
+#include <stdbool.h>                    // for bool, false, true
+#include <stdio.h>                      // for perror
+#include <stdlib.h>                     // for free, exit
+#include <unistd.h>                     // for close
+#include "libtest.h"                    // for test_filename
 
 static void handle_block(struct p2p_message *msg)
 {

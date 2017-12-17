@@ -2,21 +2,26 @@
  * Distributed under the MIT/X11 software license, see the accompanying
  * file COPYING or http://www.opensource.org/licenses/mit-license.php.
  */
-#include "libbitc-config.h"
+#include "libbitc-config.h"             // for PACKAGE_VERSION
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-#include <unistd.h>
-#include <argp.h>
-#include <bitc/coredefs.h>
-#include <bitc/buffer.h>
-#include <bitc/core.h>
-#include <bitc/util.h>
-#include <bitc/mbr.h>
-#include <bitc/script.h>
-#include <bitc/message.h>
+#include <bitc/buffer.h>                // for const_buffer
+#include <bitc/cstr.h>                  // for cstring
+#include <bitc/mbr.h>                   // for fread_block
+#include <bitc/message.h>               // for p2p_message, etc
+#include <bitc/parr.h>                  // for parr, parr_idx, parr_free
+#include <bitc/primitives/block.h>      // for bitc_block, bitc_block_free, etc
+#include <bitc/primitives/transaction.h>  // for bitc_tx, bitc_txout
+#include <bitc/script.h>                // for bsp_classify, bsp_parse_all, etc
+#include <bitc/util.h>                  // for file_seq_open, ARRAY_SIZE
+
+#include <argp.h>                       // for error_t, argp_parse, etc
+#include <stdbool.h>                    // for bool, false, true
+#include <stdint.h>                     // for uint64_t
+#include <stdio.h>                      // for fprintf, stderr, NULL, etc
+#include <stdlib.h>                     // for exit, free
+#include <string.h>                     // for strerror
+#include <unistd.h>                     // for close
+
 
 const char *argp_program_version = PACKAGE_VERSION;
 

@@ -4,94 +4,170 @@
  */
 #include "libbitc-config.h"
 
+#include <bitc/buffer.h>                // for const_buffer
 #include <bitc/buint.h>                 // for bu256_t, bu256_new, etc
-#include <bitc/core.h>                  // for bitc_block, bitc_tx, etc
+#include <bitc/core.h>                  // for bitc_valid_value
 #include <bitc/coredefs.h>              // for ::MAX_BLOCK_WEIGHT, etc
-#include <bitc/cstr.h>                  // for cstring
+#include <bitc/cstr.h>                  // for cstring, cstr_free, etc
 #include <bitc/parr.h>                  // for parr, parr_idx, parr_add, etc
-#include <bitc/serialize.h>             // for u256_from_compact
-#include <bitc/util.h>                  // for bu_Hash_, MIN
+#include <bitc/primitives/block.h>      // for bitc_block
+#include <bitc/primitives/transaction.h>  // for bitc_tx, bitc_txin, etc
+#include <bitc/serialize.h>             // for deser_u32, ser_u32, etc
+#include <bitc/util.h>                  // for bu_Hash_, MIN, bu_Hash
 
 #include <gmp.h>                        // for mpz_clear, mpz_init, mpz_t, etc
 
-#include <stdbool.h>                    // for false, bool, true
-#include <stdint.h>                     // for int64_t
-#include <string.h>                     // for NULL, memset
+#include <stdbool.h>                    // for false, true, bool
+#include <stdint.h>                     // for int64_t, uint32_t
+#include <stdlib.h>                     // for free, calloc
+#include <string.h>                     // for memset, NULL
 #include <time.h>                       // for time, time_t
 
-static bool bitc_has_dup_inputs(const struct bitc_tx *tx)
+
+
+void bitc_block_init(struct bitc_block *block)
 {
-	if (!tx->vin || !tx->vin->len || tx->vin->len == 1)
-		return false;
-
-	struct bitc_txin *txin, *txin_tmp;
-	unsigned int i, j;
-	for (i = 0; i < tx->vin->len; i++) {
-		txin = parr_idx(tx->vin, i);
-		for (j = 0; j < tx->vin->len; j++) {
-			if (i == j)
-				continue;
-			txin_tmp = parr_idx(tx->vin, j);
-
-			if (bitc_outpt_equal(&txin->prevout,
-					   &txin_tmp->prevout))
-				return true;
-		}
-	}
-
-	return false;
+	memset(block, 0, sizeof(*block));
 }
 
-bool bitc_tx_valid(const struct bitc_tx *tx)
+bool deser_bitc_block(struct bitc_block *block, struct const_buffer *buf)
 {
+	bitc_block_free(block);
+
+	if (!deser_u32(&block->nVersion, buf)) return false;
+	if (!deser_u256(&block->hashPrevBlock, buf)) return false;
+	if (!deser_u256(&block->hashMerkleRoot, buf)) return false;
+	if (!deser_u32(&block->nTime, buf)) return false;
+	if (!deser_u32(&block->nBits, buf)) return false;
+	if (!deser_u32(&block->nNonce, buf)) return false;
+
+	/* permit header-only blocks */
+	if (buf->len == 0)
+		return true;
+
+	block->vtx = parr_new(512, bitc_tx_freep);
+
+	uint32_t vlen;
+	if (!deser_varlen(&vlen, buf)) return false;
+
 	unsigned int i;
+	for (i = 0; i < vlen; i++) {
+		struct bitc_tx *tx;
 
-	// Basic checks
-	if (!tx->vin || !tx->vin->len)
-		return false;
-	if (!tx->vout || !tx->vout->len)
-		return false;
-
-	// Size limits
-	if (bitc_tx_ser_size(tx) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
-		return false;
-
-	// Check for negative or overflow output values
-	int64_t value_total = 0;
-	for (i = 0; i < tx->vout->len; i++) {
-		struct bitc_txout *txout;
-
-		txout = parr_idx(tx->vout, i);
-		if (!bitc_txout_valid(txout))
-			return false;
-
-		value_total += txout->nValue;
-	}
-
-	if (!bitc_valid_value(value_total))
-		return false;
-
-	// Check for duplicate inputs
-	if (bitc_has_dup_inputs(tx))
-		return false;
-
-	if (bitc_tx_coinbase(tx)) {
-		struct bitc_txin *txin = parr_idx(tx->vin, 0);
-
-		if (txin->scriptSig->len < 2 ||
-		    txin->scriptSig->len > 100)
-			return false;
-	} else {
-		for (i = 0; i < tx->vin->len; i++) {
-			struct bitc_txin *txin;
-
-			txin = parr_idx(tx->vin, i);
-			if (bitc_outpt_null(&txin->prevout))
-				return false;
+		tx = calloc(1, sizeof(*tx));
+		bitc_tx_init(tx);
+		if (!deser_bitc_tx(tx, buf)) {
+			free(tx);
+			goto err_out;
 		}
+
+		parr_add(block->vtx, tx);
 	}
 
 	return true;
+
+err_out:
+	bitc_block_free(block);
+	return false;
+}
+
+static void ser_bitc_block_hdr(cstring *s, const struct bitc_block *block)
+{
+	ser_u32(s, block->nVersion);
+	ser_u256(s, &block->hashPrevBlock);
+	ser_u256(s, &block->hashMerkleRoot);
+	ser_u32(s, block->nTime);
+	ser_u32(s, block->nBits);
+	ser_u32(s, block->nNonce);
+}
+
+void ser_bitc_block(cstring *s, const struct bitc_block *block)
+{
+	ser_bitc_block_hdr(s, block);
+
+	unsigned int i;
+	if (block->vtx) {
+		ser_varlen(s, block->vtx->len);
+
+		for (i = 0; i < block->vtx->len; i++) {
+			struct bitc_tx *tx;
+
+			tx = parr_idx(block->vtx, i);
+			ser_bitc_tx(s, tx);
+		}
+	}
+}
+void bitc_block_vtx_free(struct bitc_block *block)
+{
+	if (!block || !block->vtx)
+		return;
+
+	parr_free(block->vtx, true);
+	block->vtx = NULL;
+}
+
+void bitc_block_free(struct bitc_block *block)
+{
+	if (!block)
+		return;
+
+	bitc_block_vtx_free(block);
+}
+
+void bitc_block_freep(void *p)
+{
+	struct bitc_block *block = p;
+	if (!block)
+		return;
+
+	bitc_block_free(block);
+
+	memset(block, 0, sizeof(*block));
+	free(block);
+}
+
+void bitc_block_free_cb(void *data)
+{
+	if (!data)
+		return;
+
+	struct bitc_block *block = data;
+	bitc_block_free(block);
+
+	memset(block, 0, sizeof(*block));
+	free(block);
+}
+
+void bitc_block_calc_sha256(struct bitc_block *block)
+{
+	if (block->sha256_valid)
+		return;
+
+	/* TODO: introduce hashing-only serialization mode */
+
+	cstring *s = cstr_new_sz(10 * 1024);
+	ser_bitc_block_hdr(s, block);
+
+	bu_Hash((unsigned char *)&block->sha256, s->str, s->len);
+	block->sha256_valid = true;
+
+	cstr_free(s, true);
+}
+
+unsigned int bitc_block_ser_size(const struct bitc_block *block)
+{
+	unsigned int block_ser_size;
+
+	/* TODO: introduce a counting-only serialization mode */
+
+	cstring *s = cstr_new_sz(200 * 1024);
+	ser_bitc_block(s, block);
+
+	block_ser_size = s->len;
+
+	cstr_free(s, true);
+
+	return block_ser_size;
 }
 
 parr *bitc_block_merkle_tree(const struct bitc_block *block)

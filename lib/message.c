@@ -6,6 +6,7 @@
 
 #include <bitc/message.h>               // for msg_version, msg_vinv, etc
 #include <bitc/net/version.h>           // for INIT_PROTO_VERSION, etc
+#include <bitc/primitives/block.h>      // for bitc_block
 #include <bitc/serialize.h>             // for ser_varlen, deser_u64, etc
 #include <bitc/util.h>                  // for bu_Hash4
 #include <bitc/endian.h>                // for htole32, le32toh

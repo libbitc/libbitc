@@ -9,6 +9,8 @@ libbitc_la_HEADERS =	\
 		crypto/ripemd160.h   \
 		crypto/sha1.h	\
 		crypto/sha2.h	\
+		primitives/block.h	\
+		primitives/transaction.h	\
 		address.h	\
 		addr_match.h	\
 		base58.h	\
