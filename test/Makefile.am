@@ -20,7 +20,7 @@ libtest_la_SOURCES = libtest.h libtest.c randtest.c chisq.c
 check_PROGRAMS = aes-util base58 block blockfile bloom chaindb \
         chain-verf clist coredefs crypto cstr ctaes fileio hash hashtab \
         hdkeys hex keystore keyset mbr misc net message parr prng script \
-        script-parse sighash tx tx-valid wallet wallet-basics util
+        script-parse segwit_addr sighash tx tx-valid wallet wallet-basics util
 
 TESTS = $(check_PROGRAMS)
 
@@ -59,6 +59,7 @@ parr_LDADD		= $(COMMON_LDADD)
 prng_LDADD		= $(COMMON_LDADD)
 script_LDADD		= $(COMMON_LDADD)
 script_parse_LDADD	= $(COMMON_LDADD)
+segwit_addr_LDADD	= $(COMMON_LDADD)
 sighash_LDADD		= $(COMMON_LDADD)
 tx_LDADD		= $(COMMON_LDADD)
 tx_valid_LDADD		= $(COMMON_LDADD)

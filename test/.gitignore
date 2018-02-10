@@ -29,6 +29,7 @@ parr
 prng
 script
 script-parse
+segwit_addr
 sighash
 tx
 tx-valid

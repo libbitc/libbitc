@@ -54,6 +54,7 @@ libbitc_la_SOURCES = \
 			message.c	\
 			parr.c		\
 			serialize.c	\
+			segwit_addr.c	\
 			util.c
 
 noinst_LTLIBRARIES = libbitcdb.la libbitcnet.la libbitcwallet.la

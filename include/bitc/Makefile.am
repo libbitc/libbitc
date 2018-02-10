@@ -34,6 +34,7 @@ libbitc_la_HEADERS =	\
 		mbr.h		\
 		message.h	\
 		parr.h		\
+		segwit_addr.h	\
 		serialize.h	\
 		util.h
 
