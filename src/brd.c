@@ -38,6 +38,13 @@
 #include <sys/uio.h>                    // for iovec, writev
 #include <unistd.h>                     // for for access, F_OK
 
+#if defined(__APPLE__) || defined(__DragonFly__) || defined(__FreeBSD__) || \
+    defined(__NetBSD__) || defined(__OpenBSD__)
+#  define off64_t off_t
+#  define lseek64 lseek
+#endif
+
+
 #if defined(__GNUC__)
 /* For add_orphan */
 # pragma GCC diagnostic ignored "-Wunused-function"
