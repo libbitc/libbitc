@@ -100,7 +100,7 @@ AC_CHECK_LIB(m, log, MATH_LIBS=-lm,
   [AC_MSG_ERROR([Missing required libm])])
 AC_CHECK_LIB(gmp, __gmpz_init, GMP_LIBS=-lgmp,
   [AC_MSG_ERROR([Missing required libgmp])])
-AC_CHECK_LIB(argp, argp_parse, ARGP_LIBS=-lARGP)
+AC_CHECK_LIB(argp, argp_parse, ARGP_LIBS=-largp)
 
 dnl -------------------------------------
 dnl Checks for optional library functions
