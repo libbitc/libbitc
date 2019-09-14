@@ -6,6 +6,8 @@
 
 [![Join the chat at https://gitter.im/libbitc/libbitc](https://badges.gitter.im/libbitc/libbitc.svg)](https://gitter.im/libbitc/libbitc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Join the chat at https://irc.gitter.im/#libbitc](https://img.shields.io/badge/chat-on%20irc-green.svg)](https://irc.gitter.im/) [![Join the chat at https://libbitc.slack.com](https://img.shields.io/badge/chat-on%20slack-yellowgreen.svg)](https://libbitc.slack.com)
 
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/libbitc/libbitc)
+
 An itsy-bitsy bitcoin library, with lightweight client and utils.
 
 This contains several pieces of interest:

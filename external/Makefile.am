@@ -22,7 +22,8 @@ libev_libev_la_SOURCES =	\
 
 lmdb_libraries_liblmdb_liblmdb_la_CFLAGS = -W -Wall -Wno-unused-parameter   \
 			-Wno-missing-field-initializers -Wno-format-extra-args \
-			-Wno-missing-braces -Wbad-function-cast -pthread
+			-Wno-missing-braces -Wbad-function-cast -pthread \
+                        -Wno-implicit-fallthrough		       
 lmdb_libraries_liblmdb_liblmdb_ladir = lmdb/libraries/liblmdb
 lmdb_libraries_liblmdb_liblmdb_la_HEADERS =	\
 			lmdb/libraries/liblmdb/lmdb.h	\

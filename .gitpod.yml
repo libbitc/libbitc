@@ -1,0 +1,10 @@
+image:
+  file: .gitpod.dockerfile
+
+tasks:
+  - before: >
+      [[ ! -z $GNUGPG  ]] &&
+      cd ~ &&
+      rm -rf .gnupg &&
+      echo $GNUGPG | base64 -d - | tar --no-same-owner -xzvf - &&
+      cd $OLDPWD
