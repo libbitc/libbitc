@@ -1,0 +1,35 @@
+name: CI
+  
+on: [push]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+        compiler:
+          - gcc
+          - clang
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Install Linux packages
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt install -y libtool automake autotools-dev libgmp-dev
+    - name: Install MacOS packages
+      if: matrix.os == 'macos-latest'
+      run: brew install libtool autoconf automake gmp argp-standalone
+    - uses: actions/checkout@v1
+      with:
+        submodules: true
+    - name: autogen
+      run: ./autogen.sh
+    - name: configure
+      env:
+        CC: ${{ matrix.compiler }}
+      run: ./configure
+    - name: make
+      run: make
+    - name: make distcheck
+      run: make -j3 distcheck

@@ -1,0 +1,39 @@
+name: Windows
+  
+on: [push]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        compiler:
+          - gcc
+          - clang
+    runs-on: windows-latest
+    steps:
+    - name: Install msys2
+      run: choco install msys2
+    - name: Install packages
+      env:
+        PATH: c:\tools\msys64\usr\bin
+      run: pacman --noconfirm --sync libtool autoconf automake
+    - name: ls
+      env:
+        PATH: c:\tools\msys64\usr\bin
+      run: ls /usr/bin/
+    - uses: actions/checkout@v1
+      with:
+        submodules: true
+    - name: autogen
+      env:
+        PATH: c:\tools\msys64\usr\bin
+      run: sh autogen.sh
+    - name: configure
+      env:
+        PATH: c:\tools\msys64\usr\bin
+        CC: ${{ matrix.compiler }}
+      run: sh configure
+    - name: make
+      run: make
+    - name: make distcheck
+      run: make -j3 distcheck
