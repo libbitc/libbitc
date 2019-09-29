@@ -40,11 +40,17 @@ jobs:
       env:
         PATH: c:\tools\msys64\mingw64\bin;c:\tools\msys64\usr\bin
         CC: ${{ matrix.compiler }}
-        CFLAGS: -std=gnu89
-      run: sh configure & type config.log
+        CFLAGS: -std=c11
+        CPPFLAGS: -std=c11
+      run: sh configure
+    - name: config.log
+      run: type config.log
     - name: make
       env:
         PATH: c:\tools\msys64\mingw64\bin;c:\tools\msys64\usr\bin
+        CC: ${{ matrix.compiler }}
+        CFLAGS: -std=c11
+        CPPFLAGS: -std=c11
       run: make
     - name: make distcheck
       env:
