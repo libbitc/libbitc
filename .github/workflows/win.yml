@@ -16,24 +16,37 @@ jobs:
     - name: Install packages
       env:
         PATH: c:\tools\msys64\usr\bin
-      run: pacman --noconfirm --sync libtool autoconf automake
-    - name: ls
+      run: pacman --noconfirm --sync msys2-runtime-devel mingw-w64-x86_64-gcc mingw-w64-x86_64-clang make libtool autoconf automake pkg-config gmp-devel
+    - name: List installed packages
       env:
         PATH: c:\tools\msys64\usr\bin
+      run: pacman -Qe
+    - name: ls /usr/bin/
+      env:
+        PATH: c:\tools\msys64\mingw64\bin;c:\tools\msys64\usr\bin
       run: ls /usr/bin/
+    - name: ls /mingw64/bin/
+      env:
+        PATH: c:\tools\msys64\mingw64\bin;c:\tools\msys64\usr\bin
+      run: ls /mingw64/bin/
     - uses: actions/checkout@v1
       with:
         submodules: true
     - name: autogen
       env:
-        PATH: c:\tools\msys64\usr\bin
+        PATH: c:\tools\msys64\mingw64\bin;c:\tools\msys64\usr\bin
       run: sh autogen.sh
     - name: configure
       env:
-        PATH: c:\tools\msys64\usr\bin
+        PATH: c:\tools\msys64\mingw64\bin;c:\tools\msys64\usr\bin
         CC: ${{ matrix.compiler }}
-      run: sh configure
+        CFLAGS: -std=gnu89
+      run: sh configure & type config.log
     - name: make
+      env:
+        PATH: c:\tools\msys64\mingw64\bin;c:\tools\msys64\usr\bin
       run: make
     - name: make distcheck
+      env:
+        PATH: c:\tools\msys64\mingw64\bin;c:\tools\msys64\usr\bin
       run: make -j3 distcheck
