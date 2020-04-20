@@ -12,7 +12,7 @@
         ignore = dirty
 [submodule "external/libev"]
 	path = external/libev
-	url = https://git.lighttpd.net/libev.git
+	url = https://git.lighttpd.net/mirrors/libev.git
         ignore = dirty
 [submodule "external/lmdb"]
 	path = external/lmdb
