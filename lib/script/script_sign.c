@@ -4,6 +4,7 @@
 #include <bitc/buint.h>                 // for bu256_t, bu160_t
 #include <bitc/key.h>                   // for bitc_key_free, etc
 #include <bitc/script/script.h>         // for bscript_addr, etc
+#include <bitc/script/interpreter.h>    // for bitc_tx_sighash
 #include <bitc/util.h>                  // for bu_Hash160
 #include <bitc/primitives/transaction.h>  // for bitc_tx, bitc_txin, etc
 
