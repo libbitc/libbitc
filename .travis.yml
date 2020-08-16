@@ -9,8 +9,6 @@ os:
   - linux
   - osx
 
-osx_image: xcode8
-
 sudo: false
 
 env:
@@ -47,15 +45,21 @@ cache:
 
 addons:
   apt_packages:
-      - libgmp-dev
+    - libgmp-dev
+    - lcov
+    - valgrind
+    - libtool
+    - libltdl-dev
+    - dpkg-dev
+    - debhelper
+    - fakeroot
+    - rpm
+  homebrew:
+    packages:
+      - argp-standalone
       - lcov
       - valgrind
-      - libtool
-      - libltdl-dev
-      - dpkg-dev
-      - debhelper
-      - fakeroot
-      - rpm
+    update: true
   coverity_scan:
     project:
       name: libbitc/libbitc
@@ -73,13 +77,7 @@ notifications:
     on_start: never
   slack: libbitc:LzNZosd4L6ZkORMznw0mwrq7
 
-before_install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update; fi
-
 install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install argp-standalone; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$ENABLE_COVERAGE" = "yes" ]; then brew install lcov; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$ENABLE_VALGRIND" = "yes" ]; then brew install valgrind; fi
   - if [ "$ENABLE_COVERAGE" = "yes" ]; then gem install coveralls-lcov; fi
 
 before_script:
