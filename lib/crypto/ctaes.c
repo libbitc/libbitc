@@ -1,7 +1,7 @@
  /*********************************************************************
  * Copyright (c) 2016 Pieter Wuille                                   *
  * Distributed under the MIT software license, see the accompanying   *
- * file COPYING or http://www.opensource.org/licenses/mit-license.php.*
+ * file COPYING or https://opensource.org/licenses/mit-license.php.   *
  **********************************************************************/
 
 /* Constant time, unoptimized, concise, plain C, AES implementation
@@ -25,7 +25,7 @@
 static void LoadByte(AES_state* s, unsigned char byte, int r, int c) {
     int i;
     for (i = 0; i < 8; i++) {
-        s->slice[i] |= (byte & 1) << (r * 4 + c);
+        s->slice[i] |= (uint16_t)(byte & 1) << (r * 4 + c);
         byte >>= 1;
     }
 }
@@ -134,7 +134,7 @@ static void SubBytes(AES_state *s, int inv) {
         D = U7;
     }
 
-    /* Non-linear transformation (identical to the code in SubBytes) */
+    /* Non-linear transformation (shared between the forward and backward case) */
     M1 = T13 & T6;
     M6 = T3 & T16;
     M11 = T1 & T15;
@@ -255,7 +255,7 @@ static void SubBytes(AES_state *s, int inv) {
     }
 }
 
-#define BIT_RANGE(from,to) (((1 << ((to) - (from))) - 1) << (from))
+#define BIT_RANGE(from,to) ((uint16_t)((1 << ((to) - (from))) - 1) << (from))
 
 #define BIT_RANGE_LEFT(x,from,to,shift) (((x) & BIT_RANGE((from), (to))) << (shift))
 #define BIT_RANGE_RIGHT(x,from,to,shift) (((x) & BIT_RANGE((from), (to))) >> (shift))
@@ -469,9 +469,9 @@ static void AES_encrypt(const AES_state* rounds, int nrounds, unsigned char* cip
 
 static void AES_decrypt(const AES_state* rounds, int nrounds, unsigned char* plain16, const unsigned char* cipher16) {
     /* Most AES decryption implementations use the alternate scheme
-     * (the Equivalent Inverse Cipher), which looks more like encryption, but
-     * needs different round constants. We can't reuse any code here anyway, so
-     * don't bother. */
+     * (the Equivalent Inverse Cipher), which allows for more code reuse between
+     * the encryption and decryption code, but requires separate setup for both.
+     */
     AES_state s = {{0}};
     int round;
 

@@ -9,13 +9,14 @@
 [submodule "external/cJSON"]
 	path = external/cJSON
 	url = https://github.com/DaveGamble/cJSON.git
-        ignore = dirty
+	ignore = dirty
 [submodule "external/libev"]
 	path = external/libev
 	url = https://git.lighttpd.net/mirrors/libev.git
-        ignore = dirty
+	ignore = dirty
 [submodule "external/lmdb"]
 	path = external/lmdb
 	url = https://github.com/LMDB/lmdb.git
-        ignore = dirty
+	ignore = dirty
+	branch = mdb.master
 

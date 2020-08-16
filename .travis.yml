@@ -9,6 +9,8 @@ os:
   - linux
   - osx
 
+osx_image: xcode12
+
 sudo: false
 
 env:
